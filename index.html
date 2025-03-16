@@ -1,27 +1,586 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple PWA</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit: cover;">
+    <title>Sea Catch Scorer</title>
     <link rel="manifest" href="manifest.json">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        .splash-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #F5F5F7;
+        }
+        .splash-screen img {
+            max-width: 100%;
+            height: auto;
+        }
+        .splash-screen .btn {
+            margin: 10px;
+        }
         body {
-            font-family: sans-serif;
-            text-align: center;
-            margin-top: 50px;
+            overscroll-behavior-y: contain;
+        }
+        #savedScorecardsList .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        #savedScorecardsList .card:hover {
+            background-color: #f8f9fa;
+        }
+        #savedScorecardsList .card-body {
+            padding: 15px;
+        }
+        #savedScorecardsList .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        #savedScorecardsList .card-text {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        #customSpeciesInput {
+            display: none; /* Hidden by default */
+        }
+        .catch-summary-details {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .catch-summary-details strong {
+            font-weight: bold;
+        }
+        .full-scorecard {
+            display: none; /* Hidden by default */
+        }
+        .scorecard-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
     </style>
 </head>
 <body>
-    <h1>Hello from my Simple PWA!</h1>
-    <img src="icon.png" alt="PWA Icon" width="100">
+    <div class="container">
+        <!-- Splash Screen -->
+        <div id="splashScreen" class="splash-screen">
+            <img src="https://i.postimg.cc/pLFtxQWs/seacatchscorecard.jpg" alt="Sea Catch Scorer Logo">
+            <button class="btn btn-primary" onclick="startFishing()">Continue to App</button>
+            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#savedScorecardsModal">View Saved Scorecards</button>
+        </div>
+
+        <!-- Saved Scorecards Modal -->
+        <div class="modal fade" id="savedScorecardsModal" tabindex="-1" aria-labelledby="savedScorecardsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="savedScorecardsModalLabel">Saved Scorecards</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="savedScorecardsList"></div>
+                        <div id="fullScorecardView" class="full-scorecard">
+                            <h5 id="fullScorecardTitle"></h5>
+                            <div class="catch-summary-details">
+                                <strong>Angler:</strong> <span id="fullScorecardAngler"></span><br>
+                                <strong>Date:</strong> <span id="fullScorecardDate"></span><br>
+                                <strong>Venue:</strong> <span id="fullScorecardVenue"></span><br>
+                                <strong>Zone:</strong> <span id="fullScorecardZone"></span><br>
+                                <strong>Peg:</strong> <span id="fullScorecardPeg"></span><br>
+                            </div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Species</th>
+                                        <th>Length (cm)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fullScorecardFishLog"></tbody>
+                            </table>
+                            <button class="btn btn-secondary" onclick="backToScorecardList()">Back to List</button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Angler Registration -->
+        <div id="anglerRegistration" class="card-section" style="display: none;">
+            <div class="mb-3">
+                <label for="anglerName" class="form-label">Angler Name</label>
+                <input type="text" id="anglerName" class="form-control" placeholder="Enter your name">
+            </div>
+            <div class="mb-3">
+                <label for="competitionDate" class="form-label">Date</label>
+                <input type="date" id="competitionDate" class="form-control" placeholder="Enter Date">
+            </div>
+            <div class="mb-3">
+                <label for="venueInput" class="form-label">Venue</label>
+                <input type="text" id="venueInput" class="form-control" placeholder="Enter venue (e.g., Lake Smith)">
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="isCompetition" onchange="toggleCompetitionFields()">
+                <label class="form-check-label" for="isCompetition">Select if a competition</label>
+            </div>
+            <div class="mb-3">
+                <label for="zoneInput" class="form-label">Zone</label>
+                <select id="zoneInput" class="form-select" disabled>
+                    <option value="" selected>Select a zone</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="pegInput" class="form-label">Peg</label>
+                <select id="pegInput" class="form-select" disabled>
+                    <option value="" selected>Select a peg</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                </select>
+            </div>
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-primary" id="startFishingBtn">Record Catch <i class="bi bi-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Angler Fishing Page -->
+        <div id="anglerFishingPage" style="display: none;" class="card-section">
+            <div class="mb-3">
+                <label for="speciesInput" class="form-label">Species</label>
+                <select id="speciesInput" class="form-select" onchange="toggleCustomSpeciesInput()">
+                    <option value="" selected>Select a species</option>
+                    <option value="Other">Other (specify)</option>
+                </select>
+                <input type="text" id="customSpeciesInput" class="form-control mt-2" placeholder="Enter custom species">
+            </div>
+            <div class="mb-3">
+                <label for="lengthInput" class="form-label">Length (cm)</label>
+                <input type="number" id="lengthInput" class="form-control" placeholder="Enter fish length">
+            </div>
+            <button class="btn btn-primary mb-3" id="addFishBtn">Add Fish <i class="bi bi-plus"></i></button>
+            <button class="btn btn-secondary mb-3" id="backToRegistrationBtn">Back to Registration</button>
+            <h2>Fish Log</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Species</th>
+                        <th>Length (cm)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="fishLog"></tbody>
+            </table>
+            <button id="endSessionButton" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#endSessionModal">End Session <i class="bi bi-arrow-right"></i></button>
+        </div>
+
+        <!-- End Session Confirmation Modal -->
+        <div class="modal fade" id="endSessionModal" tabindex="-1" aria-labelledby="endSessionModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="endSessionModalLabel">Confirm End Session</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure your session is ended?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">CONTINUE FISHING</button>
+                        <button type="button" class="btn btn-danger" id="confirmEndSessionBtn">END MY SESSION</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tally Verification Page -->
+        <div id="tallyVerificationPage" style="display: none;" class="card-section">
+            <h2>Catch Summary & Verification</h2>
+            <div class="catch-summary-details">
+                <strong>Angler:</strong> <span id="summaryAngler"></span><br>
+                <strong>Date:</strong> <span id="summaryDate"></span><br>
+                <strong>Venue:</strong> <span id="summaryVenue"></span><br>
+                <strong>Zone:</strong> <span id="summaryZone"></span><br>
+                <strong>Peg:</strong> <span id="summaryPeg"></span><br>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Species</th>
+                        <th>Total Caught</th>
+                        <th>Total Length (cm)</th>
+                    </tr>
+                </thead>
+                <tbody id="tallyTable"></tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td><strong>Overall Total Length</strong></td>
+                        <td><strong id="tallyTotalFishCaught">0</strong></td>
+                        <td><strong id="tallyTotalCombinedLength">0.00 cm</strong></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td><strong>Number of Species Caught</strong></td>
+                        <td><strong id="tallyTotalSpeciesCaught">0</strong></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <button class="btn btn-primary mb-3" id="saveAndEndSessionBtn">Save & End Session <i class="bi bi-check-circle"></i></button>
+            <button class="btn btn-success mb-3" id="emailScorecardBtn">Email Scorecard <i class="bi bi-envelope"></i></button>
+        </div>
+    </div>
+
     <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('service-worker.js');
+        // Fish categories data
+        const samfFishCategories = {
+            "Flatfish": ["Brill", "Dab", "Flounder", "Halibut", "Megrim", "Plaice", "Sole (Dover)", "Sole (Lemon)", "Sole (Thickback)", "Turbot"],
+            "Round Fish": ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Coalfish", "Cod", "Conger Eel", "Gurnard (Red)", "Gurnard (Tub)", "Haddock", "Hake", "John Dory", "Ling", "Mackerel", "Monkfish", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Poor Cod", "Pouting", "Saithe", "Salmon", "Shark (Blue)", "Shark (Porbeagle)", "Shark (Thresher)", "Smoothhound", "Sprat", "Tope", "Triggerfish", "Whiting"],
+            "Rays and Skates": ["Ray (Blonde)", "Ray (Small-eyed)", "Ray (Spotted)", "Ray (Starry)", "Ray (Thornback)", "Skate"],
+            "Wrasse": ["Wrasse (Ballan)", "Wrasse (Cuckoo)"]
+        };
+
+        let fishData = [];
+        let currentAngler = null;
+        let currentDate = null;
+        let currentVenue = null;
+        let currentZone = null;
+        let currentPeg = null;
+
+        // Format date as "15 March 2025"
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            return date.toLocaleDateString('en-GB', options);
+        }
+
+        // Generate email body for the scorecard
+        function generateEmailBody() {
+            let emailBody = `Angler: ${currentAngler}\n`;
+            emailBody += `Date: ${formatDate(currentDate)}\n`;
+            emailBody += `Venue: ${currentVenue}\n`;
+            emailBody += `Zone: ${currentZone || 'N/A'}\n`;
+            emailBody += `Peg: ${currentPeg || 'N/A'}\n\n`;
+            emailBody += "Fish Caught:\n";
+            fishData.forEach(fish => {
+                emailBody += `- ${fish.species}: ${fish.length} cm\n`;
+            });
+            emailBody += `\nTotal Fish Caught: ${fishData.length}\n`;
+            emailBody += `Total Length: ${fishData.reduce((sum, fish) => sum + fish.length, 0).toFixed(2)} cm\n`;
+            emailBody += `Number of Species: ${new Set(fishData.map(fish => fish.species)).size}`;
+            return emailBody;
+        }
+
+        // Email scorecard
+        function emailScorecard() {
+            const emailAddress = prompt("Enter the email address to send the scorecard to:");
+            if (!emailAddress) {
+                alert("Please enter a valid email address.");
+                return;
+            }
+            const subject = `Sea Catch Scorer - ${currentAngler} - ${formatDate(currentDate)}`;
+            const body = generateEmailBody();
+            const mailtoLink = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailtoLink;
+        }
+
+        // Populate species dropdown
+        function populateSpeciesDropdown() {
+            const speciesInput = document.getElementById('speciesInput');
+            speciesInput.innerHTML = '<option value="" selected>Select a species</option><option value="Other">Other (specify)</option>';
+            for (const category in samfFishCategories) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = category;
+                samfFishCategories[category].forEach(species => {
+                    const option = document.createElement('option');
+                    option.value = species;
+                    option.textContent = species;
+                    optgroup.appendChild(option);
+                });
+                speciesInput.appendChild(optgroup);
+            }
+        }
+
+        // Toggle custom species input visibility
+        function toggleCustomSpeciesInput() {
+            const speciesInput = document.getElementById('speciesInput');
+            const customSpeciesInput = document.getElementById('customSpeciesInput');
+            customSpeciesInput.style.display = speciesInput.value === 'Other' ? 'block' : 'none';
+        }
+
+        // Start fishing
+        function startFishing() {
+            document.getElementById('splashScreen').style.display = 'none';
+            document.getElementById('anglerRegistration').style.display = 'block';
+        }
+
+        // Toggle competition fields
+        function toggleCompetitionFields() {
+            const isCompetition = document.getElementById('isCompetition').checked;
+            document.getElementById('zoneInput').disabled = !isCompetition;
+            document.getElementById('pegInput').disabled = !isCompetition;
+        }
+
+        // Register angler
+        function registerAngler() {
+            const anglerName = document.getElementById('anglerName').value.trim();
+            const competitionDate = document.getElementById('competitionDate').value;
+            const venueInput = document.getElementById('venueInput').value.trim();
+            const isCompetition = document.getElementById('isCompetition').checked;
+            const zoneInput = document.getElementById('zoneInput').value;
+            const pegInput = document.getElementById('pegInput').value;
+            if (!anglerName || !competitionDate || !venueInput) {
+                alert("Please fill in all required fields!");
+                return;
+            }
+            if (isCompetition && (!zoneInput || !pegInput)) {
+                alert("Please select a zone and peg for the competition!");
+                return;
+            }
+            currentAngler = anglerName;
+            currentDate = competitionDate;
+            currentVenue = venueInput;
+            currentZone = zoneInput;
+            currentPeg = pegInput;
+            populateSpeciesDropdown();
+            document.getElementById('anglerRegistration').style.display = 'none';
+            document.getElementById('anglerFishingPage').style.display = 'block';
+        }
+
+        // Add fish
+        function addFish() {
+            const speciesInput = document.getElementById('speciesInput');
+            const customSpeciesInput = document.getElementById('customSpeciesInput');
+            const lengthInput = document.getElementById('lengthInput');
+            let species = speciesInput.value;
+            const length = parseFloat(lengthInput.value);
+            if (species === 'Other') {
+                species = customSpeciesInput.value.trim();
+                if (!species) {
+                    alert("Please enter a custom species name!");
+                    return;
+                }
+            } else if (species === '') {
+                alert("Please select a species!");
+                return;
+            }
+            if (isNaN(length) || length <= 0 || length > 500) {
+                alert("Please enter a valid length (0-500 cm)!");
+                return;
+            }
+            const newFish = { species, length };
+            fishData.push(newFish);
+            localStorage.setItem(`session_${currentAngler}`, JSON.stringify({ fishData, currentAngler, currentDate, currentVenue, currentZone, currentPeg }));
+            updateFishLog();
+            speciesInput.value = '';
+            customSpeciesInput.value = '';
+            lengthInput.value = '';
+            toggleCustomSpeciesInput();
+        }
+
+        // Update fish log
+        function updateFishLog() {
+            const fishLog = document.getElementById('fishLog');
+            fishLog.innerHTML = '';
+            fishData.forEach((fish, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${fish.species}</td><td>${fish.length} cm</td><td><button class="btn btn-danger btn-sm" onclick="deleteFish(${index})">Delete</button></td>`;
+                fishLog.appendChild(row);
+            });
+        }
+
+        // Delete fish
+        function deleteFish(index) {
+            if (confirm("Are you sure you want to delete this fish?")) {
+                fishData.splice(index, 1);
+                localStorage.setItem(`session_${currentAngler}`, JSON.stringify({ fishData, currentAngler, currentDate, currentVenue, currentZone, currentPeg }));
+            updateFishLog();
+            }
+        }
+
+        // Back to registration
+        function goBackToRegistration() {
+            document.getElementById('anglerFishingPage').style.display = 'none';
+            document.getElementById('anglerRegistration').style.display = 'block';
+        }
+
+        // End session
+        function endSession() {
+            document.getElementById('anglerFishingPage').style.display = 'none';
+            document.getElementById('tallyVerificationPage').style.display = 'block';
+            populateTallyTable();
+            document.getElementById('summaryAngler').textContent = currentAngler;
+            document.getElementById('summaryDate').textContent = formatDate(currentDate);
+            document.getElementById('summaryVenue').textContent = currentVenue;
+            document.getElementById('summaryZone').textContent = currentZone || 'N/A';
+            document.getElementById('summaryPeg').textContent = currentPeg || 'N/A';
+        }
+
+        // Populate tally table
+        function populateTallyTable() {
+            const tallyTable = document.getElementById('tallyTable');
+            const tallyTotalFishCaught = document.getElementById('tallyTotalFishCaught');
+            const tallyTotalCombinedLength = document.getElementById('tallyTotalCombinedLength');
+            const tallyTotalSpeciesCaught = document.getElementById('tallyTotalSpeciesCaught');
+            tallyTable.innerHTML = '';
+            const summary = {};
+            let overallTotalFish = 0;
+            let overallTotalLength = 0;
+            let uniqueSpecies = new Set();
+            fishData.forEach(fish => {
+                summary[fish.species] = summary[fish.species] || { count: 0, totalLength: 0 };
+                summary[fish.species].count++;
+                summary[fish.species].totalLength += fish.length;
+                overallTotalFish++;
+                overallTotalLength += fish.length;
+                uniqueSpecies.add(fish.species);
+            });
+            for (const species in summary) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${species}</td><td>${summary[species].count}</td><td>${summary[species].totalLength.toFixed(2)} cm</td>`;
+                tallyTable.appendChild(row);
+            }
+            tallyTotalFishCaught.textContent = overallTotalFish;
+            tallyTotalCombinedLength.textContent = overallTotalLength.toFixed(2) + ' cm';
+            tallyTotalSpeciesCaught.textContent = uniqueSpecies.size;
+        }
+
+        // Save & End Session
+        function saveAndEndSession() {
+            const sessionData = {
+                angler: currentAngler,
+                date: currentDate,
+                venue: currentVenue,
+                zone: currentZone || 'N/A',
+                peg: currentPeg || 'N/A',
+                fishData
+            };
+            const scorecardId = `scorecard_${Date.now()}`;
+            localStorage.setItem(scorecardId, JSON.stringify(sessionData));
+            alert("Scorecard saved successfully!");
+            resetApp();
+        }
+
+        // Load saved scorecards
+        function loadSavedScorecards() {
+            const savedScorecardsList = document.getElementById('savedScorecardsList');
+            savedScorecardsList.innerHTML = '';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('scorecard_')) {
+                    const scorecardData = JSON.parse(localStorage.getItem(key));
+                    const scorecardContainer = document.createElement('div');
+                    scorecardContainer.classList.add('card', 'mb-3');
+                    scorecardContainer.innerHTML = `
+                        <div class="card-body">
+                            <div class="scorecard-summary">
+                                <div>
+                                    <h5 class="card-title">${scorecardData.angler}</h5>
+                                    <p class="card-text">${formatDate(scorecardData.date)} - ${scorecardData.venue} - Zone: ${scorecardData.zone || 'N/A'}, Peg: ${scorecardData.peg || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary btn-sm" onclick="viewFullScorecard('${key}')">View Details</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteScorecard('${key}')">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    savedScorecardsList.appendChild(scorecardContainer);
+                }
+            }
+        }
+
+        // View full scorecard
+        function viewFullScorecard(key) {
+            const scorecardData = JSON.parse(localStorage.getItem(key));
+            document.getElementById('fullScorecardTitle').textContent = `${scorecardData.angler} - ${formatDate(scorecardData.date)}`;
+            document.getElementById('fullScorecardAngler').textContent = scorecardData.angler;
+            document.getElementById('fullScorecardDate').textContent = formatDate(scorecardData.date);
+            document.getElementById('fullScorecardVenue').textContent = scorecardData.venue;
+            document.getElementById('fullScorecardZone').textContent = scorecardData.zone || 'N/A';
+            document.getElementById('fullScorecardPeg').textContent = scorecardData.peg || 'N/A';
+            const fishLog = document.getElementById('fullScorecardFishLog');
+            fishLog.innerHTML = '';
+            scorecardData.fishData.forEach(fish => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${fish.species}</td><td>${fish.length} cm</td>`;
+                fishLog.appendChild(row);
+            });
+            document.getElementById('savedScorecardsList').style.display = 'none';
+            document.getElementById('fullScorecardView').style.display = 'block';
+        }
+
+        // Back to scorecard list
+        function backToScorecardList() {
+            document.getElementById('savedScorecardsList').style.display = 'block';
+            document.getElementById('fullScorecardView').style.display = 'none';
+        }
+
+        // Delete scorecard
+        function deleteScorecard(key) {
+            if (confirm("Are you sure you want to delete this scorecard?")) {
+                localStorage.removeItem(key);
+                loadSavedScorecards();
+            }
+        }
+
+        // Reset app state
+        function resetApp() {
+            fishData = [];
+            currentAngler = null;
+            currentDate = null;
+            currentVenue = null;
+            currentZone = null;
+            currentPeg = null;
+            document.getElementById('anglerName').value = '';
+            document.getElementById('competitionDate').value = '';
+            document.getElementById('venueInput').value = '';
+            document.getElementById('isCompetition').checked = false;
+            document.getElementById('zoneInput').value = '';
+            document.getElementById('pegInput').value = '';
+            document.getElementById('tallyVerificationPage').style.display = 'none';
+            document.getElementById('splashScreen').style.display = 'flex';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('startFishingBtn').addEventListener('click', registerAngler);
+            document.getElementById('addFishBtn').addEventListener('click', addFish);
+            document.getElementById('backToRegistrationBtn').addEventListener('click', goBackToRegistration);
+            document.getElementById('confirmEndSessionBtn').addEventListener('click', () => {
+                endSession();
+                const endSessionModal = bootstrap.Modal.getInstance(document.getElementById('endSessionModal'));
+                endSessionModal.hide();
+            });
+            document.getElementById('saveAndEndSessionBtn').addEventListener('click', saveAndEndSession);
+            document.getElementById('emailScorecardBtn').addEventListener('click', emailScorecard);
+            document.getElementById('savedScorecardsModal').addEventListener('show.bs.modal', loadSavedScorecards);
+            toggleCompetitionFields();
         });
-    }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js');
+            });
+        }
     </script>
 </body>
 </html>
