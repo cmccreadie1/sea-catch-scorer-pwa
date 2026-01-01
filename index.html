@@ -241,7 +241,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="https://i.postimg.cc/pLFtxQWs/seacatchscorecard.jpg" alt="Sea Catch Scorer Logo">
             <h1 class="mb-2">Sea Catch Scorer</h1>
-            <p class="version-tag text-white-50">Version 28.0 (Ready)</p>
+            <p class="version-tag text-white-50">Version 29.0 (Corrected Link)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -909,11 +909,15 @@
         window.sendToWhatsApp = function(context) {
             const text = window.getShareData(context);
             if (!text) return;
+
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             const encodedText = encodeURIComponent(text);
+
             if (isMobile) {
+                // Try App Deep Link
                 window.location.href = `whatsapp://send?text=${encodedText}`;
             } else {
+                // Use Web Wrapper
                 window.open(`https://wa.me/?text=${encodedText}`, '_blank');
             }
         };
@@ -954,14 +958,14 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // CRITICAL UPDATE: Pointing to service-worker.js to match repo file
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                navigator.serviceWorker.register('./service-worker.js')
                     .then(reg => console.log('Service Worker: Registered'))
                     .catch(err => console.log('Service Worker: Error', err));
             });
         }
     </script>
 </body>
-</html>
 </html>
