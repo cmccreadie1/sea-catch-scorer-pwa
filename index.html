@@ -241,7 +241,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="https://i.postimg.cc/pLFtxQWs/seacatchscorecard.jpg" alt="Sea Catch Scorer Logo">
             <h1 class="mb-2">Sea Catch Scorer</h1>
-            <p class="version-tag text-white-50">Version 27.0 (App Install Ready)</p>
+            <p class="version-tag text-white-50">Version 28.0 (Ready)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -878,7 +878,6 @@
             document.getElementById('pegInput').disabled = !isComp;
         };
 
-        // --- NEW HELPERS ---
         window.getShareData = function(context) {
             let data = {};
             if (context === 'live') {
@@ -907,19 +906,14 @@
             return `*MATCH RESULT* 🐟\n\n*Angler:* ${data.angler}\n*Venue:* ${data.venue}\n*Peg:* ${data.peg}\n\n🏆 *Score: ${data.totalPoints} pts*\n\n*Stats:*\n- Fish: ${data.totalFish}\n- Length: ${data.totalLen}\n- Best: ${data.bestFish}`;
         };
 
-        // SMART WHATSAPP LINKING
         window.sendToWhatsApp = function(context) {
             const text = window.getShareData(context);
             if (!text) return;
-
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             const encodedText = encodeURIComponent(text);
-
             if (isMobile) {
-                // Try App Deep Link
                 window.location.href = `whatsapp://send?text=${encodedText}`;
             } else {
-                // Use Web Wrapper
                 window.open(`https://wa.me/?text=${encodedText}`, '_blank');
             }
         };
@@ -927,7 +921,6 @@
         window.copyToClipboard = function(context) {
             const text = window.getShareData(context);
             if(!text) return;
-            
             if(navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => alert("Result Copied! Open WhatsApp and Paste."));
             } else {
@@ -970,4 +963,5 @@
         }
     </script>
 </body>
+</html>
 </html>
