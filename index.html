@@ -239,9 +239,9 @@
 <body>
     <div class="container">
         <div id="splashScreen" class="splash-screen">
-            <img src="https://i.postimg.cc/pLFtxQWs/seacatchscorecard.jpg" alt="Sea Catch Scorer Logo">
+            <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-2">Sea Catch Scorer</h1>
-            <p class="version-tag text-white-50">Version 31.0 (Final Install)</p>
+            <p class="version-tag text-white-50">Version 33.0 (Smart Restore)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -502,6 +502,22 @@
         </div>
     </div>
 
+    <div class="modal fade" id="restoreSessionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3 text-primary"><i class="bi bi-clock-history fs-1"></i></div>
+                    <h4 class="mb-2 fw-bold">Resume Session?</h4>
+                    <p class="text-muted mb-4">We found an unfinished log for <strong id="restoreAnglerName"></strong>.</p>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary" onclick="window.confirmRestore()">Yes, Continue</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="window.discardRestore()">No, Start New</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const StorageHelper = {
             memoryStore: {},
@@ -559,6 +575,7 @@
 
         let fishData = [];
         let currentAngler = null, currentDate = null, currentVenue = null, currentZone = null, currentPeg = null, currentViewingLog = null;
+        let pendingRestoreData = null; // Store data temporarily for the modal
 
         window.formatDate = function(dateString) {
             try {
@@ -583,23 +600,67 @@
             } catch(e) {}
         };
 
+        // NEW: Check for session but don't apply it yet
         window.restoreActiveSession = function() {
             const saved = StorageHelper.get('active_session');
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
                     if(data.angler && data.date) {
-                        currentAngler = data.angler;
-                        currentDate = data.date;
-                        currentVenue = data.venue;
-                        currentZone = data.zone;
-                        currentPeg = data.peg;
-                        fishData = data.fishData || [];
-                        PageManager.show('anglerFishingPage');
-                        window.updateFishLog();
+                        // Store it temporarily
+                        pendingRestoreData = data;
+                        document.getElementById('restoreAnglerName').textContent = data.angler;
+                        
+                        // Show the Modal
+                        const modal = new bootstrap.Modal(document.getElementById('restoreSessionModal'));
+                        modal.show();
                     }
                 } catch(e) {}
             }
+        };
+
+        // NEW: User clicked "Yes, Continue"
+        window.confirmRestore = function() {
+            const data = pendingRestoreData;
+            if(!data) return;
+
+            // Hide Modal
+            const modalEl = document.getElementById('restoreSessionModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if(modal) modal.hide();
+
+            // Restore State
+            currentAngler = data.angler;
+            currentDate = data.date;
+            currentVenue = data.venue;
+            currentZone = data.zone;
+            currentPeg = data.peg;
+            fishData = data.fishData || [];
+
+            // Fix the dropdown bug
+            window.populateSpeciesDropdown();
+
+            // Setup Competition Fields in background
+            if(currentZone || currentPeg) {
+                document.getElementById('isCompetition').checked = true;
+                window.toggleCompetitionFields();
+                document.getElementById('zoneInput').value = currentZone;
+                document.getElementById('pegInput').value = currentPeg;
+            }
+
+            // Go to page
+            PageManager.show('anglerFishingPage');
+            window.updateFishLog();
+        };
+
+        // NEW: User clicked "No, Start New"
+        window.discardRestore = function() {
+            StorageHelper.remove('active_session');
+            pendingRestoreData = null;
+            const modalEl = document.getElementById('restoreSessionModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if(modal) modal.hide();
+            // Stay on splash screen
         };
 
         window.clearActiveSession = function() {
@@ -943,7 +1004,6 @@
             }
         };
         
-        // PWA Install Prompt Logic
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -975,7 +1035,6 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
