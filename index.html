@@ -124,7 +124,6 @@
             color: var(--accent-color);
         }
 
-        /* Rule Info Box */
         .rule-info-box {
             background-color: #e3f2fd;
             border: 1px solid #bbdefb;
@@ -133,13 +132,9 @@
             border-radius: 12px;
             font-size: 0.85rem;
             margin-top: 15px;
-            display: none; /* Hidden by default */
+            display: none;
         }
-        .rule-info-box ul {
-            padding-left: 20px;
-            margin-bottom: 0;
-            margin-top: 5px;
-        }
+        .rule-info-box ul { padding-left: 20px; margin-bottom: 0; margin-top: 5px; }
 
         .big-switch {
             display: flex;
@@ -239,16 +234,17 @@
             margin-bottom: 10px;
         }
 
+        /* Updated Grid to include Species Count */
         .stat-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr; /* 3 columns now */
             gap: 10px;
             margin-bottom: 20px;
         }
 
         .stat-card {
             background: #ffffff;
-            padding: 15px;
+            padding: 10px 5px;
             border-radius: 15px;
             text-align: center;
             border: 1px solid var(--border-color);
@@ -257,13 +253,13 @@
         .stat-card small {
             display: block;
             color: #90a4ae;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
             font-weight: 600;
         }
 
         .stat-card strong {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--text-dark);
         }
 
@@ -354,7 +350,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-2">Sea Catch Scorer</h1>
-            <p class="version-tag text-white-50">Version 41.0 (Dynamic Rules)</p>
+            <p class="version-tag text-white-50">Version 42.0 (SAMF Details)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -419,17 +415,20 @@
                                 <div id="saved_total_points" class="score-hero-val">0</div>
                             </div>
 
-                            <div id="saved_equation_container" class="equation-box">
-                                </div>
+                            <div id="saved_equation_container" class="equation-box"></div>
 
                             <div class="stat-grid">
-                                <div class="stat-card border-success border-opacity-50" style="grid-column: span 2;">
+                                <div class="stat-card border-success border-opacity-50" style="grid-column: span 3;">
                                     <small class="text-success">Biggest Fish</small>
                                     <strong id="saved_biggest_fish" class="text-success">-</strong>
                                 </div>
                                 <div class="stat-card">
                                     <small>Total Fish</small>
                                     <strong id="saved_fish_count">0</strong>
+                                </div>
+                                <div class="stat-card">
+                                    <small>Species</small>
+                                    <strong id="saved_species_count">0</strong>
                                 </div>
                                 <div class="stat-card">
                                     <small>Total Length</small>
@@ -439,7 +438,7 @@
 
                             <h6 class="text-muted text-uppercase fs-7 fw-bold ps-2">Catch Log</h6>
                             <table class="table table-borderless">
-                                <thead>
+                                <thead id="saved_log_head">
                                     <tr><th>Species</th><th class="text-center">Pts</th><th class="text-end">Length</th></tr>
                                 </thead>
                                 <tbody id="saved_fish_log"></tbody>
@@ -497,7 +496,7 @@
                 <div id="samfInfoBox" class="rule-info-box">
                     <div class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>SAMF Special Rules Applied:</div>
                     <ul>
-                        <li><strong>Eels (Conger):</strong> 30 points fixed (No measure needed).</li>
+                        <li><strong>Eels (Conger/Silver):</strong> 30 points fixed (No measure needed).</li>
                         <li><strong>Undersize (< 18cm):</strong> 2 points fixed.</li>
                         <li><strong>Others:</strong> Standard SFSA Points Matrix.</li>
                     </ul>
@@ -611,17 +610,20 @@
                 <div id="session_total_points" class="score-hero-val">0</div>
             </div>
 
-            <div id="session_equation_container" class="equation-box">
-                </div>
+            <div id="session_equation_container" class="equation-box"></div>
 
             <div class="stat-grid">
-                <div class="stat-card border-success border-opacity-50" style="grid-column: span 2;">
+                <div class="stat-card border-success border-opacity-50" style="grid-column: span 3;">
                     <small class="text-success">Biggest Fish</small>
                     <strong id="session_biggest_fish" class="text-success">-</strong>
                 </div>
                 <div class="stat-card">
                     <small>Total Fish</small>
                     <strong id="session_total_fish">0</strong>
+                </div>
+                <div class="stat-card">
+                    <small>Species</small>
+                    <strong id="session_species_count">0</strong>
                 </div>
                 <div class="stat-card">
                     <small>Total Length</small>
@@ -631,7 +633,7 @@
 
             <h6 class="text-muted fs-7 mb-3 text-uppercase fw-bold">Catch Breakdown</h6>
             <table class="table table-borderless">
-                <thead>
+                <thead id="session_log_head">
                     <tr><th>Species</th><th class="text-center">Pts</th><th class="text-end">Length</th></tr>
                 </thead>
                 <tbody id="live_tally_table"></tbody>
@@ -727,14 +729,16 @@
             }
         };
 
+        // ALIGNED WITH SAMF MATRIX CATEGORIES
         const samfFishCategories = {
+            "Round Fish": ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Coalfish", "Cod", "Gurnard (Red)", "Gurnard (Tub)", "Haddock", "Hake", "John Dory", "Ling", "Mackerel", "Monkfish", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Poor Cod", "Pouting", "Saithe", "Salmon", "Shark (Blue)", "Shark (Porbeagle)", "Shark (Thresher)", "Sprat", "Triggerfish", "Whiting"],
             "Flatfish": ["Brill", "Dab", "Flounder", "Halibut", "Megrim", "Plaice", "Sole (Dover)", "Sole (Lemon)", "Sole (Thickback)", "Turbot"],
-            "Round Fish": ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Bull Huss", "Coalfish", "Cod", "Conger Eel", "Dogfish (Blackmouth)", "Dogfish (LSD)", "Gurnard (Red)", "Gurnard (Tub)", "Haddock", "Hake", "John Dory", "Ling", "Mackerel", "Monkfish", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Poor Cod", "Pouting", "Saithe", "Salmon", "Shark (Blue)", "Shark (Porbeagle)", "Shark (Thresher)", "Smoothhound", "Sprat", "Tope", "Triggerfish", "Whiting"],
             "Rays and Skates": ["Ray (Blonde)", "Ray (Small-eyed)", "Ray (Spotted)", "Ray (Starry)", "Ray (Thornback)", "Skate"],
-            "Wrasse": ["Wrasse (Ballan)", "Wrasse (Cuckoo)"]
+            "Other (Shark/Dogfish)": ["Bull Huss", "Dogfish (LSD)", "Smoothhound", "Tope"],
+            "Wrasse": ["Wrasse (Ballan)", "Wrasse (Cuckoo)"],
+            "Fixed Value": ["Conger Eel", "Silver Eel"]
         };
 
-        // SAMF POINTS TABLE (Revised 2022)
         const samfPointsTable = {
             18:[4,2,0,0], 19:[5,3,0,0], 20:[6,4,0,0], 21:[7,5,0,0], 22:[8,6,0,0], 23:[9,7,0,0], 24:[10,8,0,0], 25:[11,9,0,0],
             26:[13,10,0,0], 27:[14,12,0,0], 28:[16,13,0,0], 29:[18,15,0,0], 30:[20,16,0,0], 31:[22,18,0,0], 32:[24,20,0,0],
@@ -765,7 +769,6 @@
             } catch (e) { return 'N/A'; }
         };
 
-        // NEW: Check Rule Info visibility
         window.checkRuleInfo = function() {
             const method = document.getElementById('scoringMethod').value;
             const infoBox = document.getElementById('samfInfoBox');
@@ -776,24 +779,23 @@
             }
         };
 
-        // UPDATED: Logic for Eels and Undersize
         window.getSAMFPoints = function(species, length) {
             const len = Math.floor(length);
             
-            // RULE 1: Eels = 30 points fixed (usually Conger, but catching any eel here)
-            if (species.includes('Eel') || species === 'Conger Eel') return 30;
+            // Fixed Value Eels
+            if (species === 'Conger Eel' || species === 'Silver Eel' || species.includes('Eel')) return 30;
             
-            // RULE 2: Undersize (<18cm) = 2 points
+            // Undersize Rule
             if (len < 18) return 2;
             
-            // RULE 3: Matrix Lookup
+            // Matrix Lookup
             const ptsData = samfPointsTable[len] || samfPointsTable[100]; 
             if (!ptsData) return 0;
 
-            let catIndex = 0; // Default Round Fish
+            let catIndex = 0; // Default Round
             if (samfFishCategories["Flatfish"].includes(species)) catIndex = 1;
             else if (samfFishCategories["Rays and Skates"].includes(species)) catIndex = 2;
-            else if (["Dogfish (LSD)", "Smoothhound", "Tope", "Bull Huss"].includes(species)) catIndex = 3;
+            else if (samfFishCategories["Other (Shark/Dogfish)"].includes(species)) catIndex = 3;
             
             return ptsData[catIndex];
         };
@@ -810,18 +812,15 @@
                 });
                 return total;
             } else {
-                // measure_points
                 const len = fishList.reduce((acc, fish) => acc + parseFloat(fish.length), 0);
                 return Math.round((fishList.length * 5) + len);
             }
         };
 
-        // NEW: Generate Dynamic Equation HTML based on Method
         window.generateEquationHTML = function(totalFish, totalLength, method, totalPts) {
             let html = '';
             
             if(method === 'length_only') {
-                // Case 1: Length Only
                 html = `
                     <div class="eq-row">
                         <span class="eq-label">Total Length</span>
@@ -832,36 +831,14 @@
                         <span class="eq-total">${totalPts}</span>
                     </div>`;
             } else if (method === 'samf_matrix') {
-                // Case 2: SAMF Matrix (Breakdown by types)
-                // Calculate breakdown dynamically
-                let matrixPts = 0;
-                let fixedPts = 0;
-                
-                fishData.forEach(f => {
-                    const l = parseFloat(f.length);
-                    const pts = window.getSAMFPoints(f.species, l);
-                    if(f.species.includes('Eel') || l < 18) {
-                        fixedPts += pts;
-                    } else {
-                        matrixPts += pts;
-                    }
-                });
-
+                // Not really useful to show "matrix vs fixed" breakdown if we are showing per-fish lines
+                // So we just show Total Score for SAMF
                 html = `
-                    <div class="eq-row">
-                        <span class="eq-label">Matrix Points (Standard)</span>
-                        <span class="eq-math">${matrixPts}</span>
-                    </div>
-                    <div class="eq-row">
-                        <span class="eq-label">Fixed Points (Eels/Undersize)</span>
-                        <span class="eq-math">${fixedPts}</span>
-                    </div>
                     <div class="eq-row">
                         <span class="eq-label fw-bold text-primary">TOTAL SCORE</span>
                         <span class="eq-total">${totalPts}</span>
                     </div>`;
             } else {
-                // Case 3: Standard (Measure + Points)
                 html = `
                     <div class="eq-row">
                         <span class="eq-label">Fish Points (${totalFish} × 5)</span>
@@ -982,40 +959,62 @@
             tallyTable.innerHTML = '';
             
             let totalFish = 0, totalLength = 0, maxLen = 0, biggestFishName = "None";
-            const summary = {};
+            const uniqueSpecies = new Set();
 
             fishData.forEach(fish => {
                 const len = parseFloat(fish.length); 
                 totalFish++;
                 totalLength += len;
                 if(len > maxLen) { maxLen = len; biggestFishName = `${fish.species} (${len}cm)`; }
-
-                if(!summary[fish.species]) summary[fish.species] = { count: 0, totalLength: 0, lengths: [] };
-                summary[fish.species].count++;
-                summary[fish.species].totalLength += len;
-                summary[fish.species].lengths.push(len);
+                uniqueSpecies.add(fish.species);
             });
 
             const totalPts = window.calculatePoints(fishData, currentScoringMethod);
 
             document.getElementById('session_total_points').textContent = totalPts;
             
-            // Generate Dynamic Equation Box
+            // Equation Box Logic
             const eqContainer = document.getElementById('session_equation_container');
             eqContainer.innerHTML = window.generateEquationHTML(totalFish, totalLength, currentScoringMethod, totalPts);
             
             document.getElementById('session_total_fish').textContent = totalFish;
+            document.getElementById('session_species_count').textContent = uniqueSpecies.size; // New Stat
             document.getElementById('session_total_len').textContent = parseFloat(totalLength.toFixed(2)) + ' cm';
             document.getElementById('session_biggest_fish').textContent = biggestFishName;
 
-            for (const species in summary) {
-                const row = document.createElement('tr');
-                let lenDisplay = parseFloat(summary[species].totalLength.toFixed(2)) + ' cm';
-                if(summary[species].count > 1) {
-                    lenDisplay += `<div class="small text-muted" style="font-size:0.7rem;">(${summary[species].lengths.join(', ')})</div>`;
+            // Generate Table Rows (Row by Row Detail for SAMF)
+            const tableHead = document.getElementById('session_log_head');
+            
+            if (currentScoringMethod === 'samf_matrix') {
+                tableHead.innerHTML = `<tr><th>Species</th><th class="text-center">Len</th><th class="text-end">Pts</th></tr>`;
+                
+                fishData.forEach(fish => {
+                    const row = document.createElement('tr');
+                    const pts = window.getSAMFPoints(fish.species, parseFloat(fish.length));
+                    row.innerHTML = `<td class="fw-bold">${fish.species}</td><td class="text-center">${fish.length}</td><td class="text-end fw-bold">${pts}</td>`;
+                    tallyTable.appendChild(row);
+                });
+            } else {
+                // Standard Summary Mode (Grouped)
+                tableHead.innerHTML = `<tr><th>Species</th><th class="text-center">Qty</th><th class="text-end">Length</th></tr>`;
+                
+                const summary = {};
+                fishData.forEach(fish => {
+                    if(!summary[fish.species]) summary[fish.species] = { count: 0, totalLength: 0, lengths: [] };
+                    summary[fish.species].count++;
+                    summary[fish.species].totalLength += parseFloat(fish.length);
+                    summary[fish.species].lengths.push(fish.length);
+                });
+
+                for (const species in summary) {
+                    const row = document.createElement('tr');
+                    let lenDisplay = parseFloat(summary[species].totalLength.toFixed(2)) + ' cm';
+                    if(summary[species].count > 1) {
+                        lenDisplay += `<div class="small text-muted" style="font-size:0.7rem;">(${summary[species].lengths.join(', ')})</div>`;
+                    }
+                    row.innerHTML = `<td class="fw-bold">${species}</td><td class="text-center"><span class="badge bg-secondary rounded-pill">${summary[species].count}</span></td><td class="text-end">${lenDisplay}</td>`;
+                    tallyTable.appendChild(row);
                 }
-                row.innerHTML = `<td class="fw-bold">${species}</td><td class="text-center"><span class="badge bg-secondary rounded-pill">${summary[species].count}</span></td><td class="text-end">${lenDisplay}</td>`;
-                tallyTable.appendChild(row);
             }
         };
 
@@ -1033,7 +1032,7 @@
             document.getElementById('zoneInput').selectedIndex = 0;
             document.getElementById('pegInput').selectedIndex = 0;
             document.getElementById('scoringMethod').selectedIndex = 0; 
-            window.checkRuleInfo(); // Hide the box
+            window.checkRuleInfo();
 
             PageManager.show('splashScreen');
         };
@@ -1246,29 +1245,17 @@
 
                 if (!data.fishData) data.fishData = [];
                 let totalFish = 0, totalLength = 0, maxLen = 0, biggestFishName = "None";
-                const summary = {};
+                const uniqueSpecies = new Set();
 
                 data.fishData.forEach(fish => {
                     const len = parseFloat(fish.length) || 0;
                     totalFish++;
                     totalLength += len;
                     if(len > maxLen) { maxLen = len; biggestFishName = `${fish.species} (${len}cm)`; }
-
-                    if(!summary[fish.species]) summary[fish.species] = { count: 0, totalLength: 0, lengths: [] };
-                    summary[fish.species].count++;
-                    summary[fish.species].totalLength += len;
-                    summary[fish.species].lengths.push(len);
+                    uniqueSpecies.add(fish.species);
                 });
 
-                // RECALCULATE for Breakdown Display
-                // IMPORTANT: We need to temporarily set the global 'fishData' to this saved data
-                // so the generateEquationHTML function can read it to calculate matrix vs fixed points.
-                const savedFishData = data.fishData; // Keep reference
-                // (Note: generateEquationHTML reads the global 'fishData' variable if we use the same logic, 
-                // but actually we should pass it or handle it better. 
-                // Fix: I will update generateEquationHTML to take fishData as arg or handle inside viewFullScorecard manually)
-                
-                const totalPts = window.calculatePoints(savedFishData, method);
+                const totalPts = window.calculatePoints(data.fishData, method);
 
                 document.getElementById('saved_angler').textContent = data.angler;
                 document.getElementById('saved_date').textContent = window.formatDate(data.date);
@@ -1278,47 +1265,46 @@
                 
                 document.getElementById('saved_total_points').textContent = totalPts;
 
-                // GENERATE DYNAMIC EQUATION BOX FOR SAVED LOGS
                 const eqContainer = document.getElementById('saved_equation_container');
-                
-                // Manually generating breakdown for saved logs since generateEquationHTML uses global fishData
-                let html = '';
-                if(method === 'length_only') {
-                     html = `<div class="eq-row"><span class="eq-label">Total Length</span><span class="eq-math">${Math.round(totalLength)}</span></div>
-                             <div class="eq-row"><span class="eq-label fw-bold text-primary">TOTAL SCORE</span><span class="eq-total">${totalPts}</span></div>`;
-                } else if (method === 'samf_matrix') {
-                    let matrixPts = 0; let fixedPts = 0;
-                    savedFishData.forEach(f => {
-                        const l = parseFloat(f.length);
-                        const pts = window.getSAMFPoints(f.species, l);
-                        if(f.species.includes('Eel') || l < 18) fixedPts += pts;
-                        else matrixPts += pts;
-                    });
-                    html = `<div class="eq-row"><span class="eq-label">Matrix Points</span><span class="eq-math">${matrixPts}</span></div>
-                            <div class="eq-row"><span class="eq-label">Fixed (Eels/Undersize)</span><span class="eq-math">${fixedPts}</span></div>
-                            <div class="eq-row"><span class="eq-label fw-bold text-primary">TOTAL SCORE</span><span class="eq-total">${totalPts}</span></div>`;
-                } else {
-                    html = `<div class="eq-row"><span class="eq-label">Fish Points (${totalFish} × 5)</span><span class="eq-math">${totalFish * 5}</span></div>
-                            <div class="eq-row"><span class="eq-label">Length Points</span><span class="eq-math">${Math.round(totalLength)}</span></div>
-                            <div class="eq-row"><span class="eq-label fw-bold text-primary">TOTAL SCORE</span><span class="eq-total">${totalPts}</span></div>`;
-                }
-                eqContainer.innerHTML = html;
+                eqContainer.innerHTML = window.generateEquationHTML(totalFish, totalLength, method, totalPts);
 
                 document.getElementById('saved_fish_count').textContent = totalFish;
+                document.getElementById('saved_species_count').textContent = uniqueSpecies.size;
                 document.getElementById('saved_total_len').textContent = parseFloat(totalLength.toFixed(2)) + ' cm';
                 document.getElementById('saved_biggest_fish').textContent = biggestFishName;
 
+                // SAVED LOG DETAIL (Row by Row for SAMF)
                 const log = document.getElementById('saved_fish_log');
+                const head = document.getElementById('saved_log_head');
                 log.innerHTML = '';
-                for (const species in summary) {
-                    const row = document.createElement('tr');
-                    
-                    let lenDisplay = parseFloat(summary[species].totalLength.toFixed(2)) + ' cm';
-                    if(method === 'samf_matrix') {
-                        // For summary in saved logs, just show lengths, points calculation is complex to summarize per line
+
+                if(method === 'samf_matrix') {
+                    head.innerHTML = `<tr><th>Species</th><th class="text-center">Len</th><th class="text-end">Pts</th></tr>`;
+                    data.fishData.forEach(fish => {
+                        const row = document.createElement('tr');
+                        const pts = window.getSAMFPoints(fish.species, parseFloat(fish.length));
+                        row.innerHTML = `<td class="fw-bold">${fish.species}</td><td class="text-center">${fish.length}</td><td class="text-end fw-bold">${pts}</td>`;
+                        log.appendChild(row);
+                    });
+                } else {
+                    // Standard Grouped Mode
+                    head.innerHTML = `<tr><th>Species</th><th class="text-center">Qty</th><th class="text-end">Length</th></tr>`;
+                    const summary = {};
+                    data.fishData.forEach(fish => {
+                        if(!summary[fish.species]) summary[fish.species] = { count: 0, totalLength: 0, lengths: [] };
+                        summary[fish.species].count++;
+                        summary[fish.species].totalLength += parseFloat(fish.length);
+                        summary[fish.species].lengths.push(fish.length);
+                    });
+                    for (const species in summary) {
+                        const row = document.createElement('tr');
+                        let lenDisplay = parseFloat(summary[species].totalLength.toFixed(2)) + ' cm';
+                        if(summary[species].count > 1) {
+                            lenDisplay += `<div class="small text-muted" style="font-size:0.7rem;">(${summary[species].lengths.join(', ')})</div>`;
+                        }
+                        row.innerHTML = `<td class="fw-bold">${species}</td><td class="text-center"><span class="badge bg-secondary rounded-pill">${summary[species].count}</span></td><td class="text-end">${lenDisplay}</td>`;
+                        log.appendChild(row);
                     }
-                    row.innerHTML = `<td class="fw-bold">${species}</td><td class="text-center"><span class="badge bg-secondary rounded-pill">${summary[species].count}</span></td><td class="text-end">${lenDisplay}</td>`;
-                    log.appendChild(row);
                 }
 
                 document.getElementById('savedScorecardsList').style.display = 'none';
