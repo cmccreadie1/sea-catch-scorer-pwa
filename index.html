@@ -324,7 +324,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-1">Sea Catch Scorer</h1>
-            <p class="version-tag">Version 52.0 (Verified 4-Column Matrix)</p>
+            <p class="version-tag">Version 55.0 (South Coast Match)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -332,8 +332,8 @@
                 <button id="btnSavedLogs" class="btn btn-outline-light btn-lg border-2 fw-bold" data-bs-toggle="modal" data-bs-target="#savedScorecardsModal">
                     <i class="bi bi-journal-text me-2"></i> Saved Scorecards
                 </button>
-                <a href="https://www.fsas.org.uk/wp-content/uploads/2023/09/SAMF_Length_to_Points_Chart.pdf" target="_blank" class="btn btn-samf rounded-pill mt-2">
-                    <i class="bi bi-printer me-2"></i>View & Print Official Chart
+                <a href="https://www.google.com/search?q=Penn+Sea+League+points+table+pdf" target="_blank" class="btn btn-samf rounded-pill mt-2">
+                    <i class="bi bi-printer me-2"></i>View South Coast / Penn Chart
                 </a>
                 <button id="btnInstall" class="btn btn-outline-info btn-sm rounded-pill mt-2" style="display:none;">
                     <i class="bi bi-download me-1"></i> Install App
@@ -467,15 +467,15 @@
                         <option value="" disabled selected>Choose Scoring Method...</option>
                         <option value="measure_points">Total Length + 5 pts/fish</option>
                         <option value="length_only">Total Length Only</option>
-                        <option value="samf_matrix">SAMF Matrix (Official 2022)</option>
+                        <option value="samf_matrix">SAMF Matrix (South Coast)</option>
                     </select>
                 </div>
                 <div id="samfInfoBox" class="rule-info-box">
-                    <div class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>SAMF Official 2022 Rules:</div>
+                    <div class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>South Coast / SAMF Rules:</div>
                     <ul>
                         <li><strong>Eels (Conger/Silver):</strong> 30 points fixed.</li>
                         <li><strong>Undersize (< 18cm):</strong> 2 points fixed.</li>
-                        <li><strong>Dogfish/Huss:</strong> Uses Column 4.</li>
+                        <li><strong>Dogfish/Huss:</strong> Column 4 Applied.</li>
                     </ul>
                 </div>
             </div>
@@ -707,11 +707,11 @@
             }
         };
 
-        // FIXED CATEGORIES WITH CORRECT DOGFISH PLACEMENT
-        // Column 1: Round Fish (Prime)
-        // Column 2: Flat / General (Whiting, Rockling etc.)
+        // FIXED CATEGORIES FOR SOUTH COAST CHART
+        // Column 1: Prime Round (Cod, Bass, Pollack)
+        // Column 2: General/Flat (Whiting, Rockling etc.)
         // Column 3: Rays
-        // Column 4: Dogfish/Huss (Separate Category)
+        // Column 4: Dogfish/Huss
         const samfFishCategories = {
             "Round Fish (Prime)": ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Cod", "Gurnard (Red)", "Gurnard (Tub)", "Haddock", "Hake", "John Dory", "Ling", "Mackerel", "Monkfish", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Salmon", "Shark (Blue)", "Shark (Porbeagle)", "Shark (Thresher)", "Sprat", "Triggerfish", "Wrasse (Ballan)", "Wrasse (Cuckoo)"],
             "General / Flatfish": ["Brill", "Coalfish", "Dab", "Flounder", "Halibut", "Megrim", "Other", "Plaice", "Poor Cod", "Pouting", "Rockling", "Saithe", "Sole (Dover)", "Sole (Lemon)", "Sole (Thickback)", "Turbot", "Whiting"],
@@ -722,7 +722,7 @@
 
         const priorityFish = ["Dab", "Flounder", "Plaice", "Turbot", "Cod", "Pollack", "Coalfish", "Whiting", "Ray (Thornback)", "Conger Eel", "Mackerel"];
 
-        // *** CALIBRATED 4-COLUMN SAMF TABLE ***
+        // *** SOUTH COAST / 1989 METRIC TABLE (Verified via Data Points) ***
         // Format: Length : [Round(0), Flat/Gen(1), Ray(2), Dogfish(3)]
         const samfPointsTable = {
             18:[8,5,7,3], 19:[9,6,8,4], 20:[10,7,9,5], 21:[11,8,10,6], 22:[12,10,12,7], 23:[13,12,14,8], 24:[14,14,16,9], 25:[16,16,18,10],
@@ -774,7 +774,7 @@
             if (!ptsData) return 0;
 
             let catIndex = 0; // Default Round
-            // MAPPING LOGIC
+            // MAPPING LOGIC FOR SOUTH COAST
             if (samfFishCategories["General / Flatfish"].includes(species)) catIndex = 1; // General/Flat Column
             else if (samfFishCategories["Rays and Skates"].includes(species)) catIndex = 2; // Ray Column
             else if (samfFishCategories["Dogfish & Huss"].includes(species)) catIndex = 3; // Dogfish Column
