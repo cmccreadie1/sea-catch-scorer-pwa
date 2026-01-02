@@ -68,21 +68,20 @@
             color: #a4b0be;
         }
 
-        /* CARD CONTAINER - OPTIMIZED FOR MOBILE */
+        /* CARD CONTAINER */
         .app-page {
             display: none; 
             max-width: 600px;
-            margin: 15px auto; /* Reduced top/bottom margin */
+            margin: 15px auto; 
             background: var(--card-bg);
-            padding: 20px; /* Reduced from 35px to prevent bleeding */
+            padding: 20px; 
             border-radius: 20px;
             box-shadow: var(--card-shadow);
             border: 1px solid rgba(255,255,255,0.2);
             padding-bottom: 30px;
-            width: 95%; /* Ensure it doesn't touch edges */
+            width: 95%; 
         }
 
-        /* Responsive padding for very small screens */
         @media (max-width: 400px) {
             .app-page { padding: 15px; width: 98%; }
             h2 { font-size: 1.5rem !important; }
@@ -103,7 +102,7 @@
             border-radius: 10px;
             border: 1px solid var(--border-color);
             padding: 10px;
-            font-size: 1rem; /* Base font size kept readable */
+            font-size: 1rem; 
             background-color: var(--input-bg);
             color: var(--primary-color);
         }
@@ -170,7 +169,6 @@
         .btn-whatsapp { background-color: #25D366; color: white; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
         .btn-samf { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; padding: 8px 15px; }
 
-        /* Tables Condensed for Mobile */
         .table { margin-top: 5px; margin-bottom: 10px; }
         .table thead th { border: none; color: #78909c; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;}
         .table tbody tr td { border: none; padding: 10px 8px; vertical-align: middle; font-size: 0.9rem; }
@@ -312,7 +310,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-1">Sea Catch Scorer</h1>
-            <p class="version-tag">Version 43.0 (Mobile Optimized)</p>
+            <p class="version-tag">Version 44.0 (Rockling Update)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -695,10 +693,9 @@
             }
         };
 
-        // NEW: "Most Common" Group added at the top
         const samfFishCategories = {
             "Most Common": ["Coalfish", "Cod", "Conger Eel", "Dab", "Flounder", "Mackerel", "Plaice", "Pollack", "Thornback Ray", "Turbot", "Whiting"],
-            "Round Fish": ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Bull Huss", "Coalfish", "Cod", "Conger Eel", "Dogfish (Blackmouth)", "Dogfish (LSD)", "Gurnard (Red)", "Gurnard (Tub)", "Haddock", "Hake", "John Dory", "Ling", "Mackerel", "Monkfish", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Poor Cod", "Pouting", "Saithe", "Salmon", "Shark (Blue)", "Shark (Porbeagle)", "Shark (Thresher)", "Sprat", "Triggerfish", "Whiting"],
+            "Round Fish": ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Bull Huss", "Coalfish", "Cod", "Conger Eel", "Dogfish (Blackmouth)", "Dogfish (LSD)", "Gurnard (Red)", "Gurnard (Tub)", "Haddock", "Hake", "John Dory", "Ling", "Mackerel", "Monkfish", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Poor Cod", "Pouting", "Rockling", "Saithe", "Salmon", "Shark (Blue)", "Shark (Porbeagle)", "Shark (Thresher)", "Sprat", "Triggerfish", "Whiting"],
             "Flatfish": ["Brill", "Dab", "Flounder", "Halibut", "Megrim", "Plaice", "Sole (Dover)", "Sole (Lemon)", "Sole (Thickback)", "Turbot"],
             "Rays and Skates": ["Ray (Blonde)", "Ray (Small-eyed)", "Ray (Spotted)", "Ray (Starry)", "Ray (Thornback)", "Skate"],
             "Other (Shark/Dogfish)": ["Bull Huss", "Dogfish (LSD)", "Smoothhound", "Tope"],
