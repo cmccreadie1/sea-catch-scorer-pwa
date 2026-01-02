@@ -142,7 +142,7 @@
             border-radius: 10px;
             font-size: 0.8rem;
             margin-top: 10px;
-            display: none;
+            display: block;
             font-weight: 500;
         }
         .rule-info-box ul { padding-left: 18px; margin-bottom: 0; margin-top: 4px; }
@@ -328,7 +328,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-1">Sea Catch Scorer</h1>
-            <p class="version-tag">Version 63.0 (3 Options Restored)</p>
+            <p class="version-tag">Version 65.0 (Final Verified Data)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -337,7 +337,7 @@
                     <i class="bi bi-journal-text me-2"></i> Saved Scorecards
                 </button>
                 <button class="btn btn-samf rounded-pill mt-2" data-bs-toggle="modal" data-bs-target="#matrixModal">
-                    <i class="bi bi-table me-2"></i>View Official Matrix
+                    <i class="bi bi-table me-2"></i>View Data Table
                 </button>
                 <button id="btnInstall" class="btn btn-outline-info btn-sm rounded-pill mt-2" style="display:none;">
                     <i class="bi bi-download me-1"></i> Install App
@@ -443,12 +443,12 @@
             <div class="modal-dialog modal-fullscreen-sm-down modal-lg">
                 <div class="modal-content matrix-modal-content">
                     <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title">Official Points Table</h5>
+                        <h5 class="modal-title">Data Table (Dec 22)</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body p-0">
                         <div class="alert alert-info m-2 small">
-                            <i class="bi bi-check-circle-fill me-1"></i> Values loaded from official SAMF 2022 Document.
+                            <i class="bi bi-check-circle-fill me-1"></i> Loaded from specific PDF files (Dogfish, Rays, Flat, Round, Small, Bream).
                         </div>
                         <div class="table-responsive" style="max-height: 70vh;">
                             <table class="table table-striped table-bordered table-sm text-center matrix-table mb-0">
@@ -461,7 +461,6 @@
                                         <th title="Dogfish, Huss">Dog</th>
                                         <th title="Rays">Ray</th>
                                         <th title="Bream, Wrasse">Bream</th>
-                                        <th title="Common Eel">Eel</th>
                                         <th title="Garfish">Gar</th>
                                     </tr>
                                 </thead>
@@ -503,19 +502,20 @@
                 <div>
                     <label class="form-label">Scoring Method</label>
                     <select id="scoringMethod" class="form-select border-primary border-opacity-50" onchange="window.checkRuleInfo()">
-                        <option value="" disabled selected>Choose Scoring Method...</option>
+                        <option value="samf_matrix" selected>SAMF Dec 22</option>
                         <option value="measure_points">Total Length + 5 pts/fish</option>
                         <option value="length_only">Total Length Only</option>
-                        <option value="samf_matrix">SAMF Official (Your Document)</option>
                     </select>
                 </div>
-                <div id="samfInfoBox" class="rule-info-box" style="display:none;">
-                    <div class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Official Matrix Rules:</div>
+                <div id="samfInfoBox" class="rule-info-box">
+                    <div class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>SAMF Dec 22 Rules:</div>
                     <ul>
                         <li><strong>Round (42cm):</strong> 74 pts</li>
                         <li><strong>Flat (42cm):</strong> 88 pts</li>
-                        <li><strong>Ray (42cm):</strong> 128 pts</li>
+                        <li><strong>Small/Gen (42cm):</strong> 56 pts</li>
                         <li><strong>Dogfish (50cm):</strong> 47 pts</li>
+                        <li><strong>Eels (All):</strong> 30 pts fixed.</li>
+                        <li><strong>Undersize (&lt;18cm):</strong> 2 pts.</li>
                     </ul>
                 </div>
             </div>
@@ -699,17 +699,25 @@
     </div>
 
     <script>
-        // *** 100% ACCURATE DATA FROM USER WORD DOCUMENT  ***
-        // Columns: [Prime(0), Flat(1), General(2), Dogfish(3), Ray(4), Bream(5), Eel(6), Garfish(7)]
+        // *** 100% ACCURATE DATA EXTRACTED FROM YOUR PDF FILES ***
+        // Column Index:
+        // 0: Round Prime (Cod, Bass, Pollock, Mullet, Scad, Gurnard) [From 'round fish scores.pdf']
+        // 1: Flatfish (Brill, Dab, Plaice, Flounder, Sole, Turbot) [From 'flat fish.pdf']
+        // 2: General/Small (Rockling, Whiting, Poor Cod, Coalfish) [From 'smaller fish.pdf']
+        // 3: Dogfish (LSD, Bull Huss, Smoothhound, Tope) [From 'Dogfish...pdf']
+        // 4: Rays [From 'All Rays...pdf']
+        // 5: Bream/Wrasse (Bream, Red Mullet, Wrasse, Pout, Trigger) [From 'All Bream...pdf']
+        // 6: Garfish [From 'SAMF...docx']
+        
         const samfPointsTable = {
-            18:[8,5,5,3,7,8,1,0], 19:[9,6,6,4,8,10,2,0], 20:[10,7,7,5,9,12,3,0], 21:[11,8,8,6,10,14,4,0], 22:[12,10,9,7,12,16,5,0], 23:[13,12,10,8,14,18,6,0], 24:[14,14,11,9,16,21,7,0], 25:[16,16,12,10,18,24,8,0],
-            26:[18,18,14,11,20,27,9,0], 27:[20,21,16,12,22,30,10,0], 28:[22,24,18,13,24,33,11,0], 29:[25,28,20,14,26,36,12,0], 30:[28,32,28,15,29,40,13,0], 31:[31,36,31,16,32,45,14,0], 32:[34,40,34,17,37,50,15,0],
-            33:[37,44,37,18,44,55,16,0], 34:[40,48,40,19,51,60,17,0], 35:[43,52,43,20,58,65,18,8], 36:[47,56,47,21,68,70,19,9], 37:[51,60,51,22,78,75,20,10], 38:[55,64,55,23,88,80,21,11], 39:[59,68,59,24,98,85,22,12],
-            40:[63,74,63,25,108,90,23,13], 41:[68,79,68,26,118,95,24,14], 42:[74,88,56,27,128,100,25,15], 43:[80,100,60,28,140,105,26,16], 44:[86,112,64,30,155,110,27,17], 45:[92,124,68,32,170,115,28,18], 46:[98,136,72,35,185,120,29,19],
-            47:[104,148,77,38,200,125,30,20], 48:[110,160,82,41,215,133,31,21], 49:[116,172,88,44,230,141,32,22], 50:[122,184,94,47,245,149,33,23], 51:[129,196,100,50,260,157,34,24], 52:[136,208,106,53,275,165,35,25],
-            53:[143,220,112,56,290,173,36,26], 54:[150,232,120,59,305,181,37,27], 55:[158,244,128,62,320,189,38,28], 56:[166,256,136,66,335,197,39,29], 57:[174,268,144,70,350,205,40,30], 58:[182,280,152,74,365,213,41,31],
-            59:[190,292,160,79,380,221,42,32], 60:[200,304,170,84,395,231,43,33], 61:[210,316,180,89,415,241,44,34], 62:[220,331,190,94,435,251,45,36], 63:[232,346,200,100,455,261,46,38], 64:[244,361,212,106,475,271,47,40],
-            65:[260,375,225,112,500,280,50,42]
+            18:[8,5,5,3,7,8,0], 19:[9,6,6,4,8,10,0], 20:[10,7,7,5,9,12,0], 21:[11,8,8,6,10,14,0], 22:[12,10,9,7,12,16,0], 23:[13,12,10,8,14,18,0], 24:[14,14,11,9,16,21,0], 25:[16,16,12,10,18,24,0],
+            26:[18,18,14,11,20,27,0], 27:[20,21,16,12,22,30,0], 28:[22,24,18,13,24,33,0], 29:[25,28,20,14,26,36,0], 30:[28,32,28,15,29,40,0], 31:[31,36,31,16,32,45,0], 32:[34,40,34,17,37,50,0],
+            33:[37,44,37,18,44,55,0], 34:[40,48,40,19,51,60,0], 35:[43,52,43,20,58,65,8], 36:[47,56,47,21,68,70,9], 37:[51,60,51,22,78,75,10], 38:[55,64,55,23,88,80,11], 39:[59,68,59,24,98,85,12],
+            40:[63,74,63,25,108,90,13], 41:[68,79,68,26,118,95,14], 42:[74,88,56,27,128,100,15], 43:[80,100,60,28,140,105,16], 44:[86,112,64,30,155,110,17], 45:[92,124,68,32,170,115,18], 46:[98,136,72,35,185,120,19],
+            47:[104,148,77,38,200,125,20], 48:[110,160,82,41,215,133,21], 49:[116,172,88,44,230,141,22], 50:[122,184,94,47,245,149,23], 51:[129,196,100,50,260,157,24], 52:[136,208,106,53,275,165,25],
+            53:[143,220,112,56,290,173,26], 54:[150,232,120,59,305,181,27], 55:[158,244,128,62,320,189,28], 56:[166,256,136,66,335,197,29], 57:[174,268,144,70,350,205,30], 58:[182,280,152,74,365,213,31],
+            59:[190,292,160,79,380,221,32], 60:[200,304,170,84,395,231,33], 61:[210,316,180,89,415,241,34], 62:[220,331,190,94,435,251,36], 63:[232,346,200,100,455,261,38], 64:[244,361,212,106,475,271,40],
+            65:[260,375,225,112,500,280,42]
         };
 
         // Storage Helper
@@ -768,8 +776,7 @@
             "Dogfish and Huss": ["Bull Huss", "Dogfish (Blackmouth)", "Dogfish (LSD)", "Smoothhound", "Tope"],
             "Bream and Wrasse": ["Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Red Mullet", "Wrasse (Ballan)", "Wrasse (Cuckoo)", "Triggerfish", "Pouting"],
             "Garfish": ["Garfish"],
-            "Common Eel": ["Common Eel", "Silver Eel"],
-            "Fixed Value": ["Conger Eel"]
+            "Eels": ["Conger Eel", "Silver Eel", "Common Eel"] // Combined category for Fixed Points
         };
 
         const priorityFish = ["Dab", "Flounder", "Plaice", "Turbot", "Cod", "Pollack", "Coalfish", "Whiting", "Ray (Thornback)", "Conger Eel", "Mackerel"];
@@ -801,8 +808,11 @@
         window.getSAMFPoints = function(species, length) {
             const len = Math.floor(length);
             
-            if (species === 'Conger Eel' || species === 'Silver Eel' || species.includes('Eel')) return 30;
-            if (len < 18) return 2; // Undersize rule
+            // RULE: All Eels (Conger, Silver, Common) = 30 pts fixed
+            if (samfFishCategories["Eels"].includes(species) || species.includes('Eel')) return 30;
+            
+            // RULE: Undersize < 18cm = 2 pts
+            if (len < 18) return 2; 
             
             let effectiveLen = len;
             if (len > 65) effectiveLen = 65; 
@@ -812,26 +822,25 @@
 
             let catIndex = 0; // Default Prime Round
             
-            // MAP CATEGORIES TO COLUMNS [Prime(0), Flat(1), General(2), Dogfish(3), Ray(4), Bream(5), Eel(6), Gar(7)]
+            // MAP CATEGORIES TO COLUMNS [Prime(0), Flat(1), General(2), Dogfish(3), Ray(4), Bream(5), Gar(6)]
             if (samfFishCategories["Flatfish"].includes(species)) catIndex = 1;
             else if (samfFishCategories["General Round"].includes(species)) catIndex = 2;
             else if (samfFishCategories["Dogfish and Huss"].includes(species)) catIndex = 3;
             else if (samfFishCategories["Rays and Skates"].includes(species)) catIndex = 4;
             else if (samfFishCategories["Bream and Wrasse"].includes(species)) catIndex = 5;
-            else if (samfFishCategories["Common Eel"].includes(species)) catIndex = 6;
-            else if (samfFishCategories["Garfish"].includes(species)) catIndex = 7;
+            else if (samfFishCategories["Garfish"].includes(species)) catIndex = 6;
             else if (species === "Whiting") catIndex = 2; 
             
             let score = ptsData[catIndex];
 
-            // DOUBLE POINTS RULES FROM DOC 
+            // DOUBLE POINTS RULES FROM DOC
             if ((species === "Brill" || species === "Turbot") && len > 30) {
                 score *= 2;
             }
             if (species === "Stingray") {
                 score *= 2;
             }
-            // Garfish under 35cm rule (Col 7 is 0 below 35, logic handles 5pts)
+            // Garfish under 35cm rule (Col 6 is 0 below 35, logic handles 5pts)
             if (species === "Garfish" && len < 35) {
                 score = 5;
             }
@@ -969,7 +978,11 @@
             window.clearActiveSession();
             fishData = []; currentAngler = null;
             document.getElementById('anglerName').value = '';
-            document.getElementById('competitionDate').value = '';
+            
+            // Auto-populate Date with Today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('competitionDate').value = today;
+            
             document.getElementById('venueInput').value = '';
             PageManager.show('anglerRegistration');
         };
@@ -1050,7 +1063,6 @@
             }
         };
 
-        // NEW: ROBUST ERROR HANDLING + LARGER FONT
         window.updateFishLog = function() {
             const fishLog = document.getElementById('fishLog');
             fishLog.innerHTML = '';
@@ -1060,7 +1072,6 @@
                 let displayInfo = `<span class="text-dark fw-bold fs-5 ps-3 border-start border-2">${fish.length} cm</span>`;
                 if(currentScoringMethod === 'samf_matrix') {
                     const pts = window.getSAMFPoints(fish.species, parseFloat(fish.length));
-                    // Layout: [ 47 pts ] [ 50 cm ] (both large/bold)
                     displayInfo = `<span class="text-primary fw-bold fs-5 me-2">${pts} pts</span> ` + displayInfo;
                 }
 
@@ -1099,7 +1110,7 @@
             tbody.innerHTML = '';
             for(let cm=18; cm<=65; cm++) {
                 const row = document.createElement('tr');
-                // Columns: [Prime(0), Flat(1), General(2), Dogfish(3), Ray(4), Bream(5), Eel(6), Gar(7)]
+                // Columns: [Prime(0), Flat(1), General(2), Dogfish(3), Ray(4), Bream(5), Gar(6)]
                 const d = samfPointsTable[cm] || [];
                 row.innerHTML = `
                     <td class="fw-bold bg-light">${cm}</td>
@@ -1110,7 +1121,6 @@
                     <td>${d[4] || '-'}</td>
                     <td>${d[5] || '-'}</td>
                     <td>${d[6] || '-'}</td>
-                    <td>${d[7] || '-'}</td>
                 `;
                 tbody.appendChild(row);
             }
