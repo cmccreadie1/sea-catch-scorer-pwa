@@ -24,7 +24,7 @@
             --bg-gradient-end: #1c4b75;
             --card-bg: #eef6fc; 
             --input-bg: #ffffff; 
-            --border-color: #90a4ae; /* Much darker border default */
+            --border-color: #90a4ae; 
             --card-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
@@ -40,7 +40,6 @@
 
         h1, h2, h3, h4, h5, .btn { font-family: 'Poppins', sans-serif; }
 
-        /* SPLASH SCREEN */
         .splash-screen {
             display: flex;
             flex-direction: column;
@@ -68,7 +67,6 @@
             color: #a4b0be;
         }
 
-        /* CARD CONTAINER */
         .app-page {
             display: none; 
             max-width: 600px;
@@ -98,26 +96,24 @@
             margin-bottom: 6px;
         }
 
-        /* --- HIGH DEFINITION INPUTS (Requested Feature) --- */
         .form-control, .form-select {
             border-radius: 12px;
-            border: 2px solid #90a4ae; /* Thicker, darker border */
+            border: 2px solid #90a4ae; 
             padding: 12px;
             font-size: 1rem; 
-            font-weight: 600; /* Bolder text inside */
+            font-weight: 600; 
             background-color: #ffffff;
             color: #0e2a47;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.06); /* Lift off page */
+            box-shadow: 0 3px 5px rgba(0,0,0,0.06); 
             transition: all 0.2s ease-in-out;
         }
 
         .form-control:focus, .form-select:focus {
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.25); /* Stronger glow */
-            transform: translateY(-1px); /* Slight movement feedback */
+            box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.25);
+            transform: translateY(-1px); 
         }
         
-        /* Disabled inputs look different so you know they are locked */
         .form-control:disabled, .form-select:disabled {
             background-color: #eceff1;
             border-color: #cfd8dc;
@@ -132,7 +128,7 @@
             margin-bottom: 12px;
             display: flex;
             align-items: center;
-            border-bottom: 2px solid #dbe7f1; /* Thicker divider */
+            border-bottom: 2px solid #dbe7f1; 
             padding-bottom: 5px;
             margin-top: 20px;
         }
@@ -140,7 +136,7 @@
 
         .rule-info-box {
             background-color: #e3f2fd;
-            border: 2px solid #90caf9; /* Thicker border */
+            border: 2px solid #90caf9; 
             color: #0d47a1;
             padding: 12px;
             border-radius: 12px;
@@ -157,7 +153,7 @@
             padding: 10px;
             background: #ffffff;
             border-radius: 12px;
-            border: 2px solid #90a4ae; /* Match inputs */
+            border: 2px solid #90a4ae; 
             box-shadow: 0 3px 5px rgba(0,0,0,0.06);
         }
         .big-switch .form-check-input {
@@ -328,7 +324,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-1">Sea Catch Scorer</h1>
-            <p class="version-tag">Version 45.0 (High Def UI)</p>
+            <p class="version-tag">Version 46.0 (Fixed Ray Scoring)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -711,8 +707,8 @@
             }
         };
 
+        // FIXED SAMF CATEGORIES AND SCORING LOGIC
         const samfFishCategories = {
-            "Most Common": ["Coalfish", "Cod", "Conger Eel", "Dab", "Flounder", "Mackerel", "Plaice", "Pollack", "Thornback Ray", "Turbot", "Whiting"],
             "Round Fish": ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Bull Huss", "Coalfish", "Cod", "Conger Eel", "Dogfish (Blackmouth)", "Dogfish (LSD)", "Gurnard (Red)", "Gurnard (Tub)", "Haddock", "Hake", "John Dory", "Ling", "Mackerel", "Monkfish", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Poor Cod", "Pouting", "Rockling", "Saithe", "Salmon", "Shark (Blue)", "Shark (Porbeagle)", "Shark (Thresher)", "Sprat", "Triggerfish", "Whiting"],
             "Flatfish": ["Brill", "Dab", "Flounder", "Halibut", "Megrim", "Plaice", "Sole (Dover)", "Sole (Lemon)", "Sole (Thickback)", "Turbot"],
             "Rays and Skates": ["Ray (Blonde)", "Ray (Small-eyed)", "Ray (Spotted)", "Ray (Starry)", "Ray (Thornback)", "Skate"],
@@ -720,6 +716,9 @@
             "Wrasse": ["Wrasse (Ballan)", "Wrasse (Cuckoo)"],
             "Fixed Value": ["Conger Eel", "Silver Eel"]
         };
+
+        // PRIORITY LIST (Official SAMF Names used)
+        const priorityFish = ["Dab", "Flounder", "Plaice", "Turbot", "Cod", "Pollack", "Coalfish", "Whiting", "Ray (Thornback)", "Conger Eel", "Mackerel"];
 
         const samfPointsTable = {
             18:[4,2,0,0], 19:[5,3,0,0], 20:[6,4,0,0], 21:[7,5,0,0], 22:[8,6,0,0], 23:[9,7,0,0], 24:[10,8,0,0], 25:[11,9,0,0],
@@ -1037,19 +1036,45 @@
             PageManager.show('anglerFishingPage');
         };
 
+        // UPDATED: GENERATES UNIFIED LIST WITH PRIORITY ITEMS FIRST
         window.populateSpeciesDropdown = function() {
             const speciesInput = document.getElementById('speciesInput');
             speciesInput.innerHTML = '<option value="" selected>Select Fish...</option><option value="Other">Other (specify)</option>';
+            
+            // 1. Add Priority Fish (Sorted Alphabetically by logic below)
+            priorityFish.sort(); 
+            priorityFish.forEach(fish => {
+                const option = document.createElement('option');
+                option.value = fish; 
+                option.textContent = fish;
+                option.style.fontWeight = "bold"; // Make them stand out slightly
+                speciesInput.appendChild(option);
+            });
+
+            // Separator
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.textContent = "──────────";
+            speciesInput.appendChild(separator);
+
+            // 2. Add All Other Fish (Alphabetical)
+            let allOtherFish = [];
             for (const category in samfFishCategories) {
-                const optgroup = document.createElement('optgroup');
-                optgroup.label = category;
-                samfFishCategories[category].forEach(species => {
-                    const option = document.createElement('option');
-                    option.value = species; option.textContent = species;
-                    optgroup.appendChild(option);
+                if (category === "Most Common" || category === "Fixed Value") continue; // Skip helper categories
+                samfFishCategories[category].forEach(fish => {
+                    if (!priorityFish.includes(fish)) {
+                        allOtherFish.push(fish);
+                    }
                 });
-                speciesInput.appendChild(optgroup);
             }
+            allOtherFish.sort();
+            
+            allOtherFish.forEach(fish => {
+                const option = document.createElement('option');
+                option.value = fish; 
+                option.textContent = fish;
+                speciesInput.appendChild(option);
+            });
         };
 
         window.addFish = function() {
