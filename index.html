@@ -118,15 +118,35 @@
         .table tbody td:first-child { border-radius: 10px 0 0 10px; }
         .table tbody td:last-child { border-radius: 0 10px 10px 0; }
 
+        /* LIST ITEM STYLING */
         #savedScorecardsList .card {
             border: none;
-            background: var(--card-bg);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            border-radius: 16px;
-            margin-bottom: 12px;
-            transition: transform 0.2s;
+            background: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
             cursor: pointer;
+            border: 1px solid transparent;
         }
+        #savedScorecardsList .card:active {
+            background-color: #f1f5f9;
+            transform: scale(0.99);
+        }
+
+        .delete-btn {
+            background: #ffebee;
+            color: #c62828;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .delete-btn:active { background: #ffcdd2; }
         
         .app-header { text-align: center; margin-bottom: 20px; }
         .app-header h2 { font-weight: 700; color: var(--primary-color); }
@@ -237,7 +257,6 @@
             line-height: 1.2;
         }
         
-        /* Official Header Block */
         .official-header {
             background: white;
             border-radius: 16px;
@@ -284,7 +303,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-2">Sea Catch Scorer</h1>
-            <p class="version-tag text-white-50">Version 36.0 (Zone & Peg Updates)</p>
+            <p class="version-tag text-white-50">Version 37.0 (Archive & Delete)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -306,7 +325,22 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div id="savedScorecardsList"></div>
+                        <div id="savedScorecardsList">
+                            <h6 class="text-muted text-uppercase small fw-bold mb-2">Recent Catches</h6>
+                            <div id="recentList"></div>
+                            
+                            <div id="archiveSection" style="display:none;">
+                                <hr class="my-4">
+                                <h6 class="text-muted text-uppercase small fw-bold mb-2">Archived History</h6>
+                                <div id="archiveList"></div>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <button id="btnShowArchive" class="btn btn-sm btn-outline-secondary rounded-pill" style="display:none;" onclick="window.toggleArchive()">
+                                    View Older Scorecards <i class="bi bi-chevron-down ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
                         
                         <div id="fullScorecardView" class="full-scorecard" style="display:none;">
                             <div class="official-header">
@@ -379,7 +413,7 @@
                                     <i class="bi bi-image me-2"></i> Share Scorecard (Image)
                                 </button>
                                 <button class="btn btn-secondary mt-2" onclick="window.backToScorecardList()">
-                                    <i class="bi bi-arrow-left me-2"></i> Back
+                                    <i class="bi bi-arrow-left me-2"></i> Back to List
                                 </button>
                             </div>
                         </div>
@@ -475,7 +509,6 @@
         </div>
 
         <div id="tallyVerificationPage" class="app-page">
-            
             <div class="official-header">
                 <div id="session_angler" class="official-angler-name"></div>
                 <div class="official-details-grid">
@@ -800,7 +833,6 @@
             }
         };
 
-        // FIXED: Now properly resets dropdowns to blank
         window.resetApp = function() {
             fishData = []; currentAngler = null; currentDate = null; currentVenue = null; currentZone = null; currentPeg = null;
             window.clearActiveSession();
@@ -809,11 +841,10 @@
             document.getElementById('competitionDate').value = '';
             document.getElementById('venueInput').value = '';
             
-            // Fix Zombie Data in dropdowns
             document.getElementById('isCompetition').checked = false;
-            window.toggleCompetitionFields(); // Resets disabled state
-            document.getElementById('zoneInput').selectedIndex = 0; // Resets to top option
-            document.getElementById('pegInput').selectedIndex = 0; // Resets to top option
+            window.toggleCompetitionFields();
+            document.getElementById('zoneInput').selectedIndex = 0;
+            document.getElementById('pegInput').selectedIndex = 0;
 
             PageManager.show('splashScreen');
         };
@@ -909,42 +940,97 @@
             window.resetApp(); 
         };
 
+        // NEW: Load Scorecards (Refined with Archive + Delete)
         window.loadSavedScorecards = function() {
-            const list = document.getElementById('savedScorecardsList');
-            list.innerHTML = '';
+            const recentList = document.getElementById('recentList');
+            const archiveList = document.getElementById('archiveList');
+            const archiveSection = document.getElementById('archiveSection');
+            const btnShowArchive = document.getElementById('btnShowArchive');
+            
+            recentList.innerHTML = '';
+            archiveList.innerHTML = '';
+            
             const allData = StorageHelper.getAll();
             const keys = Object.keys(allData).sort().reverse();
+            let count = 0;
+            let hasScorecards = false;
 
             for (const key of keys) {
                 if (key.startsWith('scorecard_')) {
+                    hasScorecards = true;
                     try {
                         const data = JSON.parse(allData[key]);
                         if(!data.fishData) data.fishData = [];
                         const len = data.fishData.reduce((s,f) => s + (parseFloat(f.length)||0), 0);
                         const pts = window.calculatePoints(data.fishData.length, len);
 
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        card.onclick = () => window.viewFullScorecard(key);
-                        card.innerHTML = `
-                            <div class="card-body p-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-bold text-dark mb-1">${data.venue}</div>
-                                        <div class="small text-muted">
-                                            <i class="bi bi-calendar3 me-1"></i> ${window.formatDate(data.date)} 
-                                            <span class="ms-2 badge bg-primary bg-opacity-10 text-primary">${pts} pts</span>
+                        const cardHtml = `
+                            <div class="card" onclick="window.viewFullScorecard('${key}')">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold text-dark mb-1">${data.venue}</div>
+                                            <div class="small text-muted">
+                                                <i class="bi bi-calendar3 me-1"></i> ${window.formatDate(data.date)} 
+                                                <span class="ms-2 badge bg-primary bg-opacity-10 text-primary">${pts} pts</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <i class="bi bi-chevron-right text-muted"></i>
+                                            <button class="delete-btn shadow-sm" onclick="window.deleteScorecard(event, '${key}')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </div>
                                     </div>
-                                    <i class="bi bi-chevron-right text-muted"></i>
                                 </div>
                             </div>
                         `;
-                        list.appendChild(card); 
+
+                        if(count < 4) {
+                            recentList.innerHTML += cardHtml;
+                        } else {
+                            archiveList.innerHTML += cardHtml;
+                        }
+                        count++;
                     } catch(e) {}
                 }
             }
-            if(list.innerHTML === '') list.innerHTML = `<div class="text-center py-4 text-muted">No saved logs yet.</div>`;
+
+            if (!hasScorecards) {
+                recentList.innerHTML = `<div class="text-center py-4 text-muted">No saved logs yet.</div>`;
+            }
+
+            // Show archive button only if there are older items
+            if (count > 4) {
+                btnShowArchive.style.display = 'inline-block';
+            } else {
+                btnShowArchive.style.display = 'none';
+            }
+            archiveSection.style.display = 'none'; // Ensure archive is hidden initially
+        };
+
+        window.toggleArchive = function() {
+            const sec = document.getElementById('archiveSection');
+            const btn = document.getElementById('btnShowArchive');
+            if(sec.style.display === 'none') {
+                sec.style.display = 'block';
+                btn.style.display = 'none';
+            }
+        };
+
+        window.deleteScorecard = function(event, key) {
+            event.stopPropagation(); // Stop clicking the card itself
+            if(confirm("Delete this scorecard permanently?")) {
+                StorageHelper.remove(key);
+                window.loadSavedScorecards();
+            }
+        };
+
+        // NEW: Back button logic
+        window.backToScorecardList = function() {
+            document.getElementById('fullScorecardView').style.display = 'none';
+            document.getElementById('savedScorecardsList').style.display = 'block';
+            window.loadSavedScorecards(); // Refresh list to be sure
         };
 
         window.viewFullScorecard = function(key) {
@@ -1075,10 +1161,11 @@
             document.getElementById('btnSavedLogs').addEventListener('click', window.loadSavedScorecards);
             document.getElementById('isCompetition').addEventListener('change', window.toggleCompetitionFields);
 
-            window.restoreActiveSession();
-            
+            // Added backToScorecardList logic to the modal close event
             const savedModal = document.getElementById('savedScorecardsModal');
             savedModal.addEventListener('hidden.bs.modal', window.backToScorecardList);
+
+            window.restoreActiveSession();
             window.toggleCompetitionFields();
         });
     </script>
