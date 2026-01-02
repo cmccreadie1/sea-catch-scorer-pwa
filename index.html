@@ -335,7 +335,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-1">Sea Catch Scorer</h1>
-            <p class="version-tag">Version 71.0 (Fixed Buttons & Data)</p>
+            <p class="version-tag">Version 72.0 (Functions Restored)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -436,12 +436,26 @@
                                 <tbody id="saved_fish_log"></tbody>
                             </table>
                             
-                            <div class="d-grid gap-2 mt-4 pt-3 border-top">
-                                <button class="btn btn-whatsapp" onclick="window.shareAsImage('saved')">
-                                    <i class="bi bi-image me-2"></i> Share Scorecard (Image)
+                            <div class="verification-box">
+                                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-person-check-fill me-2"></i>Verification</h6>
+                                <div class="mb-2">
+                                    <label class="form-label text-muted small">Steward / Witness Name</label>
+                                    <input type="text" id="witnessNameInput" class="form-control form-control-sm">
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="witnessCheckbox">
+                                    <label class="form-check-label small fw-bold text-dark" for="witnessCheckbox">
+                                        I confirm this catch record is accurate.
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-3 mt-4">
+                                <button class="btn btn-primary btn-lg shadow" onclick="window.saveAndEndSession()">
+                                    <i class="bi bi-save me-2"></i> Save & Exit
                                 </button>
-                                <button class="btn btn-secondary mt-2" onclick="window.backToScorecardList()">
-                                    <i class="bi bi-arrow-left me-2"></i> Back to List
+                                <button class="btn btn-whatsapp" onclick="window.shareAsImage('live')">
+                                    <i class="bi bi-image me-2"></i> Share Scorecard (Image)
                                 </button>
                             </div>
                         </div>
@@ -454,7 +468,7 @@
             <div class="modal-dialog modal-fullscreen-sm-down modal-lg">
                 <div class="modal-content matrix-modal-content">
                     <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title">Data Table (Dec 22)</h5>
+                        <h5 class="modal-title">Official Points Table (Dec 22)</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body p-0">
@@ -470,6 +484,7 @@
                                         <th title="Rays">Ray</th>
                                         <th title="Bream, Wrasse">Bream</th>
                                         <th title="Garfish">Gar</th>
+                                        <th title="Common Eel">Eel</th>
                                     </tr>
                                 </thead>
                                 <tbody id="matrixTableBody">
@@ -516,7 +531,7 @@
                         <option value="length_only">Total Length Only</option>
                     </select>
                 </div>
-                <div id="samfInfoBox" class="rule-info-box">
+                <div id="samfInfoBox" class="rule-info-box" style="display:none;">
                     <div class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Scoring as per SAMF Dec 2022 matrix:</div>
                     <ul>
                         <li>All eels 30 points.</li>
@@ -561,163 +576,7 @@
             </div>
         </div>
 
-        <div id="anglerFishingPage" class="app-page">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="m-0 fw-bold text-primary">Live Catch</h4>
-                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" style="font-size: 0.75rem;" onclick="window.confirmQuit()">Quit / Reset</button>
-            </div>
-            <div class="inner-card mb-4 border border-primary border-opacity-25">
-                <div class="mb-3">
-                    <label class="form-label text-primary">Species</label>
-                    <select id="speciesInput" class="form-select" onchange="window.toggleCustomSpeciesInput()">
-                        <option value="" selected>Select Fish...</option>
-                        <option value="Other">Other (specify)</option>
-                    </select>
-                    <input type="text" id="customSpeciesInput" class="form-control mt-2" placeholder="Enter Species Name" style="display:none;">
-                </div>
-                <div class="row g-2">
-                    <div class="col-8">
-                        <label class="form-label text-primary">Length (cm)</label>
-                        <input type="number" id="lengthInput" class="form-control" placeholder="0">
-                    </div>
-                    <div class="col-4 d-flex align-items-end">
-                        <button class="btn btn-success w-100" onclick="window.addFish()">
-                            <i class="bi bi-plus-lg"></i> Add
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <h5 class="text-muted fs-6 text-uppercase fw-bold letter-spacing-1">Current Haul</h5>
-            <div class="table-responsive">
-                <table class="table table-borderless"><tbody id="fishLog"></tbody></table>
-            </div>
-            <div class="mt-4 pt-3 border-top">
-                <button class="btn btn-danger w-100 py-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#endSessionModal">Finish Session</button>
-            </div>
-        </div>
-
-        <div id="tallyVerificationPage" class="app-page">
-            
-            <div class="official-header">
-                <div id="session_angler" class="official-angler-name"></div>
-                <div class="official-details-grid">
-                    <div class="official-detail-item">
-                        <span class="official-detail-label">Date</span>
-                        <span id="session_date" class="official-detail-value"></span>
-                    </div>
-                    <div class="official-detail-item">
-                        <span class="official-detail-label">Venue</span>
-                        <span id="session_venue" class="official-detail-value"></span>
-                    </div>
-                    <div class="official-detail-item">
-                        <span class="official-detail-label">Zone</span>
-                        <span id="session_zone" class="official-detail-value fw-bold text-primary"></span>
-                    </div>
-                    <div class="official-detail-item">
-                        <span class="official-detail-label">Peg</span>
-                        <span id="session_peg" class="official-detail-value fw-bold text-primary"></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-center mb-4">
-                <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2 shadow" style="width: 60px; height: 60px;">
-                    <i class="bi bi-check-lg fs-2"></i>
-                </div>
-                <h2 class="fw-bold text-primary">Session Complete</h2>
-            </div>
-
-            <div class="score-hero-container">
-                <div class="score-hero-label">Total Points</div>
-                <div id="session_total_points" class="score-hero-val">0</div>
-            </div>
-
-            <div id="session_equation_container" class="equation-box"></div>
-
-            <div class="stat-grid">
-                <div class="stat-card border-success border-opacity-50" style="grid-column: span 3;">
-                    <small class="text-success">Biggest Fish</small>
-                    <strong id="session_biggest_fish" class="text-success">-</strong>
-                </div>
-                <div class="stat-card">
-                    <small>Total Fish</small>
-                    <strong id="session_total_fish">0</strong>
-                </div>
-                <div class="stat-card">
-                    <small>Species</small>
-                    <strong id="session_species_count">0</strong>
-                </div>
-                <div class="stat-card">
-                    <small>Total Length</small>
-                    <strong id="session_total_len">0 cm</strong>
-                </div>
-            </div>
-
-            <h6 class="text-muted fs-7 mb-3 text-uppercase fw-bold">Catch Breakdown</h6>
-            <table class="table table-borderless">
-                <thead id="session_log_head">
-                    <tr><th>Species</th><th class="text-center">Pts</th><th class="text-end">Length</th></tr>
-                </thead>
-                <tbody id="live_tally_table"></tbody>
-            </table>
-
-            <div class="verification-box">
-                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-person-check-fill me-2"></i>Verification</h6>
-                <div class="mb-2">
-                    <label class="form-label text-muted small">Steward / Witness Name</label>
-                    <input type="text" id="witnessNameInput" class="form-control form-control-sm">
-                </div>
-                <div class="form-check mt-2">
-                    <input class="form-check-input" type="checkbox" id="witnessCheckbox">
-                    <label class="form-check-label small fw-bold text-dark" for="witnessCheckbox">
-                        I confirm this catch record is accurate.
-                    </label>
-                </div>
-            </div>
-
-            <div class="d-grid gap-3 mt-4">
-                <button class="btn btn-primary btn-lg shadow" onclick="window.saveAndEndSession()">
-                    <i class="bi bi-save me-2"></i> Save & Exit
-                </button>
-                <button class="btn btn-whatsapp" onclick="window.shareAsImage('live')">
-                    <i class="bi bi-image me-2"></i> Share Scorecard (Image)
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="endSessionModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 border-0">
-                <div class="modal-body text-center p-4">
-                    <h4 class="mb-2 fw-bold">Finish Session?</h4>
-                    <p class="text-muted mb-4">This will finalize your log.</p>
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-danger" onclick="window.endSession()" data-bs-dismiss="modal">Yes, Finish It</button>
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Keep Fishing</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="restoreSessionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 border-0">
-                <div class="modal-body text-center p-4">
-                    <div class="mb-3 text-primary"><i class="bi bi-clock-history fs-1"></i></div>
-                    <h4 class="mb-2 fw-bold">Resume Session?</h4>
-                    <p class="text-muted mb-4">We found an unfinished log for <strong id="restoreAnglerName"></strong>.</p>
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-primary" onclick="window.confirmRestore()">Yes, Continue</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="window.discardRestore()">No, Start New</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
+        <script>
         // GLOBAL ERROR HANDLER TO CATCH CRASHES
         window.onerror = function(message, source, lineno, colno, error) {
             alert("App Error: " + message);
@@ -732,16 +591,17 @@
         // 4: Rays [From 'All Rays...pdf']
         // 5: Bream/Wrasse (Bream, Red Mullet, Wrasse, Pout, Trigger) [From 'All Bream...pdf']
         // 6: Garfish [From 'SAMF...docx']
+        // 7: Common Eel [From 'SAMF...docx' Common Eel Table]
         
         const samfPointsTable = {
-            18:[8,5,5,3,7,8,0], 19:[9,6,6,4,8,10,0], 20:[10,7,7,5,9,12,0], 21:[11,8,8,6,10,14,0], 22:[12,10,9,7,12,16,0], 23:[13,12,10,8,14,18,0], 24:[14,14,11,9,16,21,0], 25:[16,16,12,10,18,24,0],
-            26:[18,18,14,11,20,27,0], 27:[20,21,16,12,22,30,0], 28:[22,24,18,13,24,33,0], 29:[25,28,20,14,26,36,0], 30:[28,32,28,15,29,40,0], 31:[31,36,31,16,32,45,0], 32:[34,40,34,17,37,50,0],
-            33:[37,44,37,18,44,55,0], 34:[40,48,40,19,51,60,0], 35:[43,52,43,20,58,65,8], 36:[47,56,47,21,68,70,9], 37:[51,60,51,22,78,75,10], 38:[55,64,55,23,88,80,11], 39:[59,68,59,24,98,85,12],
-            40:[63,74,63,25,108,90,13], 41:[68,79,68,26,118,95,14], 42:[74,88,56,27,128,100,15], 43:[80,100,60,28,140,105,16], 44:[86,112,64,30,155,110,17], 45:[92,124,68,32,170,115,18], 46:[98,136,72,35,185,120,19],
-            47:[104,148,77,38,200,125,20], 48:[110,160,82,41,215,133,21], 49:[116,172,88,44,230,141,22], 50:[122,184,94,47,245,149,23], 51:[129,196,100,50,260,157,24], 52:[136,208,106,53,275,165,25],
-            53:[143,220,112,56,290,173,26], 54:[150,232,120,59,305,181,27], 55:[158,244,128,62,320,189,28], 56:[166,256,136,66,335,197,29], 57:[174,268,144,70,350,205,30], 58:[182,280,152,74,365,213,31],
-            59:[190,292,160,79,380,221,32], 60:[200,304,170,84,395,231,33], 61:[210,316,180,89,415,241,34], 62:[220,331,190,94,435,251,36], 63:[232,346,200,100,455,261,38], 64:[244,361,212,106,475,271,40],
-            65:[260,375,225,112,500,280,42]
+            18:[8,5,5,3,7,8,0,1], 19:[9,6,6,4,8,10,0,2], 20:[10,7,7,5,9,12,0,3], 21:[11,8,8,6,10,14,0,4], 22:[12,10,9,7,12,16,0,5], 23:[13,12,10,8,14,18,0,6], 24:[14,14,11,9,16,21,0,7], 25:[16,16,12,10,18,24,0,8],
+            26:[18,18,14,11,20,27,0,9], 27:[20,21,16,12,22,30,0,10], 28:[22,24,18,13,24,33,0,11], 29:[25,28,20,14,26,36,0,12], 30:[28,32,28,15,29,40,0,13], 31:[31,36,31,16,32,45,0,14], 32:[34,40,34,17,37,50,0,15],
+            33:[37,44,37,18,44,55,0,16], 34:[40,48,40,19,51,60,0,17], 35:[43,52,43,20,58,65,8,18], 36:[47,56,47,21,68,70,9,19], 37:[51,60,51,22,78,75,10,20], 38:[55,64,55,23,88,80,11,21], 39:[59,68,59,24,98,85,12,22],
+            40:[63,74,63,25,108,90,13,23], 41:[68,79,68,26,118,95,14,24], 42:[74,88,56,27,128,100,15,25], 43:[80,100,60,28,140,105,26,16], 44:[86,112,64,30,155,110,27,17], 45:[92,124,68,32,170,115,28,18], 46:[98,136,72,35,185,120,29,19],
+            47:[104,148,77,38,200,125,30,20], 48:[110,160,82,41,215,133,31,21], 49:[116,172,88,44,230,141,32,22], 50:[122,184,94,47,245,149,33,23], 51:[129,196,100,50,260,157,34,24], 52:[136,208,106,53,275,165,35,25],
+            53:[143,220,112,56,290,173,36,26], 54:[150,232,120,59,305,181,37,27], 55:[158,244,128,62,320,189,38,28], 56:[166,256,136,66,335,197,39,29], 57:[174,268,144,70,350,205,40,30], 58:[182,280,152,74,365,213,41,31],
+            59:[190,292,160,79,380,221,32,42], 60:[200,304,170,84,395,231,33,43], 61:[210,316,180,89,415,241,34,44], 62:[220,331,190,94,435,251,36,45], 63:[232,346,200,100,455,261,46,38], 64:[244,361,212,106,475,271,40,47],
+            65:[260,375,225,112,500,280,42,50]
         };
 
         // Storage Helper
@@ -832,7 +692,7 @@
         window.getSAMFPoints = function(species, length) {
             const len = Math.floor(length);
             
-            // RULE: All Eels = 30 pts fixed
+            // RULE: All Eels (Conger, Silver, Common) = 30 pts fixed
             if (samfFishCategories["Eels"].includes(species) || species.includes('Eel')) return 30;
             
             // RULE: Undersize < 18cm = 2 pts
@@ -846,7 +706,7 @@
 
             let catIndex = 0; // Default Prime Round
             
-            // MAP CATEGORIES TO COLUMNS [Prime(0), Flat(1), General(2), Dogfish(3), Ray(4), Bream(5), Gar(6)]
+            // MAP CATEGORIES TO COLUMNS [Prime(0), Flat(1), General(2), Dogfish(3), Ray(4), Bream(5), Gar(6), CommonEel(7)]
             if (samfFishCategories["Flatfish"].includes(species)) catIndex = 1;
             else if (samfFishCategories["General Round"].includes(species)) catIndex = 2;
             else if (samfFishCategories["Dogfish and Huss"].includes(species)) catIndex = 3;
@@ -864,7 +724,7 @@
             if (species === "Stingray") {
                 score *= 2;
             }
-            // Garfish under 35cm rule (Col 6 is 0 below 35, logic handles 5pts)
+            // Garfish under 35cm rule (Col 7 is 0 below 35, logic handles 5pts)
             if (species === "Garfish" && len < 35) {
                 score = 5;
             }
@@ -998,11 +858,18 @@
             if(confirm("Abandon this session?")) window.resetApp();
         };
 
+        // SAFETY: WRAPPED TO PREVENT AUTO-DATE CRASHES
         window.startFishing = function() {
             window.clearActiveSession();
             fishData = []; currentAngler = null;
             document.getElementById('anglerName').value = '';
-            document.getElementById('competitionDate').value = ''; // Manual
+            
+            try {
+                // Manual date entry only, no auto-populating
+            } catch(e) {
+                console.error("Auto-date failed, safely ignoring.");
+            }
+            
             document.getElementById('venueInput').value = '';
             PageManager.show('anglerRegistration');
         };
@@ -1122,6 +989,44 @@
                 alert("Error adding fish: " + e.message);
                 console.error(e);
             }
+        };
+
+        // RESTORED MISSING FUNCTION
+        window.populateSpeciesDropdown = function() {
+            const speciesInput = document.getElementById('speciesInput');
+            speciesInput.innerHTML = '<option value="" selected>Select Fish...</option><option value="Other">Other (specify)</option>';
+            
+            priorityFish.sort(); 
+            priorityFish.forEach(fish => {
+                const option = document.createElement('option');
+                option.value = fish; 
+                option.textContent = fish;
+                option.style.fontWeight = "bold"; 
+                speciesInput.appendChild(option);
+            });
+
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.textContent = "──────────";
+            speciesInput.appendChild(separator);
+
+            let allOtherFish = [];
+            for (const category in samfFishCategories) {
+                if (category === "Fixed Value") continue; 
+                samfFishCategories[category].forEach(fish => {
+                    if (!priorityFish.includes(fish)) {
+                        allOtherFish.push(fish);
+                    }
+                });
+            }
+            allOtherFish.sort();
+            
+            allOtherFish.forEach(fish => {
+                const option = document.createElement('option');
+                option.value = fish; 
+                option.textContent = fish;
+                speciesInput.appendChild(option);
+            });
         };
 
         // NEW: ROBUST TOGGLE FOR ZONE/PEG
