@@ -324,7 +324,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-1">Sea Catch Scorer</h1>
-            <p class="version-tag">Version 57.0 (Official SAMF 2022 Data)</p>
+            <p class="version-tag">Version 58.0 (Larger Points)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -777,6 +777,8 @@
             if (!ptsData) return 0;
 
             let catIndex = 0; // Default Prime Round
+            let score = 0;
+
             // MAPPING LOGIC FOR SAMF 2022
             if (samfFishCategories["Flatfish / General Round"].includes(species)) {
                 catIndex = 1; // General/Flat Column
@@ -791,7 +793,17 @@
                 catIndex = 1; // "Unspecified" maps to General/Flat
             }
             
-            return ptsData[catIndex];
+            score = ptsData[catIndex];
+
+            // DOUBLE POINTS RULES FROM PDF
+            if ((species === "Brill" || species === "Turbot") && len > 30) {
+                score *= 2;
+            }
+            if (species === "Stingray") {
+                score *= 2;
+            }
+
+            return score;
         };
 
         window.calculatePoints = function(fishList, method) {
@@ -1005,7 +1017,26 @@
             }
         };
 
-        // NEW: ROBUST ERROR HANDLING FOR ADDFISH
+        // UPDATED UI: Larger, clearer score display
+        window.updateFishLog = function() {
+            const fishLog = document.getElementById('fishLog');
+            fishLog.innerHTML = '';
+            fishData.forEach((fish, index) => {
+                const row = document.createElement('tr');
+                
+                let displayInfo = `<span class="text-dark fw-bold fs-6">${fish.length} cm</span>`;
+                if(currentScoringMethod === 'samf_matrix') {
+                    const pts = window.getSAMFPoints(fish.species, parseFloat(fish.length));
+                    // Layout: [ 47 pts ] [ 50 cm ] (both large/bold)
+                    displayInfo = `<span class="text-primary fw-bold fs-6 me-3">${pts} pts</span> ` + displayInfo;
+                }
+
+                row.innerHTML = `<td class="fw-bold text-dark">${fish.species}</td><td class="text-end">${displayInfo}</td><td class="text-end" style="width:50px;"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${index})"><i class="bi bi-trash"></i></button></td>`;
+                fishLog.appendChild(row);
+            });
+        };
+
+        // ROBUST ERROR HANDLING
         window.addFish = function() {
             try {
                 const speciesInput = document.getElementById('speciesInput');
@@ -1121,13 +1152,13 @@
             fishData.forEach((fish, index) => {
                 const row = document.createElement('tr');
                 
-                let displayInfo = `${fish.length} cm`;
+                let displayInfo = `<span class="text-dark fw-bold fs-6">${fish.length} cm</span>`;
                 if(currentScoringMethod === 'samf_matrix') {
                     const pts = window.getSAMFPoints(fish.species, parseFloat(fish.length));
-                    displayInfo = `<span class="badge bg-primary bg-opacity-10 text-primary me-2">${pts} pts</span> ` + displayInfo;
+                    displayInfo = `<span class="text-primary fw-bold fs-6 me-3">${pts} pts</span> ` + displayInfo;
                 }
 
-                row.innerHTML = `<td class="fw-bold text-dark">${fish.species}</td><td class="text-end text-muted">${displayInfo}</td><td class="text-end" style="width:50px;"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${index})"><i class="bi bi-trash"></i></button></td>`;
+                row.innerHTML = `<td class="fw-bold text-dark">${fish.species}</td><td class="text-end">${displayInfo}</td><td class="text-end" style="width:50px;"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${index})"><i class="bi bi-trash"></i></button></td>`;
                 fishLog.appendChild(row);
             });
         };
