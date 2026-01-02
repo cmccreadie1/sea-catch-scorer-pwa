@@ -23,8 +23,8 @@
             --bg-gradient-start: #0e2a47;
             --bg-gradient-end: #1c4b75;
             --card-bg: #eef6fc; 
-            --input-bg: #f8fbfe; 
-            --border-color: #dbe7f1;
+            --input-bg: #ffffff; 
+            --border-color: #90a4ae; /* Much darker border default */
             --card-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
@@ -90,29 +90,41 @@
         }
 
         .form-label {
-            font-weight: 600;
+            font-weight: 700;
             color: var(--primary-color);
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
 
+        /* --- HIGH DEFINITION INPUTS (Requested Feature) --- */
         .form-control, .form-select {
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            padding: 10px;
+            border-radius: 12px;
+            border: 2px solid #90a4ae; /* Thicker, darker border */
+            padding: 12px;
             font-size: 1rem; 
-            background-color: var(--input-bg);
-            color: var(--primary-color);
+            font-weight: 600; /* Bolder text inside */
+            background-color: #ffffff;
+            color: #0e2a47;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.06); /* Lift off page */
+            transition: all 0.2s ease-in-out;
         }
 
         .form-control:focus, .form-select:focus {
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px rgba(0, 184, 148, 0.15);
-            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.25); /* Stronger glow */
+            transform: translateY(-1px); /* Slight movement feedback */
         }
         
+        /* Disabled inputs look different so you know they are locked */
+        .form-control:disabled, .form-select:disabled {
+            background-color: #eceff1;
+            border-color: #cfd8dc;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
         .section-title {
             font-size: 1rem;
             font-weight: 700;
@@ -120,43 +132,49 @@
             margin-bottom: 12px;
             display: flex;
             align-items: center;
-            border-bottom: 1px solid #dbe7f1;
+            border-bottom: 2px solid #dbe7f1; /* Thicker divider */
             padding-bottom: 5px;
-            margin-top: 15px;
+            margin-top: 20px;
         }
         .section-title i { margin-right: 8px; color: var(--accent-color); }
 
         .rule-info-box {
             background-color: #e3f2fd;
-            border: 1px solid #bbdefb;
+            border: 2px solid #90caf9; /* Thicker border */
             color: #0d47a1;
             padding: 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 0.8rem;
-            margin-top: 10px;
+            margin-top: 12px;
             display: none;
+            font-weight: 500;
         }
         .rule-info-box ul { padding-left: 18px; margin-bottom: 0; margin-top: 4px; }
 
         .big-switch {
             display: flex;
             align-items: center;
-            padding: 8px;
+            padding: 10px;
             background: #ffffff;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            border: 2px solid #90a4ae; /* Match inputs */
+            box-shadow: 0 3px 5px rgba(0,0,0,0.06);
         }
         .big-switch .form-check-input {
-            width: 3em; height: 1.5em; margin-right: 12px; cursor: pointer;
+            width: 3.2em; height: 1.6em; margin-right: 12px; cursor: pointer;
+            border: 2px solid #adb5bd;
+        }
+        .big-switch .form-check-input:checked {
+            border-color: var(--accent-color);
         }
         .big-switch .form-check-label {
-            font-size: 1rem; font-weight: 700; cursor: pointer; padding-top: 2px;
+            font-size: 1rem; font-weight: 700; cursor: pointer; padding-top: 2px; color: var(--primary-color);
         }
 
         .btn {
             border-radius: 50px;
-            padding: 10px 20px;
-            font-weight: 600;
+            padding: 12px 20px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-size: 0.9rem;
@@ -167,7 +185,7 @@
         .btn-secondary { background-color: #cfd8dc; color: #37474f; }
         .btn-danger { background-color: #ff7675; color: white; }
         .btn-whatsapp { background-color: #25D366; color: white; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
-        .btn-samf { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; padding: 8px 15px; }
+        .btn-samf { background-color: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4); color: white; font-size: 0.8rem; padding: 10px 15px; width: 100%; }
 
         .table { margin-top: 5px; margin-bottom: 10px; }
         .table thead th { border: none; color: #78909c; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;}
@@ -310,7 +328,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-1">Sea Catch Scorer</h1>
-            <p class="version-tag">Version 44.0 (Rockling Update)</p>
+            <p class="version-tag">Version 45.0 (High Def UI)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -319,7 +337,7 @@
                     <i class="bi bi-journal-text me-2"></i> Saved Scorecards
                 </button>
                 <a href="https://www.fsas.org.uk/wp-content/uploads/2023/09/SAMF_Length_to_Points_Chart.pdf" target="_blank" class="btn btn-samf rounded-pill mt-2">
-                    <i class="bi bi-file-earmark-pdf me-2"></i>View Official SAMF Chart
+                    <i class="bi bi-printer me-2"></i>View & Print Official Chart
                 </a>
                 <button id="btnInstall" class="btn btn-outline-info btn-sm rounded-pill mt-2" style="display:none;">
                     <i class="bi bi-download me-1"></i> Install App
