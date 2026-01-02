@@ -72,11 +72,21 @@
             max-width: 600px;
             margin: 20px auto;
             background: var(--card-bg);
-            padding: 25px;
+            /* Increased padding for spacious feel */
+            padding: 35px;
             border-radius: 24px;
             box-shadow: var(--card-shadow);
             border: 1px solid rgba(255,255,255,0.2);
             padding-bottom: 40px;
+        }
+
+        /* Labels are now bolder */
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-control, .form-select {
@@ -86,6 +96,7 @@
             font-size: 1rem;
             background-color: var(--input-bg);
             color: var(--primary-color);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
         }
 
         .form-control:focus, .form-select:focus {
@@ -94,6 +105,50 @@
             background-color: #ffffff;
         }
         
+        /* New Section Separators on Registration Page */
+        .registration-section {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 25px;
+            margin-bottom: 25px;
+        }
+        .registration-section:last-child {
+            border-bottom: none;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .section-title i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+
+        /* BIGGER COMPETITION SWITCH */
+        .big-switch {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .big-switch .form-check-input {
+            width: 3.5em; /* Much wider */
+            height: 1.75em; /* Taller */
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        .big-switch .form-check-label {
+            font-size: 1.1rem; /* Larger font */
+            font-weight: 700;
+            cursor: pointer;
+            padding-top: 2px;
+        }
+
         .btn {
             border-radius: 50px;
             padding: 12px 24px;
@@ -147,8 +202,9 @@
         }
         .delete-btn:active { background: #ffcdd2; }
         
-        .app-header { text-align: center; margin-bottom: 20px; }
-        .app-header h2 { font-weight: 700; color: var(--primary-color); }
+        .app-header { text-align: center; margin-bottom: 25px; }
+        .app-header h2 { font-weight: 800; color: var(--primary-color); font-size: 2rem; }
+        .app-header p { color: #78909c; font-weight: 500; }
 
         .score-hero-container {
             background: white;
@@ -302,7 +358,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-2">Sea Catch Scorer</h1>
-            <p class="version-tag text-white-50">Version 38.0 (Scoring Options)</p>
+            <p class="version-tag text-white-50">Version 39.0 (Pro UI Redesign)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -422,47 +478,58 @@
         <div id="anglerRegistration" class="app-page">
             <div class="app-header">
                 <h2>New Session</h2>
-                <p>Enter details to start fishing</p>
+                <p>Setup your match details</p>
             </div>
-            <div class="mb-3">
-                <label for="anglerName" class="form-label">Angler Name</label>
-                <input type="text" id="anglerName" class="form-control" placeholder="">
-            </div>
-            <div class="row">
-                <div class="col-6 mb-3">
-                    <label for="competitionDate" class="form-label">Date</label>
-                    <input type="date" id="competitionDate" class="form-control">
+            
+            <div class="registration-section">
+                <div class="section-title"><i class="bi bi-person-circle"></i> Angler Details</div>
+                <div class="mb-3">
+                    <label for="anglerName" class="form-label">Angler Name</label>
+                    <input type="text" id="anglerName" class="form-control form-control-lg" placeholder="">
                 </div>
-                <div class="col-6 mb-3">
-                    <label for="venueInput" class="form-label">Venue</label>
-                    <input type="text" id="venueInput" class="form-control" placeholder="Location">
+                <div class="row">
+                    <div class="col-6">
+                        <label for="competitionDate" class="form-label">Date</label>
+                        <input type="date" id="competitionDate" class="form-control">
+                    </div>
+                    <div class="col-6">
+                        <label for="venueInput" class="form-label">Venue</label>
+                        <input type="text" id="venueInput" class="form-control" placeholder="">
+                    </div>
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label class="form-label text-primary fw-bold">Scoring Method</label>
-                <select id="scoringMethod" class="form-select border-primary border-opacity-50">
-                    <option value="measure_points" selected>Total Length + 5 pts/fish</option>
-                    <option value="length_only">Total Length Only</option>
-                </select>
+            <div class="registration-section">
+                <div class="section-title"><i class="bi bi-calculator-fill"></i> Match Rules</div>
+                <div>
+                    <label class="form-label">Scoring Method</label>
+                    <select id="scoringMethod" class="form-select form-select-lg border-primary border-opacity-50">
+                        <option value="" disabled selected>Choose Scoring Method...</option>
+                        <option value="measure_points">Total Length + 5 pts/fish</option>
+                        <option value="length_only">Total Length Only</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="inner-card mb-4">
-                <div class="form-check form-switch">
+            <div class="registration-section">
+                <div class="section-title"><i class="bi bi-trophy-fill"></i> Competition Pegging</div>
+                <div class="form-check form-switch big-switch mb-3">
                     <input class="form-check-input" type="checkbox" id="isCompetition">
-                    <label class="form-check-label fw-bold text-dark" for="isCompetition">Competition Mode</label>
+                    <label class="form-check-label" for="isCompetition">Enable Zone & Peg</label>
                 </div>
-                <div class="row mt-3">
+                <div class="row">
                     <div class="col-6">
-                        <select id="zoneInput" class="form-select" disabled>
-                            <option value="" selected>Zone</option>
+                        <label class="form-label">Zone</label>
+                        <select id="zoneInput" class="form-select form-select-lg" disabled>
+                            <option value="" selected>Select Zone...</option>
                             <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
                             <option value="Red">Red</option><option value="Yellow">Yellow</option><option value="Green">Green</option><option value="Blue">Blue</option>
                         </select>
                     </div>
                     <div class="col-6">
-                        <select id="pegInput" class="form-select" disabled>
-                            <option value="" selected>Peg</option>
+                        <label class="form-label">Peg Number</label>
+                        <select id="pegInput" class="form-select form-select-lg" disabled>
+                            <option value="" selected>Select Peg...</option>
                             <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
                             <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
                             <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
@@ -473,9 +540,10 @@
                     </div>
                 </div>
             </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-secondary flex-grow-1" onclick="window.resetApp()">Cancel</button>
-                <button class="btn btn-primary flex-grow-1" onclick="window.registerAngler()">Let's Fish <i class="bi bi-arrow-right ms-2"></i></button>
+
+            <div class="d-flex gap-3 mt-4">
+                <button class="btn btn-outline-secondary btn-lg flex-grow-1" onclick="window.resetApp()">Cancel</button>
+                <button class="btn btn-primary btn-lg flex-grow-1 shadow" onclick="window.registerAngler()">Let's Fish <i class="bi bi-arrow-right ms-2"></i></button>
             </div>
         </div>
 
@@ -687,7 +755,7 @@
 
         let fishData = [];
         let currentAngler = null, currentDate = null, currentVenue = null, currentZone = null, currentPeg = null, currentViewingLog = null;
-        let currentScoringMethod = 'measure_points'; // Default
+        let currentScoringMethod = null;
         let pendingRestoreData = null; 
 
         window.formatDate = function(dateString) {
@@ -699,15 +767,12 @@
             } catch (e) { return 'N/A'; }
         };
 
-        // NEW: Updated Calculation Logic
         window.calculatePoints = function(totalFish, totalLength, method) {
-            // If method isn't passed (e.g., loading old logs), assume default
             if (!method) method = 'measure_points'; 
             
             if (method === 'length_only') {
                 return Math.round(totalLength);
             } else {
-                // Default: measure_points
                 return Math.round((totalFish * 5) + totalLength);
             }
         };
@@ -717,7 +782,7 @@
                 const activeData = {
                     angler: currentAngler, date: currentDate, venue: currentVenue,
                     zone: currentZone, peg: currentPeg, 
-                    scoringMethod: currentScoringMethod, // Save the rule
+                    scoringMethod: currentScoringMethod,
                     fishData: fishData
                 };
                 StorageHelper.save('active_session', JSON.stringify(activeData));
@@ -752,7 +817,7 @@
             currentVenue = data.venue;
             currentZone = data.zone;
             currentPeg = data.peg;
-            currentScoringMethod = data.scoringMethod || 'measure_points'; // Restore rule
+            currentScoringMethod = data.scoringMethod || 'measure_points';
             fishData = data.fishData || [];
 
             window.populateSpeciesDropdown();
@@ -838,7 +903,6 @@
             document.getElementById('session_eq_len').textContent = lenPts;
             document.getElementById('session_eq_total').textContent = totalPts;
             
-            // Toggle Visibility of Fish Points row based on rule
             const fishRow = document.getElementById('session_eq_fish_row');
             if(currentScoringMethod === 'length_only') {
                 fishRow.style.display = 'none';
@@ -863,7 +927,7 @@
 
         window.resetApp = function() {
             fishData = []; currentAngler = null; currentDate = null; currentVenue = null; currentZone = null; currentPeg = null;
-            currentScoringMethod = 'measure_points'; // Reset to default
+            currentScoringMethod = null;
             window.clearActiveSession();
             
             document.getElementById('anglerName').value = '';
@@ -874,7 +938,7 @@
             window.toggleCompetitionFields();
             document.getElementById('zoneInput').selectedIndex = 0;
             document.getElementById('pegInput').selectedIndex = 0;
-            document.getElementById('scoringMethod').selectedIndex = 0; // Reset scoring dropdown
+            document.getElementById('scoringMethod').selectedIndex = 0; // Reset to placeholder
 
             PageManager.show('splashScreen');
         };
@@ -884,9 +948,14 @@
             const competitionDate = document.getElementById('competitionDate').value;
             const venueInput = document.getElementById('venueInput').value.trim();
             const isCompetition = document.getElementById('isCompetition').checked;
+            const scoringSelect = document.getElementById('scoringMethod');
             
-            // NEW: Get Scoring Method
-            currentScoringMethod = document.getElementById('scoringMethod').value;
+            currentScoringMethod = scoringSelect.value;
+
+            // VALIDATION: Check for scoring method
+            if (!currentScoringMethod || currentScoringMethod === "") {
+                 return alert("Please choose a Scoring Method.");
+            }
             
             if (!anglerName || !competitionDate || !venueInput) return alert("Please fill in Name, Date and Venue.");
             
@@ -964,7 +1033,7 @@
             const sessionData = {
                 angler: currentAngler, date: currentDate, venue: currentVenue,
                 zone: currentZone, peg: currentPeg, 
-                scoringMethod: currentScoringMethod, // Save method to historical log
+                scoringMethod: currentScoringMethod, 
                 fishData: fishData,
                 totalPoints: window.calculatePoints(totalFish, totalLength, currentScoringMethod),
                 totalFish: totalFish, totalLength: totalLength
@@ -997,7 +1066,6 @@
                         if(!data.fishData) data.fishData = [];
                         const len = data.fishData.reduce((s,f) => s + (parseFloat(f.length)||0), 0);
                         
-                        // Recalculate based on the rule saved in that scorecard
                         const method = data.scoringMethod || 'measure_points'; 
                         const pts = window.calculatePoints(data.fishData.length, len, method);
 
@@ -1074,7 +1142,6 @@
                 const data = JSON.parse(jsonStr);
                 currentViewingLog = data; 
                 
-                // Get method from saved data
                 const method = data.scoringMethod || 'measure_points';
 
                 if (!data.fishData) data.fishData = [];
@@ -1108,7 +1175,6 @@
                 document.getElementById('saved_eq_len').textContent = lenPts;
                 document.getElementById('saved_eq_total').textContent = totalPts;
 
-                // Hide Fish Points Row if using Length Only
                 const fishRow = document.getElementById('saved_eq_fish_row');
                 if(method === 'length_only') {
                     fishRow.style.display = 'none';
