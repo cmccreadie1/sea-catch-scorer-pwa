@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>Sea Catch Scorer</title>
     <link rel="manifest" href="manifest.json">
     
@@ -40,6 +40,7 @@
 
         h1, h2, h3, h4, h5, .btn { font-family: 'Poppins', sans-serif; }
 
+        /* SPLASH SCREEN */
         .splash-screen {
             display: flex;
             flex-direction: column;
@@ -48,132 +49,133 @@
             min-height: 100vh;
             color: white;
             text-align: center;
-            padding: 20px;
+            padding: 15px;
         }
 
         .splash-screen img {
-            max-width: 180px;
+            max-width: 150px;
             height: auto;
             border-radius: 20px;
             box-shadow: 0 15px 30px rgba(0,0,0,0.3);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             animation: pulse 3s infinite ease-in-out;
         }
 
         .version-tag {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             opacity: 0.6;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             color: #a4b0be;
         }
 
+        /* CARD CONTAINER - OPTIMIZED FOR MOBILE */
         .app-page {
             display: none; 
             max-width: 600px;
-            margin: 20px auto;
+            margin: 15px auto; /* Reduced top/bottom margin */
             background: var(--card-bg);
-            padding: 35px;
-            border-radius: 24px;
+            padding: 20px; /* Reduced from 35px to prevent bleeding */
+            border-radius: 20px;
             box-shadow: var(--card-shadow);
             border: 1px solid rgba(255,255,255,0.2);
-            padding-bottom: 40px;
+            padding-bottom: 30px;
+            width: 95%; /* Ensure it doesn't touch edges */
+        }
+
+        /* Responsive padding for very small screens */
+        @media (max-width: 400px) {
+            .app-page { padding: 15px; width: 98%; }
+            h2 { font-size: 1.5rem !important; }
+            .score-hero-val { font-size: 2.5rem !important; }
+            .btn { padding: 10px 20px; font-size: 0.85rem; }
         }
 
         .form-label {
             font-weight: 600;
             color: var(--primary-color);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: 5px;
         }
 
         .form-control, .form-select {
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
-            padding: 12px;
-            font-size: 1rem;
+            padding: 10px;
+            font-size: 1rem; /* Base font size kept readable */
             background-color: var(--input-bg);
             color: var(--primary-color);
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
         }
 
         .form-control:focus, .form-select:focus {
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.15);
+            box-shadow: 0 0 0 2px rgba(0, 184, 148, 0.15);
             background-color: #ffffff;
         }
         
-        .registration-section {
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 25px;
-            margin-bottom: 25px;
-        }
-        .registration-section:last-child {
-            border-bottom: none;
-        }
         .section-title {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
+            border-bottom: 1px solid #dbe7f1;
+            padding-bottom: 5px;
+            margin-top: 15px;
         }
-        .section-title i {
-            margin-right: 10px;
-            color: var(--accent-color);
-        }
+        .section-title i { margin-right: 8px; color: var(--accent-color); }
 
         .rule-info-box {
             background-color: #e3f2fd;
             border: 1px solid #bbdefb;
             color: #0d47a1;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            margin-top: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            margin-top: 10px;
             display: none;
         }
-        .rule-info-box ul { padding-left: 20px; margin-bottom: 0; margin-top: 5px; }
+        .rule-info-box ul { padding-left: 18px; margin-bottom: 0; margin-top: 4px; }
 
         .big-switch {
             display: flex;
             align-items: center;
-            padding: 10px;
+            padding: 8px;
             background: #ffffff;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
         }
         .big-switch .form-check-input {
-            width: 3.5em; height: 1.75em; margin-right: 15px; cursor: pointer;
+            width: 3em; height: 1.5em; margin-right: 12px; cursor: pointer;
         }
         .big-switch .form-check-label {
-            font-size: 1.1rem; font-weight: 700; cursor: pointer; padding-top: 2px;
+            font-size: 1rem; font-weight: 700; cursor: pointer; padding-top: 2px;
         }
 
         .btn {
             border-radius: 50px;
-            padding: 12px 24px;
+            padding: 10px 20px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-size: 0.9rem;
-            transition: transform 0.2s, box-shadow 0.2s;
             border: none;
         }
-        .btn:active { transform: scale(0.98); }
         .btn-primary { background-color: var(--primary-color); box-shadow: 0 4px 10px rgba(14, 42, 71, 0.3); }
         .btn-success { background-color: var(--accent-color); box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3); }
         .btn-secondary { background-color: #cfd8dc; color: #37474f; }
         .btn-danger { background-color: #ff7675; color: white; }
         .btn-whatsapp { background-color: #25D366; color: white; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
+        .btn-samf { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 0.75rem; padding: 8px 15px; }
 
-        .table { margin-top: 10px; border-collapse: separate; border-spacing: 0 8px; }
-        .table thead th { border: none; color: #78909c; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;}
-        .table tbody tr { background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
-        .table tbody tr td { border: none; padding: 15px; vertical-align: middle; }
-        .table tbody td:first-child { border-radius: 10px 0 0 10px; }
-        .table tbody td:last-child { border-radius: 0 10px 10px 0; }
+        /* Tables Condensed for Mobile */
+        .table { margin-top: 5px; margin-bottom: 10px; }
+        .table thead th { border: none; color: #78909c; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;}
+        .table tbody tr td { border: none; padding: 10px 8px; vertical-align: middle; font-size: 0.9rem; }
+        .table tbody td:first-child { border-radius: 8px 0 0 8px; }
+        .table tbody td:last-child { border-radius: 0 8px 8px 0; }
 
         #savedScorecardsList .card {
             border: none;
@@ -181,71 +183,49 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             border-radius: 12px;
             margin-bottom: 10px;
-            transition: all 0.2s;
-            cursor: pointer;
-            border: 1px solid transparent;
         }
-        #savedScorecardsList .card:active {
-            background-color: #f1f5f9;
-            transform: scale(0.99);
-        }
-
-        .delete-btn {
-            background: #ffebee;
-            color: #c62828;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        .delete-btn:active { background: #ffcdd2; }
         
-        .app-header { text-align: center; margin-bottom: 25px; }
-        .app-header h2 { font-weight: 800; color: var(--primary-color); font-size: 2rem; }
-        .app-header p { color: #78909c; font-weight: 500; }
+        .app-header { text-align: center; margin-bottom: 20px; }
+        .app-header h2 { font-weight: 800; color: var(--primary-color); font-size: 1.8rem; }
+        .app-header p { color: #78909c; font-weight: 500; font-size: 0.9rem; }
 
         .score-hero-container {
             background: white;
-            border-radius: 20px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 15px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border: 1px solid var(--border-color);
         }
         
         .score-hero-val {
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: 800;
             color: var(--primary-color);
             line-height: 1;
         }
         
         .score-hero-label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 2px;
             color: #b0bec5;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
-        /* Updated Grid to include Species Count */
         .stat-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr; /* 3 columns now */
-            gap: 10px;
-            margin-bottom: 20px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
         }
 
         .stat-card {
             background: #ffffff;
-            padding: 10px 5px;
-            border-radius: 15px;
+            padding: 8px 4px;
+            border-radius: 12px;
             text-align: center;
             border: 1px solid var(--border-color);
         }
@@ -253,68 +233,50 @@
         .stat-card small {
             display: block;
             color: #90a4ae;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             text-transform: uppercase;
             font-weight: 600;
         }
 
         .stat-card strong {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: var(--text-dark);
         }
 
         .equation-box {
             background: white;
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 20px;
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 15px;
         }
         .eq-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
+            padding: 6px 0;
             border-bottom: 1px dashed #eee;
+            font-size: 0.85rem;
         }
         .eq-row:last-child {
             border-bottom: none;
-            padding-top: 12px;
-            margin-top: 5px;
+            padding-top: 10px;
+            margin-top: 4px;
             border-top: 2px solid var(--border-color);
         }
-        .eq-label { font-size: 0.85rem; color: #607d8b; }
-        .eq-math { font-family: 'Inter', monospace; font-weight: 600; color: var(--text-dark); }
-        .eq-total { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); }
+        .eq-total { font-size: 1.3rem; font-weight: 800; color: var(--primary-color); }
 
-        .modal-content {
-            border-radius: 24px;
-            border: none;
-            background-color: #f0f7fd;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-        .modal-header { border-bottom: 1px solid #dae3eb; }
-        .modal-body { background-color: #f0f7fd; }
-        
-        .inner-card {
-            background-color: #ffffff;
-            border-radius: 16px;
-            padding: 15px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        
         .official-header {
             background: white;
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 20px;
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 15px;
             border: 2px solid var(--primary-color);
             text-align: center;
         }
         .official-angler-name {
             font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 800;
             color: var(--primary-color);
             text-transform: uppercase;
@@ -322,19 +284,19 @@
         .official-details-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 10px;
-            font-size: 0.85rem;
+            gap: 5px;
+            margin-top: 8px;
+            font-size: 0.8rem;
         }
         .official-detail-item {
             background: #f8fbfe;
-            padding: 8px;
-            border-radius: 8px;
+            padding: 5px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
         }
         .official-detail-label {
             display: block;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: #90a4ae;
             font-weight: 600;
             text-transform: uppercase;
@@ -349,8 +311,8 @@
     <div class="container">
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
-            <h1 class="mb-2">Sea Catch Scorer</h1>
-            <p class="version-tag text-white-50">Version 42.0 (SAMF Details)</p>
+            <h1 class="mb-1">Sea Catch Scorer</h1>
+            <p class="version-tag">Version 43.0 (Mobile Optimized)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -358,7 +320,10 @@
                 <button id="btnSavedLogs" class="btn btn-outline-light btn-lg border-2 fw-bold" data-bs-toggle="modal" data-bs-target="#savedScorecardsModal">
                     <i class="bi bi-journal-text me-2"></i> Saved Scorecards
                 </button>
-                <button id="btnInstall" class="btn btn-outline-info btn-sm rounded-pill mt-3" style="display:none;">
+                <a href="https://www.fsas.org.uk/wp-content/uploads/2023/09/SAMF_Length_to_Points_Chart.pdf" target="_blank" class="btn btn-samf rounded-pill mt-2">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>View Official SAMF Chart
+                </a>
+                <button id="btnInstall" class="btn btn-outline-info btn-sm rounded-pill mt-2" style="display:none;">
                     <i class="bi bi-download me-1"></i> Install App
                 </button>
             </div>
@@ -465,10 +430,10 @@
             </div>
             
             <div class="registration-section">
-                <div class="section-title"><i class="bi bi-person-circle"></i> Angler Details</div>
+                <div class="section-title"><i class="bi bi-person-circle"></i> Details</div>
                 <div class="mb-3">
                     <label for="anglerName" class="form-label">Angler Name</label>
-                    <input type="text" id="anglerName" class="form-control form-control-lg" placeholder="">
+                    <input type="text" id="anglerName" class="form-control" placeholder="">
                 </div>
                 <div class="row">
                     <div class="col-6">
@@ -483,10 +448,10 @@
             </div>
             
             <div class="registration-section">
-                <div class="section-title"><i class="bi bi-calculator-fill"></i> Match Rules</div>
+                <div class="section-title"><i class="bi bi-calculator-fill"></i> Rules</div>
                 <div>
                     <label class="form-label">Scoring Method</label>
-                    <select id="scoringMethod" class="form-select form-select-lg border-primary border-opacity-50" onchange="window.checkRuleInfo()">
+                    <select id="scoringMethod" class="form-select border-primary border-opacity-50" onchange="window.checkRuleInfo()">
                         <option value="" disabled selected>Choose Scoring Method...</option>
                         <option value="measure_points">Total Length + 5 pts/fish</option>
                         <option value="length_only">Total Length Only</option>
@@ -512,16 +477,16 @@
                 <div class="row">
                     <div class="col-6">
                         <label class="form-label">Zone</label>
-                        <select id="zoneInput" class="form-select form-select-lg" disabled>
-                            <option value="" selected>Select Zone...</option>
+                        <select id="zoneInput" class="form-select" disabled>
+                            <option value="" selected>Zone</option>
                             <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
                             <option value="Red">Red</option><option value="Yellow">Yellow</option><option value="Green">Green</option><option value="Blue">Blue</option>
                         </select>
                     </div>
                     <div class="col-6">
-                        <label class="form-label">Peg Number</label>
-                        <select id="pegInput" class="form-select form-select-lg" disabled>
-                            <option value="" selected>Select Peg...</option>
+                        <label class="form-label">Peg</label>
+                        <select id="pegInput" class="form-select" disabled>
+                            <option value="" selected>Peg</option>
                             <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
                             <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
                             <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
@@ -534,8 +499,8 @@
             </div>
 
             <div class="d-flex gap-3 mt-4">
-                <button class="btn btn-outline-secondary btn-lg flex-grow-1" onclick="window.resetApp()">Cancel</button>
-                <button class="btn btn-primary btn-lg flex-grow-1 shadow" onclick="window.registerAngler()">Let's Fish <i class="bi bi-arrow-right ms-2"></i></button>
+                <button class="btn btn-outline-secondary flex-grow-1" onclick="window.resetApp()">Cancel</button>
+                <button class="btn btn-primary flex-grow-1 shadow" onclick="window.registerAngler()">Let's Fish <i class="bi bi-arrow-right ms-2"></i></button>
             </div>
         </div>
 
@@ -682,6 +647,7 @@
     </div>
 
     <script>
+        // Storage Helper
         const StorageHelper = {
             memoryStore: {},
             save: function(key, value) {
@@ -729,9 +695,10 @@
             }
         };
 
-        // ALIGNED WITH SAMF MATRIX CATEGORIES
+        // NEW: "Most Common" Group added at the top
         const samfFishCategories = {
-            "Round Fish": ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Coalfish", "Cod", "Gurnard (Red)", "Gurnard (Tub)", "Haddock", "Hake", "John Dory", "Ling", "Mackerel", "Monkfish", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Poor Cod", "Pouting", "Saithe", "Salmon", "Shark (Blue)", "Shark (Porbeagle)", "Shark (Thresher)", "Sprat", "Triggerfish", "Whiting"],
+            "Most Common": ["Coalfish", "Cod", "Conger Eel", "Dab", "Flounder", "Mackerel", "Plaice", "Pollack", "Thornback Ray", "Turbot", "Whiting"],
+            "Round Fish": ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Bull Huss", "Coalfish", "Cod", "Conger Eel", "Dogfish (Blackmouth)", "Dogfish (LSD)", "Gurnard (Red)", "Gurnard (Tub)", "Haddock", "Hake", "John Dory", "Ling", "Mackerel", "Monkfish", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Poor Cod", "Pouting", "Saithe", "Salmon", "Shark (Blue)", "Shark (Porbeagle)", "Shark (Thresher)", "Sprat", "Triggerfish", "Whiting"],
             "Flatfish": ["Brill", "Dab", "Flounder", "Halibut", "Megrim", "Plaice", "Sole (Dover)", "Sole (Lemon)", "Sole (Thickback)", "Turbot"],
             "Rays and Skates": ["Ray (Blonde)", "Ray (Small-eyed)", "Ray (Spotted)", "Ray (Starry)", "Ray (Thornback)", "Skate"],
             "Other (Shark/Dogfish)": ["Bull Huss", "Dogfish (LSD)", "Smoothhound", "Tope"],
@@ -782,13 +749,9 @@
         window.getSAMFPoints = function(species, length) {
             const len = Math.floor(length);
             
-            // Fixed Value Eels
             if (species === 'Conger Eel' || species === 'Silver Eel' || species.includes('Eel')) return 30;
-            
-            // Undersize Rule
             if (len < 18) return 2;
             
-            // Matrix Lookup
             const ptsData = samfPointsTable[len] || samfPointsTable[100]; 
             if (!ptsData) return 0;
 
@@ -831,8 +794,6 @@
                         <span class="eq-total">${totalPts}</span>
                     </div>`;
             } else if (method === 'samf_matrix') {
-                // Not really useful to show "matrix vs fixed" breakdown if we are showing per-fish lines
-                // So we just show Total Score for SAMF
                 html = `
                     <div class="eq-row">
                         <span class="eq-label fw-bold text-primary">TOTAL SCORE</span>
@@ -973,21 +934,18 @@
 
             document.getElementById('session_total_points').textContent = totalPts;
             
-            // Equation Box Logic
             const eqContainer = document.getElementById('session_equation_container');
             eqContainer.innerHTML = window.generateEquationHTML(totalFish, totalLength, currentScoringMethod, totalPts);
             
             document.getElementById('session_total_fish').textContent = totalFish;
-            document.getElementById('session_species_count').textContent = uniqueSpecies.size; // New Stat
+            document.getElementById('session_species_count').textContent = uniqueSpecies.size;
             document.getElementById('session_total_len').textContent = parseFloat(totalLength.toFixed(2)) + ' cm';
             document.getElementById('session_biggest_fish').textContent = biggestFishName;
 
-            // Generate Table Rows (Row by Row Detail for SAMF)
             const tableHead = document.getElementById('session_log_head');
             
             if (currentScoringMethod === 'samf_matrix') {
                 tableHead.innerHTML = `<tr><th>Species</th><th class="text-center">Len</th><th class="text-end">Pts</th></tr>`;
-                
                 fishData.forEach(fish => {
                     const row = document.createElement('tr');
                     const pts = window.getSAMFPoints(fish.species, parseFloat(fish.length));
@@ -995,9 +953,7 @@
                     tallyTable.appendChild(row);
                 });
             } else {
-                // Standard Summary Mode (Grouped)
                 tableHead.innerHTML = `<tr><th>Species</th><th class="text-center">Qty</th><th class="text-end">Length</th></tr>`;
-                
                 const summary = {};
                 fishData.forEach(fish => {
                     if(!summary[fish.species]) summary[fish.species] = { count: 0, totalLength: 0, lengths: [] };
@@ -1273,7 +1229,6 @@
                 document.getElementById('saved_total_len').textContent = parseFloat(totalLength.toFixed(2)) + ' cm';
                 document.getElementById('saved_biggest_fish').textContent = biggestFishName;
 
-                // SAVED LOG DETAIL (Row by Row for SAMF)
                 const log = document.getElementById('saved_fish_log');
                 const head = document.getElementById('saved_log_head');
                 log.innerHTML = '';
@@ -1287,7 +1242,6 @@
                         log.appendChild(row);
                     });
                 } else {
-                    // Standard Grouped Mode
                     head.innerHTML = `<tr><th>Species</th><th class="text-center">Qty</th><th class="text-end">Length</th></tr>`;
                     const summary = {};
                     data.fishData.forEach(fish => {
