@@ -1,32 +1,1212 @@
-const CACHE_NAME = 'sea-catch-v66';
-const FILES_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
-];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>Sea Catch Scorer</title>
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-self.addEventListener('install', (e) => {
-  self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(FILES_TO_CACHE);
-    })
-  );
-});
+    <style>
+        :root {
+            --primary-color: #0e2a47; 
+            --accent-color: #00b894; 
+            --text-dark: #2d3436;
+            --bg-gradient-start: #0e2a47;
+            --bg-gradient-end: #1c4b75;
+            --card-bg: #eef6fc; 
+            --input-bg: #ffffff; 
+            --border-color: #90a4ae; 
+            --card-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
-});
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            color: var(--text-dark);
+            overscroll-behavior-y: contain;
+            padding-bottom: 60px;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
-    })
-  );
-});
+        h1, h2, h3, h4, h5, .btn { font-family: 'Poppins', sans-serif; }
+
+        .splash-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: white;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .splash-screen img {
+            max-width: 150px;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        .version-tag {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-bottom: 25px;
+            color: #a4b0be;
+        }
+
+        .app-page {
+            display: none; 
+            max-width: 600px;
+            margin: 15px auto; 
+            background: var(--card-bg);
+            padding: 20px; 
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 30px;
+            width: 95%; 
+        }
+
+        @media (max-width: 400px) {
+            .app-page { padding: 15px; width: 98%; }
+            h2 { font-size: 1.5rem !important; }
+            .score-hero-val { font-size: 2.5rem !important; }
+            .btn { padding: 10px 20px; font-size: 0.85rem; }
+        }
+
+        .form-label {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 2px solid #90a4ae; 
+            padding: 12px;
+            font-size: 1rem; 
+            font-weight: 600; 
+            background-color: #ffffff;
+            color: #0e2a47;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.06); 
+            transition: all 0.2s ease-in-out;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.25);
+            transform: translateY(-1px); 
+        }
+        
+        .form-control:disabled, .form-select:disabled {
+            background-color: #eceff1;
+            border-color: #cfd8dc;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #dbe7f1; 
+            padding-bottom: 5px;
+            margin-top: 20px;
+        }
+        .section-title i { margin-right: 8px; color: var(--accent-color); }
+
+        .rule-info-box {
+            background-color: #e3f2fd;
+            border: 2px solid #90caf9; 
+            color: #0d47a1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            display: none;
+            font-weight: 500;
+        }
+        .rule-info-box ul { padding-left: 18px; margin-bottom: 0; margin-top: 4px; }
+
+        .big-switch {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 2px solid #90a4ae; 
+            box-shadow: 0 3px 5px rgba(0,0,0,0.06);
+        }
+        .big-switch .form-check-input {
+            width: 3.2em; height: 1.6em; margin-right: 12px; cursor: pointer;
+            border: 2px solid #adb5bd;
+        }
+        .big-switch .form-check-input:checked {
+            border-color: var(--accent-color);
+        }
+        .big-switch .form-check-label {
+            font-size: 1rem; font-weight: 700; cursor: pointer; padding-top: 2px; color: var(--primary-color);
+        }
+
+        .btn {
+            border-radius: 50px;
+            padding: 12px 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            border: none;
+        }
+        .btn-primary { background-color: var(--primary-color); box-shadow: 0 4px 10px rgba(14, 42, 71, 0.3); }
+        .btn-success { background-color: var(--accent-color); box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3); }
+        .btn-secondary { background-color: #cfd8dc; color: #37474f; }
+        .btn-danger { background-color: #ff7675; color: white; }
+        .btn-whatsapp { background-color: #25D366; color: white; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
+        .btn-samf { background-color: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4); color: white; font-size: 0.8rem; padding: 10px 15px; width: 100%; }
+
+        .table { margin-top: 5px; margin-bottom: 10px; }
+        .table thead th { border: none; color: #78909c; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;}
+        .table tbody tr td { border: none; padding: 10px 8px; vertical-align: middle; font-size: 0.9rem; }
+        .table tbody td:first-child { border-radius: 8px 0 0 8px; }
+        .table tbody td:last-child { border-radius: 0 8px 8px 0; }
+
+        #savedScorecardsList .card {
+            border: none;
+            background: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .app-header { text-align: center; margin-bottom: 20px; }
+        .app-header h2 { font-weight: 800; color: var(--primary-color); font-size: 1.8rem; }
+        .app-header p { color: #78909c; font-weight: 500; font-size: 0.9rem; }
+
+        .score-hero-container {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .score-hero-val {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+        
+        .score-hero-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #b0bec5;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            padding: 8px 4px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card small {
+            display: block;
+            color: #90a4ae;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat-card strong {
+            font-size: 1rem;
+            color: var(--text-dark);
+        }
+
+        .equation-box {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        .eq-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 0.85rem;
+        }
+        .eq-row:last-child {
+            border-bottom: none;
+            padding-top: 10px;
+            margin-top: 4px;
+            border-top: 2px solid var(--border-color);
+        }
+        .eq-total { font-size: 1.3rem; font-weight: 800; color: var(--primary-color); }
+
+        .official-header {
+            background: white;
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid var(--primary-color);
+            text-align: center;
+        }
+        .official-angler-name {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+        .official-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+        }
+        .official-detail-item {
+            background: #f8fbfe;
+            padding: 5px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .official-detail-label {
+            display: block;
+            font-size: 0.65rem;
+            color: #90a4ae;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .official-detail-value {
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        
+        /* Modal for Matrix */
+        .matrix-modal-content { font-size: 0.7rem; }
+        .matrix-table th { position: sticky; top: 0; background: #fff; z-index: 10; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="splashScreen" class="splash-screen">
+            <img src="icon.png" alt="Sea Catch Scorer Logo">
+            <h1 class="mb-1">Sea Catch Scorer</h1>
+            <p class="version-tag">Version 67.0 (Fixed & Robust)</p>
+            <div class="d-grid gap-3 col-10 col-md-6">
+                <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
+                    <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
+                </button>
+                <button id="btnSavedLogs" class="btn btn-outline-light btn-lg border-2 fw-bold" data-bs-toggle="modal" data-bs-target="#savedScorecardsModal">
+                    <i class="bi bi-journal-text me-2"></i> Saved Scorecards
+                </button>
+                <button class="btn btn-samf rounded-pill mt-2" data-bs-toggle="modal" data-bs-target="#matrixModal">
+                    <i class="bi bi-table me-2"></i>View Official Matrix
+                </button>
+                <button id="btnInstall" class="btn btn-outline-info btn-sm rounded-pill mt-2" style="display:none;">
+                    <i class="bi bi-download me-1"></i> Install App
+                </button>
+            </div>
+        </div>
+
+        <div class="modal fade" id="savedScorecardsModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold text-primary">Fishing Logbook</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="savedScorecardsList">
+                            <h6 class="text-muted text-uppercase small fw-bold mb-2">Recent Catches</h6>
+                            <div id="recentList"></div>
+                            <div id="archiveSection" style="display:none;">
+                                <hr class="my-4">
+                                <h6 class="text-muted text-uppercase small fw-bold mb-2">Archived History</h6>
+                                <div id="archiveList"></div>
+                            </div>
+                            <div class="text-center mt-3">
+                                <button id="btnShowArchive" class="btn btn-sm btn-outline-secondary rounded-pill" style="display:none;" onclick="window.toggleArchive()">
+                                    View Older Scorecards <i class="bi bi-chevron-down ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="fullScorecardView" class="full-scorecard" style="display:none;">
+                            <div class="official-header">
+                                <div id="saved_angler" class="official-angler-name"></div>
+                                <div class="official-details-grid">
+                                    <div class="official-detail-item">
+                                        <span class="official-detail-label">Date</span>
+                                        <span id="saved_date" class="official-detail-value"></span>
+                                    </div>
+                                    <div class="official-detail-item">
+                                        <span class="official-detail-label">Venue</span>
+                                        <span id="saved_venue" class="official-detail-value"></span>
+                                    </div>
+                                    <div class="official-detail-item">
+                                        <span class="official-detail-label">Zone</span>
+                                        <span id="saved_zone" class="official-detail-value fw-bold text-primary"></span>
+                                    </div>
+                                    <div class="official-detail-item">
+                                        <span class="official-detail-label">Peg</span>
+                                        <span id="saved_peg" class="official-detail-value fw-bold text-primary"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="score-hero-container">
+                                <div class="score-hero-label">Total Score</div>
+                                <div id="saved_total_points" class="score-hero-val">0</div>
+                            </div>
+
+                            <div id="saved_equation_container" class="equation-box"></div>
+
+                            <div class="stat-grid">
+                                <div class="stat-card border-success border-opacity-50" style="grid-column: span 3;">
+                                    <small class="text-success">Biggest Fish</small>
+                                    <strong id="saved_biggest_fish" class="text-success">-</strong>
+                                </div>
+                                <div class="stat-card">
+                                    <small>Total Fish</small>
+                                    <strong id="saved_fish_count">0</strong>
+                                </div>
+                                <div class="stat-card">
+                                    <small>Species</small>
+                                    <strong id="saved_species_count">0</strong>
+                                </div>
+                                <div class="stat-card">
+                                    <small>Total Length</small>
+                                    <strong id="saved_total_len">0 cm</strong>
+                                </div>
+                            </div>
+
+                            <h6 class="text-muted text-uppercase fs-7 fw-bold ps-2">Catch Log</h6>
+                            <table class="table table-borderless">
+                                <thead id="saved_log_head">
+                                    <tr><th>Species</th><th class="text-center">Pts</th><th class="text-end">Length</th></tr>
+                                </thead>
+                                <tbody id="saved_fish_log"></tbody>
+                            </table>
+                            
+                            <div class="d-grid gap-2 mt-4 pt-3 border-top">
+                                <button class="btn btn-whatsapp" onclick="window.shareAsImage('saved')">
+                                    <i class="bi bi-image me-2"></i> Share Scorecard (Image)
+                                </button>
+                                <button class="btn btn-secondary mt-2" onclick="window.backToScorecardList()">
+                                    <i class="bi bi-arrow-left me-2"></i> Back to List
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="matrixModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-fullscreen-sm-down modal-lg">
+                <div class="modal-content matrix-modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">Official Points Table</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="alert alert-info m-2 small">
+                            <i class="bi bi-check-circle-fill me-1"></i> Values loaded from official SAMF 2022 Document.
+                        </div>
+                        <div class="table-responsive" style="max-height: 70vh;">
+                            <table class="table table-striped table-bordered table-sm text-center matrix-table mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>CM</th>
+                                        <th title="Bass, Cod, Pollack, Mullet">Prime</th>
+                                        <th title="Flatfish">Flat</th>
+                                        <th title="Whiting, Rockling, etc">Gen.</th>
+                                        <th title="Dogfish, Huss">Dog</th>
+                                        <th title="Rays">Ray</th>
+                                        <th title="Bream, Wrasse">Bream</th>
+                                        <th title="Garfish">Gar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="matrixTableBody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="anglerRegistration" class="app-page">
+            <div class="app-header">
+                <h2>New Session</h2>
+                <p>Setup your match details</p>
+            </div>
+            
+            <div class="registration-section">
+                <div class="section-title"><i class="bi bi-person-circle"></i> Details</div>
+                <div class="mb-3">
+                    <label for="anglerName" class="form-label">Angler Name</label>
+                    <input type="text" id="anglerName" class="form-control" placeholder="">
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <label for="competitionDate" class="form-label">Date</label>
+                        <input type="date" id="competitionDate" class="form-control">
+                    </div>
+                    <div class="col-6">
+                        <label for="venueInput" class="form-label">Venue</label>
+                        <input type="text" id="venueInput" class="form-control" placeholder="">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="registration-section">
+                <div class="section-title"><i class="bi bi-calculator-fill"></i> Rules</div>
+                <div>
+                    <label class="form-label">Scoring Method</label>
+                    <select id="scoringMethod" class="form-select border-primary border-opacity-50" onchange="window.checkRuleInfo()">
+                        <option value="" disabled selected>Select Scoring Method...</option>
+                        <option value="samf_matrix">SAMF Dec 22</option>
+                        <option value="measure_points">Total Length + 5 pts/fish</option>
+                        <option value="length_only">Total Length Only</option>
+                    </select>
+                </div>
+                <div id="samfInfoBox" class="rule-info-box" style="display:none;">
+                    <div class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Scoring as per SAMF Dec 2022 matrix:</div>
+                    <ul>
+                        <li>All eels 30 points.</li>
+                        <li>All undersize fish 2 points.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="registration-section">
+                <div class="section-title"><i class="bi bi-trophy-fill"></i> Competition Pegging</div>
+                <div class="form-check form-switch big-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="isCompetition">
+                    <label class="form-check-label" for="isCompetition">Enable Zone & Peg</label>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <label class="form-label">Zone</label>
+                        <select id="zoneInput" class="form-select" disabled>
+                            <option value="" selected>Zone</option>
+                            <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                            <option value="Red">Red</option><option value="Yellow">Yellow</option><option value="Green">Green</option><option value="Blue">Blue</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Peg</label>
+                        <select id="pegInput" class="form-select" disabled>
+                            <option value="" selected>Peg</option>
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                            <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                            <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                            <option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option>
+                            <option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+                            <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 mt-4">
+                <button class="btn btn-outline-secondary flex-grow-1" onclick="window.resetApp()">Cancel</button>
+                <button class="btn btn-primary flex-grow-1 shadow" onclick="window.registerAngler()">Let's Fish <i class="bi bi-arrow-right ms-2"></i></button>
+            </div>
+        </div>
+
+        <div id="anglerFishingPage" class="app-page">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="m-0 fw-bold text-primary">Live Catch</h4>
+                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" style="font-size: 0.75rem;" onclick="window.confirmQuit()">Quit / Reset</button>
+            </div>
+            <div class="inner-card mb-4 border border-primary border-opacity-25">
+                <div class="mb-3">
+                    <label class="form-label text-primary">Species</label>
+                    <select id="speciesInput" class="form-select" onchange="window.toggleCustomSpeciesInput()">
+                        <option value="" selected>Select Fish...</option>
+                        <option value="Other">Other (specify)</option>
+                    </select>
+                    <input type="text" id="customSpeciesInput" class="form-control mt-2" placeholder="Enter Species Name" style="display:none;">
+                </div>
+                <div class="row g-2">
+                    <div class="col-8">
+                        <label class="form-label text-primary">Length (cm)</label>
+                        <input type="number" id="lengthInput" class="form-control" placeholder="0">
+                    </div>
+                    <div class="col-4 d-flex align-items-end">
+                        <button type="button" class="btn btn-success w-100" onclick="window.addFish()">
+                            <i class="bi bi-plus-lg"></i> Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <h5 class="text-muted fs-6 text-uppercase fw-bold letter-spacing-1">Current Haul</h5>
+            <div class="table-responsive">
+                <table class="table table-borderless"><tbody id="fishLog"></tbody></table>
+            </div>
+            <div class="mt-4 pt-3 border-top">
+                <button class="btn btn-danger w-100 py-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#endSessionModal">Finish Session</button>
+            </div>
+        </div>
+
+        <div id="tallyVerificationPage" class="app-page">
+            
+            <div class="official-header">
+                <div id="session_angler" class="official-angler-name"></div>
+                <div class="official-details-grid">
+                    <div class="official-detail-item">
+                        <span class="official-detail-label">Date</span>
+                        <span id="session_date" class="official-detail-value"></span>
+                    </div>
+                    <div class="official-detail-item">
+                        <span class="official-detail-label">Venue</span>
+                        <span id="session_venue" class="official-detail-value"></span>
+                    </div>
+                    <div class="official-detail-item">
+                        <span class="official-detail-label">Zone</span>
+                        <span id="session_zone" class="official-detail-value fw-bold text-primary"></span>
+                    </div>
+                    <div class="official-detail-item">
+                        <span class="official-detail-label">Peg</span>
+                        <span id="session_peg" class="official-detail-value fw-bold text-primary"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-4">
+                <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2 shadow" style="width: 60px; height: 60px;">
+                    <i class="bi bi-check-lg fs-2"></i>
+                </div>
+                <h2 class="fw-bold text-primary">Session Complete</h2>
+            </div>
+
+            <div class="score-hero-container">
+                <div class="score-hero-label">Total Points</div>
+                <div id="session_total_points" class="score-hero-val">0</div>
+            </div>
+
+            <div id="session_equation_container" class="equation-box"></div>
+
+            <div class="stat-grid">
+                <div class="stat-card border-success border-opacity-50" style="grid-column: span 3;">
+                    <small class="text-success">Biggest Fish</small>
+                    <strong id="session_biggest_fish" class="text-success">-</strong>
+                </div>
+                <div class="stat-card">
+                    <small>Total Fish</small>
+                    <strong id="session_total_fish">0</strong>
+                </div>
+                <div class="stat-card">
+                    <small>Species</small>
+                    <strong id="session_species_count">0</strong>
+                </div>
+                <div class="stat-card">
+                    <small>Total Length</small>
+                    <strong id="session_total_len">0 cm</strong>
+                </div>
+            </div>
+
+            <h6 class="text-muted fs-7 mb-3 text-uppercase fw-bold">Catch Breakdown</h6>
+            <table class="table table-borderless">
+                <thead id="session_log_head">
+                    <tr><th>Species</th><th class="text-center">Pts</th><th class="text-end">Length</th></tr>
+                </thead>
+                <tbody id="live_tally_table"></tbody>
+            </table>
+
+            <div class="d-grid gap-3 mt-4">
+                <button class="btn btn-primary btn-lg shadow" onclick="window.saveAndEndSession()">
+                    <i class="bi bi-save me-2"></i> Save & Exit
+                </button>
+                <button class="btn btn-whatsapp" onclick="window.shareAsImage('live')">
+                    <i class="bi bi-image me-2"></i> Share Scorecard (Image)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="endSessionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-body text-center p-4">
+                    <h4 class="mb-2 fw-bold">Finish Session?</h4>
+                    <p class="text-muted mb-4">This will finalize your log.</p>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-danger" onclick="window.endSession()" data-bs-dismiss="modal">Yes, Finish It</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Keep Fishing</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="restoreSessionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3 text-primary"><i class="bi bi-clock-history fs-1"></i></div>
+                    <h4 class="mb-2 fw-bold">Resume Session?</h4>
+                    <p class="text-muted mb-4">We found an unfinished log for <strong id="restoreAnglerName"></strong>.</p>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary" onclick="window.confirmRestore()">Yes, Continue</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="window.discardRestore()">No, Start New</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // *** 100% ACCURATE DATA EXTRACTED FROM YOUR PDF FILES ***
+        // Column Index:
+        // 0: Round Prime (Cod, Bass, Pollock, Mullet, Scad, Gurnard) [From 'round fish scores.pdf']
+        // 1: Flatfish (Brill, Dab, Plaice, Flounder, Sole, Turbot) [From 'flat fish.pdf']
+        // 2: General/Small (Rockling, Whiting, Poor Cod, Coalfish) [From 'smaller fish.pdf']
+        // 3: Dogfish (LSD, Bull Huss, Smoothhound, Tope) [From 'Dogfish...pdf']
+        // 4: Rays [From 'All Rays...pdf']
+        // 5: Bream/Wrasse (Bream, Red Mullet, Wrasse, Pout, Trigger) [From 'All Bream...pdf']
+        // 6: Garfish [From 'SAMF...docx']
+        
+        const samfPointsTable = {
+            18:[8,5,5,3,7,8,0], 19:[9,6,6,4,8,10,0], 20:[10,7,7,5,9,12,0], 21:[11,8,8,6,10,14,0], 22:[12,10,9,7,12,16,0], 23:[13,12,10,8,14,18,0], 24:[14,14,11,9,16,21,0], 25:[16,16,12,10,18,24,0],
+            26:[18,18,14,11,20,27,0], 27:[20,21,16,12,22,30,0], 28:[22,24,18,13,24,33,0], 29:[25,28,20,14,26,36,0], 30:[28,32,28,15,29,40,0], 31:[31,36,31,16,32,45,0], 32:[34,40,34,17,37,50,0],
+            33:[37,44,37,18,44,55,0], 34:[40,48,40,19,51,60,0], 35:[43,52,43,20,58,65,8], 36:[47,56,47,21,68,70,9], 37:[51,60,51,22,78,75,10], 38:[55,64,55,23,88,80,11], 39:[59,68,59,24,98,85,12],
+            40:[63,74,63,25,108,90,13], 41:[68,79,68,26,118,95,14], 42:[74,88,56,27,128,100,15], 43:[80,100,60,28,140,105,16], 44:[86,112,64,30,155,110,17], 45:[92,124,68,32,170,115,18], 46:[98,136,72,35,185,120,19],
+            47:[104,148,77,38,200,125,20], 48:[110,160,82,41,215,133,21], 49:[116,172,88,44,230,141,22], 50:[122,184,94,47,245,149,23], 51:[129,196,100,50,260,157,24], 52:[136,208,106,53,275,165,25],
+            53:[143,220,112,56,290,173,26], 54:[150,232,120,59,305,181,27], 55:[158,244,128,62,320,189,28], 56:[166,256,136,66,335,197,29], 57:[174,268,144,70,350,205,30], 58:[182,280,152,74,365,213,31],
+            59:[190,292,160,79,380,221,32], 60:[200,304,170,84,395,231,33], 61:[210,316,180,89,415,241,34], 62:[220,331,190,94,435,251,36], 63:[232,346,200,100,455,261,38], 64:[244,361,212,106,475,271,40],
+            65:[260,375,225,112,500,280,42]
+        };
+
+        // Storage Helper
+        const StorageHelper = {
+            memoryStore: {},
+            save: function(key, value) {
+                this.memoryStore[key] = value;
+                try { localStorage.setItem(key, value); } catch(e) {}
+            },
+            remove: function(key) {
+                delete this.memoryStore[key];
+                try { localStorage.removeItem(key); } catch(e) {}
+            },
+            getAll: function() {
+                const result = { ...this.memoryStore };
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if(k.startsWith('scorecard_') || k === 'active_session') {
+                            result[k] = localStorage.getItem(k);
+                        }
+                    }
+                } catch(e) {}
+                return result;
+            },
+            get: function(key) {
+                try {
+                    const diskVal = localStorage.getItem(key);
+                    if(diskVal) return diskVal;
+                } catch(e) {}
+                return this.memoryStore[key];
+            }
+        };
+
+        const PageManager = {
+            show: function(pageId) {
+                document.getElementById('splashScreen').style.display = 'none';
+                document.getElementById('anglerRegistration').style.display = 'none';
+                document.getElementById('anglerFishingPage').style.display = 'none';
+                document.getElementById('tallyVerificationPage').style.display = 'none';
+                
+                if(pageId === 'splashScreen') {
+                    document.getElementById('splashScreen').style.display = 'flex';
+                } else {
+                    document.getElementById(pageId).style.display = 'block';
+                }
+                window.scrollTo(0,0);
+            }
+        };
+
+        const samfFishCategories = {
+            "Round Fish (Prime)": ["Bass", "Cod", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Salmon", "Scad", "Gurnard (Red)", "Gurnard (Tub)"],
+            "Flatfish": ["Brill", "Dab", "Flounder", "Halibut", "Megrim", "Plaice", "Sole (Dover)", "Sole (Lemon)", "Sole (Thickback)", "Turbot"],
+            "General Round": ["Coalfish", "Haddock", "Hake", "John Dory", "Ling", "Mackerel", "Monkfish", "Poor Cod", "Pouting", "Rockling", "Saithe", "Sprat", "Unspecified"],
+            "Rays and Skates": ["Ray (Blonde)", "Ray (Small-eyed)", "Ray (Spotted)", "Ray (Starry)", "Ray (Thornback)", "Skate", "Stingray"],
+            "Dogfish and Huss": ["Bull Huss", "Dogfish (Blackmouth)", "Dogfish (LSD)", "Smoothhound", "Tope"],
+            "Bream and Wrasse": ["Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Bream (Sea)", "Red Mullet", "Wrasse (Ballan)", "Wrasse (Cuckoo)", "Triggerfish", "Pouting"],
+            "Garfish": ["Garfish"],
+            "Eels": ["Conger Eel", "Silver Eel", "Common Eel"] 
+        };
+
+        const priorityFish = ["Dab", "Flounder", "Plaice", "Turbot", "Cod", "Pollack", "Coalfish", "Whiting", "Ray (Thornback)", "Conger Eel", "Mackerel"];
+
+        let fishData = [];
+        let currentAngler = null, currentDate = null, currentVenue = null, currentZone = null, currentPeg = null, currentViewingLog = null;
+        let currentScoringMethod = null;
+        let pendingRestoreData = null; 
+
+        window.formatDate = function(dateString) {
+            try {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return 'Invalid Date';
+                return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch (e) { return 'N/A'; }
+        };
+
+        window.checkRuleInfo = function() {
+            const method = document.getElementById('scoringMethod').value;
+            const infoBox = document.getElementById('samfInfoBox');
+            if(method === 'samf_matrix') {
+                infoBox.style.display = 'block';
+            } else {
+                infoBox.style.display = 'none';
+            }
+        };
+
+        window.getSAMFPoints = function(species, length) {
+            const len = Math.floor(length);
+            
+            // RULE: All Eels (Conger, Silver, Common) = 30 pts fixed
+            if (samfFishCategories["Eels"].includes(species) || species.includes('Eel')) return 30;
+            
+            // RULE: Undersize < 18cm = 2 pts
+            if (len < 18) return 2; 
+            
+            let effectiveLen = len;
+            if (len > 65) effectiveLen = 65; 
+            
+            const ptsData = samfPointsTable[effectiveLen] || samfPointsTable[65]; 
+            if (!ptsData) return 0;
+
+            let catIndex = 0; // Default Prime Round
+            
+            // MAP CATEGORIES TO COLUMNS [Prime(0), Flat(1), General(2), Dogfish(3), Ray(4), Bream(5), Gar(6)]
+            if (samfFishCategories["Flatfish"].includes(species)) catIndex = 1;
+            else if (samfFishCategories["General Round"].includes(species)) catIndex = 2;
+            else if (samfFishCategories["Dogfish and Huss"].includes(species)) catIndex = 3;
+            else if (samfFishCategories["Rays and Skates"].includes(species)) catIndex = 4;
+            else if (samfFishCategories["Bream and Wrasse"].includes(species)) catIndex = 5;
+            else if (samfFishCategories["Garfish"].includes(species)) catIndex = 6;
+            else if (species === "Whiting") catIndex = 2; 
+            
+            let score = ptsData[catIndex];
+
+            // DOUBLE POINTS RULES FROM DOC
+            if ((species === "Brill" || species === "Turbot") && len > 30) {
+                score *= 2;
+            }
+            if (species === "Stingray") {
+                score *= 2;
+            }
+            // Garfish under 35cm rule (Col 7 is 0 below 35, logic handles 5pts)
+            if (species === "Garfish" && len < 35) {
+                score = 5;
+            }
+
+            return score;
+        };
+
+        window.calculatePoints = function(fishList, method) {
+            if (!method) method = 'measure_points'; 
+            
+            if (method === 'length_only') {
+                return Math.round(fishList.reduce((acc, fish) => acc + parseFloat(fish.length), 0));
+            } else if (method === 'samf_matrix') {
+                let total = 0;
+                fishList.forEach(fish => {
+                    total += window.getSAMFPoints(fish.species, parseFloat(fish.length));
+                });
+                return total;
+            } else {
+                const len = fishList.reduce((acc, fish) => acc + parseFloat(fish.length), 0);
+                return Math.round((fishList.length * 5) + len);
+            }
+        };
+
+        window.generateEquationHTML = function(totalFish, totalLength, method, totalPts) {
+            let html = '';
+            
+            if(method === 'length_only') {
+                html = `
+                    <div class="eq-row">
+                        <span class="eq-label">Total Length</span>
+                        <span class="eq-math">${Math.round(totalLength)}</span>
+                    </div>
+                    <div class="eq-row">
+                        <span class="eq-label fw-bold text-primary">TOTAL SCORE</span>
+                        <span class="eq-total">${totalPts}</span>
+                    </div>`;
+            } else if (method === 'samf_matrix') {
+                html = `
+                    <div class="eq-row">
+                        <span class="eq-label fw-bold text-primary">TOTAL SCORE</span>
+                        <span class="eq-total">${totalPts}</span>
+                    </div>`;
+            } else {
+                html = `
+                    <div class="eq-row">
+                        <span class="eq-label">Fish Points (${totalFish} × 5)</span>
+                        <span class="eq-math">${totalFish * 5}</span>
+                    </div>
+                    <div class="eq-row">
+                        <span class="eq-label">Length Points</span>
+                        <span class="eq-math">${Math.round(totalLength)}</span>
+                    </div>
+                    <div class="eq-row">
+                        <span class="eq-label fw-bold text-primary">TOTAL SCORE</span>
+                        <span class="eq-total">${totalPts}</span>
+                    </div>`;
+            }
+            return html;
+        };
+
+        window.saveActiveSession = function() {
+            try {
+                const activeData = {
+                    angler: currentAngler, date: currentDate, venue: currentVenue,
+                    zone: currentZone, peg: currentPeg, 
+                    scoringMethod: currentScoringMethod,
+                    fishData: fishData
+                };
+                StorageHelper.save('active_session', JSON.stringify(activeData));
+            } catch(e) {}
+        };
+
+        window.restoreActiveSession = function() {
+            const saved = StorageHelper.get('active_session');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if(data.angler && data.date) {
+                        pendingRestoreData = data;
+                        document.getElementById('restoreAnglerName').textContent = data.angler;
+                        const modal = new bootstrap.Modal(document.getElementById('restoreSessionModal'));
+                        modal.show();
+                    }
+                } catch(e) {}
+            }
+        };
+
+        window.confirmRestore = function() {
+            const data = pendingRestoreData;
+            if(!data) return;
+
+            const modalEl = document.getElementById('restoreSessionModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if(modal) modal.hide();
+
+            currentAngler = data.angler;
+            currentDate = data.date;
+            currentVenue = data.venue;
+            currentZone = data.zone;
+            currentPeg = data.peg;
+            currentScoringMethod = data.scoringMethod || 'measure_points';
+            fishData = data.fishData || [];
+
+            window.populateSpeciesDropdown();
+
+            if(currentZone || currentPeg) {
+                document.getElementById('isCompetition').checked = true;
+                window.toggleCompetitionFields();
+                document.getElementById('zoneInput').value = currentZone;
+                document.getElementById('pegInput').value = currentPeg;
+            }
+
+            PageManager.show('anglerFishingPage');
+            window.updateFishLog();
+        };
+
+        window.discardRestore = function() {
+            StorageHelper.remove('active_session');
+            pendingRestoreData = null;
+            const modalEl = document.getElementById('restoreSessionModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if(modal) modal.hide();
+        };
+
+        window.clearActiveSession = function() {
+            StorageHelper.remove('active_session');
+        };
+
+        window.confirmQuit = function() {
+            if(confirm("Abandon this session?")) window.resetApp();
+        };
+
+        // SAFETY: WRAPPED TO PREVENT AUTO-DATE CRASHES
+        window.startFishing = function() {
+            window.clearActiveSession();
+            fishData = []; currentAngler = null;
+            document.getElementById('anglerName').value = '';
+            
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const dateInput = document.getElementById('competitionDate');
+                if(dateInput) dateInput.value = today;
+            } catch(e) {
+                console.error("Auto-date failed, safely ignoring.");
+            }
+            
+            document.getElementById('venueInput').value = '';
+            PageManager.show('anglerRegistration');
+        };
+        
+        window.goBackToRegistration = function() {
+            PageManager.show('anglerRegistration');
+        };
+
+        window.endSession = function() {
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(bd => bd.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style = '';
+
+            PageManager.show('tallyVerificationPage');
+
+            document.getElementById('session_angler').textContent = currentAngler;
+            document.getElementById('session_date').textContent = window.formatDate(currentDate);
+            document.getElementById('session_venue').textContent = currentVenue;
+            document.getElementById('session_zone').textContent = currentZone || '-';
+            document.getElementById('session_peg').textContent = currentPeg || '-';
+            
+            const tallyTable = document.getElementById('live_tally_table');
+            tallyTable.innerHTML = '';
+            
+            let totalFish = 0, totalLength = 0, maxLen = 0, biggestFishName = "None";
+            const uniqueSpecies = new Set();
+
+            fishData.forEach(fish => {
+                const len = parseFloat(fish.length); 
+                totalFish++;
+                totalLength += len;
+                if(len > maxLen) { maxLen = len; biggestFishName = `${fish.species} (${len}cm)`; }
+                uniqueSpecies.add(fish.species);
+            });
+
+            const totalPts = window.calculatePoints(fishData, currentScoringMethod);
+
+            document.getElementById('session_total_points').textContent = totalPts;
+            
+            const eqContainer = document.getElementById('session_equation_container');
+            eqContainer.innerHTML = window.generateEquationHTML(totalFish, totalLength, currentScoringMethod, totalPts);
+            
+            document.getElementById('session_total_fish').textContent = totalFish;
+            document.getElementById('session_species_count').textContent = uniqueSpecies.size;
+            document.getElementById('session_total_len').textContent = parseFloat(totalLength.toFixed(2)) + ' cm';
+            document.getElementById('session_biggest_fish').textContent = biggestFishName;
+
+            const tableHead = document.getElementById('session_log_head');
+            
+            if (currentScoringMethod === 'samf_matrix') {
+                tableHead.innerHTML = `<tr><th>Species</th><th class="text-center">Len</th><th class="text-end">Pts</th></tr>`;
+                fishData.forEach(fish => {
+                    const row = document.createElement('tr');
+                    const pts = window.getSAMFPoints(fish.species, parseFloat(fish.length));
+                    row.innerHTML = `<td class="fw-bold">${fish.species}</td><td class="text-center">${fish.length}</td><td class="text-end fw-bold">${pts}</td>`;
+                    tallyTable.appendChild(row);
+                });
+            } else {
+                tableHead.innerHTML = `<tr><th>Species</th><th class="text-center">Qty</th><th class="text-end">Length</th></tr>`;
+                const summary = {};
+                fishData.forEach(fish => {
+                    if(!summary[fish.species]) summary[fish.species] = { count: 0, totalLength: 0, lengths: [] };
+                    summary[fish.species].count++;
+                    summary[fish.species].totalLength += parseFloat(fish.length);
+                    summary[fish.species].lengths.push(fish.length);
+                });
+
+                for (const species in summary) {
+                    const row = document.createElement('tr');
+                    let lenDisplay = parseFloat(summary[species].totalLength.toFixed(2)) + ' cm';
+                    if(summary[species].count > 1) {
+                        lenDisplay += `<div class="small text-muted" style="font-size:0.7rem;">(${summary[species].lengths.join(', ')})</div>`;
+                    }
+                    row.innerHTML = `<td class="fw-bold">${species}</td><td class="text-center"><span class="badge bg-secondary rounded-pill">${summary[species].count}</span></td><td class="text-end">${lenDisplay}</td>`;
+                    tallyTable.appendChild(row);
+                }
+            }
+        };
+
+        window.updateFishLog = function() {
+            const fishLog = document.getElementById('fishLog');
+            fishLog.innerHTML = '';
+            fishData.forEach((fish, index) => {
+                const row = document.createElement('tr');
+                
+                let displayInfo = `<span class="text-dark fw-bold fs-5 ps-3 border-start border-2">${fish.length} cm</span>`;
+                if(currentScoringMethod === 'samf_matrix') {
+                    const pts = window.getSAMFPoints(fish.species, parseFloat(fish.length));
+                    displayInfo = `<span class="text-primary fw-bold fs-5 me-2">${pts} pts</span> ` + displayInfo;
+                }
+
+                row.innerHTML = `<td class="fw-bold text-dark align-middle">${fish.species}</td><td class="text-end align-middle">${displayInfo}</td><td class="text-end align-middle" style="width:50px;"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${index})"><i class="bi bi-trash"></i></button></td>`;
+                fishLog.appendChild(row);
+            });
+        };
+
+        window.addFish = function() {
+            try {
+                const speciesInput = document.getElementById('speciesInput');
+                const customSpeciesInput = document.getElementById('customSpeciesInput');
+                const lengthInput = document.getElementById('lengthInput');
+                let species = speciesInput.value;
+                let length = parseFloat(lengthInput.value);
+
+                if (species === 'Other') species = customSpeciesInput.value.trim();
+                if (!species || species === '') { alert("Select a species"); return; }
+                if (isNaN(length) || length <= 0) { alert("Enter valid length"); return; }
+
+                fishData.push({ species, length });
+                window.saveActiveSession(); 
+                window.updateFishLog();
+                
+                speciesInput.value = ''; customSpeciesInput.value = ''; lengthInput.value = '';
+                window.toggleCustomSpeciesInput();
+            } catch(e) {
+                alert("Error adding fish: " + e.message);
+                console.error(e);
+            }
+        };
+
+        // NEW: ROBUST TOGGLE FOR ZONE/PEG
+        window.toggleCompetitionFields = function() {
+            try {
+                const isComp = document.getElementById('isCompetition').checked;
+                document.getElementById('zoneInput').disabled = !isComp;
+                document.getElementById('pegInput').disabled = !isComp;
+            } catch(e) {
+                console.log("Toggle Error: " + e.message);
+            }
+        };
+
+        window.populateMatrixModal = function() {
+            const tbody = document.getElementById('matrixTableBody');
+            tbody.innerHTML = '';
+            for(let cm=18; cm<=65; cm++) {
+                const row = document.createElement('tr');
+                const d = samfPointsTable[cm] || [];
+                row.innerHTML = `
+                    <td class="fw-bold bg-light">${cm}</td>
+                    <td>${d[0] || '-'}</td>
+                    <td>${d[1] || '-'}</td>
+                    <td>${d[2] || '-'}</td>
+                    <td>${d[3] || '-'}</td>
+                    <td>${d[4] || '-'}</td>
+                    <td>${d[5] || '-'}</td>
+                    <td>${d[6] || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            }
+        };
+
+        window.registerAngler = function() {
+            const anglerName = document.getElementById('anglerName').value.trim();
+            const competitionDate = document.getElementById('competitionDate').value;
+            const venueInput = document.getElementById('venueInput').value.trim();
+            const isCompetition = document.getElementById('isCompetition').checked;
+            const scoringSelect = document.getElementById('scoringMethod');
+            
+            currentScoringMethod = scoringSelect.value;
+
+            // SAFETY CHECK: Ensure User Selected a Method
+            if (!currentScoringMethod || currentScoringMethod === "") {
+                 return alert("Please select a Scoring Method from the list.");
+            }
+            
+            if (!anglerName || !competitionDate || !venueInput) return alert("Please fill in Name, Date and Venue.");
+            
+            if (isCompetition) {
+                currentZone = document.getElementById('zoneInput').value;
+                currentPeg = document.getElementById('pegInput').value;
+                if (!currentZone || !currentPeg) return alert("Please select Zone and Peg.");
+            } else { currentZone = null; currentPeg = null; }
+
+            fishData = [];
+            window.updateFishLog(); 
+            currentAngler = anglerName; currentDate = competitionDate; currentVenue = venueInput;
+            window.saveActiveSession();
+            window.populateSpeciesDropdown();
+            PageManager.show('anglerFishingPage');
+        };
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBtn = document.getElementById('btnInstall');
+            if(installBtn) {
+                installBtn.style.display = 'block';
+                installBtn.addEventListener('click', () => {
+                    installBtn.style.display = 'none';
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        deferredPrompt = null;
+                    });
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btnStartFishing').addEventListener('click', window.startFishing);
+            document.getElementById('btnSavedLogs').addEventListener('click', window.loadSavedScorecards);
+            document.getElementById('isCompetition').addEventListener('change', window.toggleCompetitionFields);
+            const savedModal = document.getElementById('savedScorecardsModal');
+            savedModal.addEventListener('hidden.bs.modal', window.backToScorecardList);
+            const matrixModal = document.getElementById('matrixModal');
+            matrixModal.addEventListener('show.bs.modal', window.populateMatrixModal);
+
+            window.restoreActiveSession();
+            window.toggleCompetitionFields();
+            window.checkRuleInfo();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('Service Worker: Registered'))
+                    .catch(err => console.log('Service Worker: Error', err));
+            });
+        }
+    </script>
+</body>
+</html>
