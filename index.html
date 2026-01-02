@@ -118,7 +118,6 @@
         .table tbody td:first-child { border-radius: 10px 0 0 10px; }
         .table tbody td:last-child { border-radius: 0 10px 10px 0; }
 
-        /* LIST ITEM STYLING */
         #savedScorecardsList .card {
             border: none;
             background: #ffffff;
@@ -303,7 +302,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-2">Sea Catch Scorer</h1>
-            <p class="version-tag text-white-50">Version 37.0 (Archive & Delete)</p>
+            <p class="version-tag text-white-50">Version 38.0 (Scoring Options)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -328,13 +327,11 @@
                         <div id="savedScorecardsList">
                             <h6 class="text-muted text-uppercase small fw-bold mb-2">Recent Catches</h6>
                             <div id="recentList"></div>
-                            
                             <div id="archiveSection" style="display:none;">
                                 <hr class="my-4">
                                 <h6 class="text-muted text-uppercase small fw-bold mb-2">Archived History</h6>
                                 <div id="archiveList"></div>
                             </div>
-                            
                             <div class="text-center mt-3">
                                 <button id="btnShowArchive" class="btn btn-sm btn-outline-secondary rounded-pill" style="display:none;" onclick="window.toggleArchive()">
                                     View Older Scorecards <i class="bi bi-chevron-down ms-1"></i>
@@ -371,7 +368,7 @@
                             </div>
 
                             <div class="equation-box">
-                                <div class="eq-row">
+                                <div class="eq-row" id="saved_eq_fish_row">
                                     <span class="eq-label">Fish Points (Qty × 5)</span>
                                     <span class="eq-math" id="saved_eq_fish">0</span>
                                 </div>
@@ -441,6 +438,15 @@
                     <input type="text" id="venueInput" class="form-control" placeholder="Location">
                 </div>
             </div>
+            
+            <div class="mb-3">
+                <label class="form-label text-primary fw-bold">Scoring Method</label>
+                <select id="scoringMethod" class="form-select border-primary border-opacity-50">
+                    <option value="measure_points" selected>Total Length + 5 pts/fish</option>
+                    <option value="length_only">Total Length Only</option>
+                </select>
+            </div>
+
             <div class="inner-card mb-4">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="isCompetition">
@@ -509,6 +515,7 @@
         </div>
 
         <div id="tallyVerificationPage" class="app-page">
+            
             <div class="official-header">
                 <div id="session_angler" class="official-angler-name"></div>
                 <div class="official-details-grid">
@@ -544,7 +551,7 @@
             </div>
 
             <div class="equation-box">
-                <div class="eq-row">
+                <div class="eq-row" id="session_eq_fish_row">
                     <span class="eq-label">Fish Points (Qty × 5)</span>
                     <span class="eq-math" id="session_eq_fish">0</span>
                 </div>
@@ -680,6 +687,7 @@
 
         let fishData = [];
         let currentAngler = null, currentDate = null, currentVenue = null, currentZone = null, currentPeg = null, currentViewingLog = null;
+        let currentScoringMethod = 'measure_points'; // Default
         let pendingRestoreData = null; 
 
         window.formatDate = function(dateString) {
@@ -691,15 +699,26 @@
             } catch (e) { return 'N/A'; }
         };
 
-        window.calculatePoints = function(totalFish, totalLength) {
-            return Math.round((totalFish * 5) + totalLength);
+        // NEW: Updated Calculation Logic
+        window.calculatePoints = function(totalFish, totalLength, method) {
+            // If method isn't passed (e.g., loading old logs), assume default
+            if (!method) method = 'measure_points'; 
+            
+            if (method === 'length_only') {
+                return Math.round(totalLength);
+            } else {
+                // Default: measure_points
+                return Math.round((totalFish * 5) + totalLength);
+            }
         };
 
         window.saveActiveSession = function() {
             try {
                 const activeData = {
                     angler: currentAngler, date: currentDate, venue: currentVenue,
-                    zone: currentZone, peg: currentPeg, fishData: fishData
+                    zone: currentZone, peg: currentPeg, 
+                    scoringMethod: currentScoringMethod, // Save the rule
+                    fishData: fishData
                 };
                 StorageHelper.save('active_session', JSON.stringify(activeData));
             } catch(e) {}
@@ -733,6 +752,7 @@
             currentVenue = data.venue;
             currentZone = data.zone;
             currentPeg = data.peg;
+            currentScoringMethod = data.scoringMethod || 'measure_points'; // Restore rule
             fishData = data.fishData || [];
 
             window.populateSpeciesDropdown();
@@ -809,14 +829,22 @@
                 summary[fish.species].lengths.push(len);
             });
 
-            const fishPts = totalFish * 5;
+            const totalPts = window.calculatePoints(totalFish, totalLength, currentScoringMethod);
+            const fishPts = (currentScoringMethod === 'measure_points') ? (totalFish * 5) : 0;
             const lenPts = Math.round(totalLength);
-            const totalPts = fishPts + lenPts;
 
             document.getElementById('session_total_points').textContent = totalPts;
             document.getElementById('session_eq_fish').textContent = fishPts;
             document.getElementById('session_eq_len').textContent = lenPts;
             document.getElementById('session_eq_total').textContent = totalPts;
+            
+            // Toggle Visibility of Fish Points row based on rule
+            const fishRow = document.getElementById('session_eq_fish_row');
+            if(currentScoringMethod === 'length_only') {
+                fishRow.style.display = 'none';
+            } else {
+                fishRow.style.display = 'flex';
+            }
             
             document.getElementById('session_total_fish').textContent = totalFish;
             document.getElementById('session_total_len').textContent = parseFloat(totalLength.toFixed(2)) + ' cm';
@@ -835,6 +863,7 @@
 
         window.resetApp = function() {
             fishData = []; currentAngler = null; currentDate = null; currentVenue = null; currentZone = null; currentPeg = null;
+            currentScoringMethod = 'measure_points'; // Reset to default
             window.clearActiveSession();
             
             document.getElementById('anglerName').value = '';
@@ -845,6 +874,7 @@
             window.toggleCompetitionFields();
             document.getElementById('zoneInput').selectedIndex = 0;
             document.getElementById('pegInput').selectedIndex = 0;
+            document.getElementById('scoringMethod').selectedIndex = 0; // Reset scoring dropdown
 
             PageManager.show('splashScreen');
         };
@@ -854,6 +884,9 @@
             const competitionDate = document.getElementById('competitionDate').value;
             const venueInput = document.getElementById('venueInput').value.trim();
             const isCompetition = document.getElementById('isCompetition').checked;
+            
+            // NEW: Get Scoring Method
+            currentScoringMethod = document.getElementById('scoringMethod').value;
             
             if (!anglerName || !competitionDate || !venueInput) return alert("Please fill in Name, Date and Venue.");
             
@@ -930,8 +963,10 @@
             
             const sessionData = {
                 angler: currentAngler, date: currentDate, venue: currentVenue,
-                zone: currentZone, peg: currentPeg, fishData: fishData,
-                totalPoints: window.calculatePoints(totalFish, totalLength),
+                zone: currentZone, peg: currentPeg, 
+                scoringMethod: currentScoringMethod, // Save method to historical log
+                fishData: fishData,
+                totalPoints: window.calculatePoints(totalFish, totalLength, currentScoringMethod),
                 totalFish: totalFish, totalLength: totalLength
             };
             
@@ -940,7 +975,6 @@
             window.resetApp(); 
         };
 
-        // NEW: Load Scorecards (Refined with Archive + Delete)
         window.loadSavedScorecards = function() {
             const recentList = document.getElementById('recentList');
             const archiveList = document.getElementById('archiveList');
@@ -962,7 +996,10 @@
                         const data = JSON.parse(allData[key]);
                         if(!data.fishData) data.fishData = [];
                         const len = data.fishData.reduce((s,f) => s + (parseFloat(f.length)||0), 0);
-                        const pts = window.calculatePoints(data.fishData.length, len);
+                        
+                        // Recalculate based on the rule saved in that scorecard
+                        const method = data.scoringMethod || 'measure_points'; 
+                        const pts = window.calculatePoints(data.fishData.length, len, method);
 
                         const cardHtml = `
                             <div class="card" onclick="window.viewFullScorecard('${key}')">
@@ -1000,13 +1037,12 @@
                 recentList.innerHTML = `<div class="text-center py-4 text-muted">No saved logs yet.</div>`;
             }
 
-            // Show archive button only if there are older items
             if (count > 4) {
                 btnShowArchive.style.display = 'inline-block';
             } else {
                 btnShowArchive.style.display = 'none';
             }
-            archiveSection.style.display = 'none'; // Ensure archive is hidden initially
+            archiveSection.style.display = 'none'; 
         };
 
         window.toggleArchive = function() {
@@ -1019,18 +1055,17 @@
         };
 
         window.deleteScorecard = function(event, key) {
-            event.stopPropagation(); // Stop clicking the card itself
+            event.stopPropagation(); 
             if(confirm("Delete this scorecard permanently?")) {
                 StorageHelper.remove(key);
                 window.loadSavedScorecards();
             }
         };
 
-        // NEW: Back button logic
         window.backToScorecardList = function() {
             document.getElementById('fullScorecardView').style.display = 'none';
             document.getElementById('savedScorecardsList').style.display = 'block';
-            window.loadSavedScorecards(); // Refresh list to be sure
+            window.loadSavedScorecards(); 
         };
 
         window.viewFullScorecard = function(key) {
@@ -1038,6 +1073,9 @@
                 const jsonStr = StorageHelper.get(key);
                 const data = JSON.parse(jsonStr);
                 currentViewingLog = data; 
+                
+                // Get method from saved data
+                const method = data.scoringMethod || 'measure_points';
 
                 if (!data.fishData) data.fishData = [];
                 let totalFish = 0, totalLength = 0, maxLen = 0, biggestFishName = "None";
@@ -1055,9 +1093,9 @@
                     summary[fish.species].lengths.push(len);
                 });
 
-                const fishPts = totalFish * 5;
+                const totalPts = window.calculatePoints(totalFish, totalLength, method);
+                const fishPts = (method === 'measure_points') ? (totalFish * 5) : 0;
                 const lenPts = Math.round(totalLength);
-                const totalPts = fishPts + lenPts;
 
                 document.getElementById('saved_angler').textContent = data.angler;
                 document.getElementById('saved_date').textContent = window.formatDate(data.date);
@@ -1069,6 +1107,14 @@
                 document.getElementById('saved_eq_fish').textContent = fishPts;
                 document.getElementById('saved_eq_len').textContent = lenPts;
                 document.getElementById('saved_eq_total').textContent = totalPts;
+
+                // Hide Fish Points Row if using Length Only
+                const fishRow = document.getElementById('saved_eq_fish_row');
+                if(method === 'length_only') {
+                    fishRow.style.display = 'none';
+                } else {
+                    fishRow.style.display = 'flex';
+                }
 
                 document.getElementById('saved_fish_count').textContent = totalFish;
                 document.getElementById('saved_total_len').textContent = parseFloat(totalLength.toFixed(2)) + ' cm';
@@ -1160,11 +1206,8 @@
             document.getElementById('btnStartFishing').addEventListener('click', window.startFishing);
             document.getElementById('btnSavedLogs').addEventListener('click', window.loadSavedScorecards);
             document.getElementById('isCompetition').addEventListener('change', window.toggleCompetitionFields);
-
-            // Added backToScorecardList logic to the modal close event
             const savedModal = document.getElementById('savedScorecardsModal');
             savedModal.addEventListener('hidden.bs.modal', window.backToScorecardList);
-
             window.restoreActiveSession();
             window.toggleCompetitionFields();
         });
