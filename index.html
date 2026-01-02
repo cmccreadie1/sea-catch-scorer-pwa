@@ -237,7 +237,7 @@
             line-height: 1.2;
         }
         
-        /* NEW CSS for Official Header Block */
+        /* Official Header Block */
         .official-header {
             background: white;
             border-radius: 16px;
@@ -284,7 +284,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-2">Sea Catch Scorer</h1>
-            <p class="version-tag text-white-50">Version 35.0 (Official Record Image)</p>
+            <p class="version-tag text-white-50">Version 36.0 (Zone & Peg Updates)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -309,7 +309,6 @@
                         <div id="savedScorecardsList"></div>
                         
                         <div id="fullScorecardView" class="full-scorecard" style="display:none;">
-                            
                             <div class="official-header">
                                 <div id="saved_angler" class="official-angler-name"></div>
                                 <div class="official-details-grid">
@@ -396,7 +395,7 @@
             </div>
             <div class="mb-3">
                 <label for="anglerName" class="form-label">Angler Name</label>
-                <input type="text" id="anglerName" class="form-control" placeholder="e.g. Christopher">
+                <input type="text" id="anglerName" class="form-control" placeholder="">
             </div>
             <div class="row">
                 <div class="col-6 mb-3">
@@ -418,6 +417,7 @@
                         <select id="zoneInput" class="form-select" disabled>
                             <option value="" selected>Zone</option>
                             <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                            <option value="Red">Red</option><option value="Yellow">Yellow</option><option value="Green">Green</option><option value="Blue">Blue</option>
                         </select>
                     </div>
                     <div class="col-6">
@@ -425,6 +425,10 @@
                             <option value="" selected>Peg</option>
                             <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
                             <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                            <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                            <option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option>
+                            <option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+                            <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option>
                         </select>
                     </div>
                 </div>
@@ -740,7 +744,6 @@
             PageManager.show('anglerRegistration');
         };
 
-        // UPDATED: Now populates the Official Header block for live sessions
         window.endSession = function() {
             const backdrops = document.querySelectorAll('.modal-backdrop');
             backdrops.forEach(bd => bd.remove());
@@ -749,7 +752,6 @@
 
             PageManager.show('tallyVerificationPage');
 
-            // Populate Official Header for Live Session
             document.getElementById('session_angler').textContent = currentAngler;
             document.getElementById('session_date').textContent = window.formatDate(currentDate);
             document.getElementById('session_venue').textContent = currentVenue;
@@ -798,12 +800,21 @@
             }
         };
 
+        // FIXED: Now properly resets dropdowns to blank
         window.resetApp = function() {
             fishData = []; currentAngler = null; currentDate = null; currentVenue = null; currentZone = null; currentPeg = null;
             window.clearActiveSession();
+            
             document.getElementById('anglerName').value = '';
             document.getElementById('competitionDate').value = '';
             document.getElementById('venueInput').value = '';
+            
+            // Fix Zombie Data in dropdowns
+            document.getElementById('isCompetition').checked = false;
+            window.toggleCompetitionFields(); // Resets disabled state
+            document.getElementById('zoneInput').selectedIndex = 0; // Resets to top option
+            document.getElementById('pegInput').selectedIndex = 0; // Resets to top option
+
             PageManager.show('splashScreen');
         };
 
@@ -936,7 +947,6 @@
             if(list.innerHTML === '') list.innerHTML = `<div class="text-center py-4 text-muted">No saved logs yet.</div>`;
         };
 
-        // UPDATED: Now populates the Official Header block for saved logs
         window.viewFullScorecard = function(key) {
             try {
                 const jsonStr = StorageHelper.get(key);
@@ -963,7 +973,6 @@
                 const lenPts = Math.round(totalLength);
                 const totalPts = fishPts + lenPts;
 
-                // Populate Official Header for Saved Log
                 document.getElementById('saved_angler').textContent = data.angler;
                 document.getElementById('saved_date').textContent = window.formatDate(data.date);
                 document.getElementById('saved_venue').textContent = data.venue;
@@ -1008,24 +1017,20 @@
             document.getElementById('pegInput').disabled = !isComp;
         };
         
-        // Share as Image Logic
         window.shareAsImage = function(context) {
             let sourceId = (context === 'live') ? 'tallyVerificationPage' : 'fullScorecardView';
             const element = document.getElementById(sourceId);
 
-            // Hide buttons briefly so they don't appear in the photo
             const buttons = element.querySelectorAll('button, .btn');
             buttons.forEach(b => b.style.display = 'none');
 
             html2canvas(element, {
                 backgroundColor: '#eef6fc', 
-                scale: 2 // High resolution
+                scale: 2 
             }).then(canvas => {
-                // Show buttons again immediately
                 buttons.forEach(b => b.style.display = '');
 
                 canvas.toBlob(blob => {
-                    // Use the angler name in the filename if available
                     let filename = "catch_scorecard.png";
                     if(context === 'live' && currentAngler) filename = `${currentAngler.replace(/\s+/g, '_')}_scorecard.png`;
                     else if (context !== 'live' && currentViewingLog) filename = `${currentViewingLog.angler.replace(/\s+/g, '_')}_scorecard.png`;
@@ -1039,7 +1044,6 @@
                             text: 'Here is my official catch record.'
                         }).catch((e) => console.log('Share failed', e));
                     } else {
-                        // Fallback for PC: Download it
                         const link = document.createElement('a');
                         link.download = filename;
                         link.href = canvas.toDataURL();
