@@ -142,7 +142,7 @@
             border-radius: 10px;
             font-size: 0.8rem;
             margin-top: 10px;
-            display: block;
+            display: none;
             font-weight: 500;
         }
         .rule-info-box ul { padding-left: 18px; margin-bottom: 0; margin-top: 4px; }
@@ -328,7 +328,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-1">Sea Catch Scorer</h1>
-            <p class="version-tag">Version 65.0 (Final Verified Data)</p>
+            <p class="version-tag">Version 66.0 (Restored Options)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -448,7 +448,7 @@
                     </div>
                     <div class="modal-body p-0">
                         <div class="alert alert-info m-2 small">
-                            <i class="bi bi-check-circle-fill me-1"></i> Loaded from specific PDF files (Dogfish, Rays, Flat, Round, Small, Bream).
+                            <i class="bi bi-check-circle-fill me-1"></i> Loaded from your 6 uploaded files.
                         </div>
                         <div class="table-responsive" style="max-height: 70vh;">
                             <table class="table table-striped table-bordered table-sm text-center matrix-table mb-0">
@@ -502,17 +502,17 @@
                 <div>
                     <label class="form-label">Scoring Method</label>
                     <select id="scoringMethod" class="form-select border-primary border-opacity-50" onchange="window.checkRuleInfo()">
-                        <option value="samf_matrix" selected>SAMF Dec 22</option>
+                        <option value="" disabled selected>Select Scoring Method...</option>
+                        <option value="samf_matrix">SAMF Dec 22</option>
                         <option value="measure_points">Total Length + 5 pts/fish</option>
                         <option value="length_only">Total Length Only</option>
                     </select>
                 </div>
-                <div id="samfInfoBox" class="rule-info-box">
+                <div id="samfInfoBox" class="rule-info-box" style="display:none;">
                     <div class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>SAMF Dec 22 Rules:</div>
                     <ul>
                         <li><strong>Round (42cm):</strong> 74 pts</li>
                         <li><strong>Flat (42cm):</strong> 88 pts</li>
-                        <li><strong>Small/Gen (42cm):</strong> 56 pts</li>
                         <li><strong>Dogfish (50cm):</strong> 47 pts</li>
                         <li><strong>Eels (All):</strong> 30 pts fixed.</li>
                         <li><strong>Undersize (&lt;18cm):</strong> 2 pts.</li>
@@ -840,7 +840,7 @@
             if (species === "Stingray") {
                 score *= 2;
             }
-            // Garfish under 35cm rule (Col 6 is 0 below 35, logic handles 5pts)
+            // Garfish under 35cm rule (Col 7 is 0 below 35, logic handles 5pts)
             if (species === "Garfish" && len < 35) {
                 score = 5;
             }
@@ -1104,13 +1104,21 @@
             }
         };
 
-        // Populate Matrix Modal
+        window.toggleCompetitionFields = function() {
+            try {
+                const isComp = document.getElementById('isCompetition').checked;
+                document.getElementById('zoneInput').disabled = !isComp;
+                document.getElementById('pegInput').disabled = !isComp;
+            } catch(e) {
+                console.log("Toggle Error: " + e.message);
+            }
+        };
+
         window.populateMatrixModal = function() {
             const tbody = document.getElementById('matrixTableBody');
             tbody.innerHTML = '';
             for(let cm=18; cm<=65; cm++) {
                 const row = document.createElement('tr');
-                // Columns: [Prime(0), Flat(1), General(2), Dogfish(3), Ray(4), Bream(5), Gar(6)]
                 const d = samfPointsTable[cm] || [];
                 row.innerHTML = `
                     <td class="fw-bold bg-light">${cm}</td>
@@ -1149,8 +1157,6 @@
             document.getElementById('isCompetition').addEventListener('change', window.toggleCompetitionFields);
             const savedModal = document.getElementById('savedScorecardsModal');
             savedModal.addEventListener('hidden.bs.modal', window.backToScorecardList);
-            
-            // Populate matrix table on modal show
             const matrixModal = document.getElementById('matrixModal');
             matrixModal.addEventListener('show.bs.modal', window.populateMatrixModal);
 
