@@ -72,7 +72,6 @@
             max-width: 600px;
             margin: 20px auto;
             background: var(--card-bg);
-            /* Increased padding for spacious feel */
             padding: 35px;
             border-radius: 24px;
             box-shadow: var(--card-shadow);
@@ -80,7 +79,6 @@
             padding-bottom: 40px;
         }
 
-        /* Labels are now bolder */
         .form-label {
             font-weight: 600;
             color: var(--primary-color);
@@ -105,7 +103,6 @@
             background-color: #ffffff;
         }
         
-        /* New Section Separators on Registration Page */
         .registration-section {
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 25px;
@@ -127,7 +124,6 @@
             color: var(--accent-color);
         }
 
-        /* BIGGER COMPETITION SWITCH */
         .big-switch {
             display: flex;
             align-items: center;
@@ -137,16 +133,10 @@
             border: 1px solid var(--border-color);
         }
         .big-switch .form-check-input {
-            width: 3.5em; /* Much wider */
-            height: 1.75em; /* Taller */
-            margin-right: 15px;
-            cursor: pointer;
+            width: 3.5em; height: 1.75em; margin-right: 15px; cursor: pointer;
         }
         .big-switch .form-check-label {
-            font-size: 1.1rem; /* Larger font */
-            font-weight: 700;
-            cursor: pointer;
-            padding-top: 2px;
+            font-size: 1.1rem; font-weight: 700; cursor: pointer; padding-top: 2px;
         }
 
         .btn {
@@ -358,7 +348,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-2">Sea Catch Scorer</h1>
-            <p class="version-tag text-white-50">Version 39.0 (Pro UI Redesign)</p>
+            <p class="version-tag text-white-50">Version 40.0 (SAMF Matrix)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -425,10 +415,10 @@
 
                             <div class="equation-box">
                                 <div class="eq-row" id="saved_eq_fish_row">
-                                    <span class="eq-label">Fish Points (Qty × 5)</span>
+                                    <span class="eq-label" id="saved_eq_label">Fish Points</span>
                                     <span class="eq-math" id="saved_eq_fish">0</span>
                                 </div>
-                                <div class="eq-row">
+                                <div class="eq-row" id="saved_eq_len_row">
                                     <span class="eq-label">Length Points</span>
                                     <span class="eq-math" id="saved_eq_len">0</span>
                                 </div>
@@ -456,7 +446,7 @@
                             <h6 class="text-muted text-uppercase fs-7 fw-bold ps-2">Catch Log</h6>
                             <table class="table table-borderless">
                                 <thead>
-                                    <tr><th>Species</th><th class="text-end">Length</th></tr>
+                                    <tr><th>Species</th><th class="text-center">Pts</th><th class="text-end">Length</th></tr>
                                 </thead>
                                 <tbody id="saved_fish_log"></tbody>
                             </table>
@@ -507,6 +497,7 @@
                         <option value="" disabled selected>Choose Scoring Method...</option>
                         <option value="measure_points">Total Length + 5 pts/fish</option>
                         <option value="length_only">Total Length Only</option>
+                        <option value="samf_matrix">SAMF Matrix (2022/23)</option>
                     </select>
                 </div>
             </div>
@@ -620,10 +611,10 @@
 
             <div class="equation-box">
                 <div class="eq-row" id="session_eq_fish_row">
-                    <span class="eq-label">Fish Points (Qty × 5)</span>
+                    <span class="eq-label" id="session_eq_label">Fish Points</span>
                     <span class="eq-math" id="session_eq_fish">0</span>
                 </div>
-                <div class="eq-row">
+                <div class="eq-row" id="session_eq_len_row">
                     <span class="eq-label">Length Points</span>
                     <span class="eq-math" id="session_eq_len">0</span>
                 </div>
@@ -651,7 +642,7 @@
             <h6 class="text-muted fs-7 mb-3 text-uppercase fw-bold">Catch Breakdown</h6>
             <table class="table table-borderless">
                 <thead>
-                    <tr><th>Species</th><th class="text-center">Qty</th><th class="text-end">Length</th></tr>
+                    <tr><th>Species</th><th class="text-center">Pts</th><th class="text-end">Length</th></tr>
                 </thead>
                 <tbody id="live_tally_table"></tbody>
             </table>
@@ -753,6 +744,26 @@
             "Wrasse": ["Wrasse (Ballan)", "Wrasse (Cuckoo)"]
         };
 
+        // SAMF POINTS TABLE (Revised 2022)
+        // Lengths 18cm to 100cm.
+        // Format: length: [Round, Flat, Ray, Other]
+        // Round=0, Flat=1, Ray=2, Other=3
+        const samfPointsTable = {
+            18:[4,2,0,0], 19:[5,3,0,0], 20:[6,4,0,0], 21:[7,5,0,0], 22:[8,6,0,0], 23:[9,7,0,0], 24:[10,8,0,0], 25:[11,9,0,0],
+            26:[13,10,0,0], 27:[14,12,0,0], 28:[16,13,0,0], 29:[18,15,0,0], 30:[20,16,0,0], 31:[22,18,0,0], 32:[24,20,0,0],
+            33:[27,22,0,0], 34:[29,24,0,0], 35:[32,26,0,0], 36:[35,29,0,0], 37:[38,31,0,0], 38:[41,34,0,0], 39:[44,36,0,0],
+            40:[47,39,0,0], 41:[51,42,0,46], 42:[55,45,10,50], 43:[59,48,12,54], 44:[63,52,14,57], 45:[68,55,16,62], 46:[72,59,18,66],
+            47:[77,62,20,70], 48:[82,66,23,75], 49:[87,70,26,80], 50:[93,74,29,85], 51:[98,78,32,90], 52:[104,82,35,95],
+            53:[110,87,38,100], 54:[117,91,42,106], 55:[123,96,46,112], 56:[130,101,50,118], 57:[137,106,54,124], 58:[145,111,58,131],
+            59:[152,116,63,138], 60:[160,121,68,145], 61:[168,127,72,152], 62:[177,133,77,159], 63:[185,138,82,167], 64:[194,144,88,175],
+            65:[204,150,93,184], 66:[213,157,99,192], 67:[223,163,105,201], 68:[233,169,111,210], 69:[243,176,117,219], 70:[254,183,123,229],
+            71:[265,190,130,239], 72:[277,197,137,249], 73:[288,204,144,259], 74:[300,211,151,270], 75:[313,219,158,281], 76:[325,227,166,293],
+            77:[338,235,173,304], 78:[351,243,181,316], 79:[365,251,190,329], 80:[379,259,198,341], 81:[394,268,207,354], 82:[408,277,216,367],
+            83:[423,286,225,381], 84:[439,295,234,395], 85:[455,304,244,409], 86:[471,313,254,424], 87:[487,323,264,439], 88:[504,333,274,454],
+            89:[522,343,284,469], 90:[539,353,295,485], 91:[557,363,306,502], 92:[576,374,317,518], 93:[595,385,328,535], 94:[614,396,340,553],
+            95:[634,407,351,571], 96:[654,418,363,589], 97:[675,430,375,607], 98:[696,442,388,626], 99:[717,454,401,645], 100:[739,466,414,665]
+        };
+
         let fishData = [];
         let currentAngler = null, currentDate = null, currentVenue = null, currentZone = null, currentPeg = null, currentViewingLog = null;
         let currentScoringMethod = null;
@@ -767,13 +778,38 @@
             } catch (e) { return 'N/A'; }
         };
 
-        window.calculatePoints = function(totalFish, totalLength, method) {
+        window.getSAMFPoints = function(species, length) {
+            const len = Math.floor(length);
+            if (len < 18) return 0; // Minimum size for SAMF is usually 18cm
+            
+            // Get data for this length (or closest max if over 100)
+            const ptsData = samfPointsTable[len] || samfPointsTable[100]; 
+            if (!ptsData) return 0;
+
+            // Determine Category Index
+            let catIndex = 0; // Default Round Fish
+            if (samfFishCategories["Flatfish"].includes(species)) catIndex = 1;
+            else if (samfFishCategories["Rays and Skates"].includes(species)) catIndex = 2;
+            else if (["Dogfish (LSD)", "Smoothhound", "Tope", "Bull Huss"].includes(species)) catIndex = 3;
+            
+            return ptsData[catIndex];
+        };
+
+        window.calculatePoints = function(fishList, method) {
             if (!method) method = 'measure_points'; 
             
             if (method === 'length_only') {
-                return Math.round(totalLength);
+                return Math.round(fishList.reduce((acc, fish) => acc + parseFloat(fish.length), 0));
+            } else if (method === 'samf_matrix') {
+                let total = 0;
+                fishList.forEach(fish => {
+                    total += window.getSAMFPoints(fish.species, parseFloat(fish.length));
+                });
+                return total;
             } else {
-                return Math.round((totalFish * 5) + totalLength);
+                // measure_points
+                const len = fishList.reduce((acc, fish) => acc + parseFloat(fish.length), 0);
+                return Math.round((fishList.length * 5) + len);
             }
         };
 
@@ -894,22 +930,33 @@
                 summary[fish.species].lengths.push(len);
             });
 
-            const totalPts = window.calculatePoints(totalFish, totalLength, currentScoringMethod);
-            const fishPts = (currentScoringMethod === 'measure_points') ? (totalFish * 5) : 0;
-            const lenPts = Math.round(totalLength);
+            // POINTS CALCULATION (SMART)
+            const totalPts = window.calculatePoints(fishData, currentScoringMethod);
 
             document.getElementById('session_total_points').textContent = totalPts;
-            document.getElementById('session_eq_fish').textContent = fishPts;
-            document.getElementById('session_eq_len').textContent = lenPts;
-            document.getElementById('session_eq_total').textContent = totalPts;
             
+            // Adjust the equation display based on method
             const fishRow = document.getElementById('session_eq_fish_row');
+            const lenRow = document.getElementById('session_eq_len_row');
+            
             if(currentScoringMethod === 'length_only') {
                 fishRow.style.display = 'none';
+                lenRow.style.display = 'flex';
+                document.getElementById('session_eq_len').textContent = Math.round(totalLength);
+            } else if (currentScoringMethod === 'samf_matrix') {
+                fishRow.style.display = 'none';
+                lenRow.style.display = 'none'; // Matrix handles everything, no simple breakdown
+                document.getElementById('session_eq_total').textContent = totalPts;
             } else {
+                // measure_points
                 fishRow.style.display = 'flex';
+                lenRow.style.display = 'flex';
+                document.getElementById('session_eq_label').textContent = 'Fish Points (Qty × 5)';
+                document.getElementById('session_eq_fish').textContent = totalFish * 5;
+                document.getElementById('session_eq_len').textContent = Math.round(totalLength);
             }
             
+            document.getElementById('session_eq_total').textContent = totalPts;
             document.getElementById('session_total_fish').textContent = totalFish;
             document.getElementById('session_total_len').textContent = parseFloat(totalLength.toFixed(2)) + ' cm';
             document.getElementById('session_biggest_fish').textContent = biggestFishName;
@@ -920,6 +967,8 @@
                 if(summary[species].count > 1) {
                     lenDisplay += `<div class="small text-muted" style="font-size:0.7rem;">(${summary[species].lengths.join(', ')})</div>`;
                 }
+                
+                // Show Calculated Points per row? (Optional, kept simple for now)
                 row.innerHTML = `<td class="fw-bold">${species}</td><td class="text-center"><span class="badge bg-secondary rounded-pill">${summary[species].count}</span></td><td class="text-end">${lenDisplay}</td>`;
                 tallyTable.appendChild(row);
             }
@@ -938,7 +987,7 @@
             window.toggleCompetitionFields();
             document.getElementById('zoneInput').selectedIndex = 0;
             document.getElementById('pegInput').selectedIndex = 0;
-            document.getElementById('scoringMethod').selectedIndex = 0; // Reset to placeholder
+            document.getElementById('scoringMethod').selectedIndex = 0; 
 
             PageManager.show('splashScreen');
         };
@@ -952,7 +1001,6 @@
             
             currentScoringMethod = scoringSelect.value;
 
-            // VALIDATION: Check for scoring method
             if (!currentScoringMethod || currentScoringMethod === "") {
                  return alert("Please choose a Scoring Method.");
             }
@@ -1012,7 +1060,15 @@
             fishLog.innerHTML = '';
             fishData.forEach((fish, index) => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td class="fw-bold text-dark">${fish.species}</td><td class="text-end text-muted">${fish.length} cm</td><td class="text-end" style="width:50px;"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${index})"><i class="bi bi-trash"></i></button></td>`;
+                
+                // Show Points in Live Log if SAMF
+                let displayInfo = `${fish.length} cm`;
+                if(currentScoringMethod === 'samf_matrix') {
+                    const pts = window.getSAMFPoints(fish.species, parseFloat(fish.length));
+                    displayInfo = `<span class="badge bg-primary bg-opacity-10 text-primary me-2">${pts} pts</span> ` + displayInfo;
+                }
+
+                row.innerHTML = `<td class="fw-bold text-dark">${fish.species}</td><td class="text-end text-muted">${displayInfo}</td><td class="text-end" style="width:50px;"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${index})"><i class="bi bi-trash"></i></button></td>`;
                 fishLog.appendChild(row);
             });
         };
@@ -1035,7 +1091,7 @@
                 zone: currentZone, peg: currentPeg, 
                 scoringMethod: currentScoringMethod, 
                 fishData: fishData,
-                totalPoints: window.calculatePoints(totalFish, totalLength, currentScoringMethod),
+                totalPoints: window.calculatePoints(fishData, currentScoringMethod),
                 totalFish: totalFish, totalLength: totalLength
             };
             
@@ -1064,10 +1120,9 @@
                     try {
                         const data = JSON.parse(allData[key]);
                         if(!data.fishData) data.fishData = [];
-                        const len = data.fishData.reduce((s,f) => s + (parseFloat(f.length)||0), 0);
                         
                         const method = data.scoringMethod || 'measure_points'; 
-                        const pts = window.calculatePoints(data.fishData.length, len, method);
+                        const pts = window.calculatePoints(data.fishData, method);
 
                         const cardHtml = `
                             <div class="card" onclick="window.viewFullScorecard('${key}')">
@@ -1160,7 +1215,7 @@
                     summary[fish.species].lengths.push(len);
                 });
 
-                const totalPts = window.calculatePoints(totalFish, totalLength, method);
+                const totalPts = window.calculatePoints(data.fishData, method);
                 const fishPts = (method === 'measure_points') ? (totalFish * 5) : 0;
                 const lenPts = Math.round(totalLength);
 
@@ -1171,17 +1226,25 @@
                 document.getElementById('saved_peg').textContent = data.peg || '-';
                 
                 document.getElementById('saved_total_points').textContent = totalPts;
-                document.getElementById('saved_eq_fish').textContent = fishPts;
-                document.getElementById('saved_eq_len').textContent = lenPts;
-                document.getElementById('saved_eq_total').textContent = totalPts;
 
                 const fishRow = document.getElementById('saved_eq_fish_row');
+                const lenRow = document.getElementById('saved_eq_len_row');
+                
                 if(method === 'length_only') {
                     fishRow.style.display = 'none';
+                    lenRow.style.display = 'flex';
+                } else if (method === 'samf_matrix') {
+                    fishRow.style.display = 'none';
+                    lenRow.style.display = 'none';
                 } else {
                     fishRow.style.display = 'flex';
+                    lenRow.style.display = 'flex';
+                    document.getElementById('saved_eq_label').textContent = 'Fish Points (Qty × 5)';
+                    document.getElementById('saved_eq_fish').textContent = fishPts;
+                    document.getElementById('saved_eq_len').textContent = lenPts;
                 }
-
+                
+                document.getElementById('saved_eq_total').textContent = totalPts;
                 document.getElementById('saved_fish_count').textContent = totalFish;
                 document.getElementById('saved_total_len').textContent = parseFloat(totalLength.toFixed(2)) + ' cm';
                 document.getElementById('saved_biggest_fish').textContent = biggestFishName;
@@ -1190,10 +1253,14 @@
                 log.innerHTML = '';
                 for (const species in summary) {
                     const row = document.createElement('tr');
+                    
+                    // Show Points if SAMF (Just as simple total for category)
                     let lenDisplay = parseFloat(summary[species].totalLength.toFixed(2)) + ' cm';
-                    if(summary[species].count > 1) {
-                        lenDisplay += `<div class="small text-muted" style="font-size:0.7rem; margin-top:2px;">(${summary[species].lengths.join(', ')})</div>`;
+                    if(method === 'samf_matrix') {
+                        // Recalculate basic points for display logic
+                        // (Simplified for summary view, just shows total length)
                     }
+
                     row.innerHTML = `<td class="fw-bold">${species}</td><td class="text-center"><span class="badge bg-secondary rounded-pill">${summary[species].count}</span></td><td class="text-end">${lenDisplay}</td>`;
                     log.appendChild(row);
                 }
