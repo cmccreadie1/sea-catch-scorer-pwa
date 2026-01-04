@@ -37,18 +37,21 @@
 
         h1, h2, h3, h4, h5, .btn { font-family: 'Poppins', sans-serif; }
 
-        /* LOGO SVG STYLES */
+        /* LOGO STYLES */
         .logo-svg {
-            width: 120px;
-            height: auto;
-            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
-            margin-bottom: 20px;
-            animation: float 6s ease-in-out infinite;
+            width: 140px;
+            height: 140px;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
+            margin-bottom: 25px;
         }
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+        /* Radar Scan Animation */
+        .radar-sweep {
+            transform-origin: 100px 100px;
+            animation: scan 4s linear infinite;
+        }
+        @keyframes scan {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         /* SPLASH */
@@ -155,28 +158,20 @@
 </head>
 <body>
     <div id="splashScreen" class="splash-screen">
-        <svg class="logo-svg" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="fishGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <path d="M20,80 Q60,30 120,30 Q180,30 190,80 L190,120 L20,120 Z" fill="url(#fishGrad)" />
-            <path d="M20,80 L0,50 L0,110 L20,80" fill="#0f172a" />
-            <line x1="40" y1="120" x2="40" y2="105" stroke="white" stroke-width="3" />
-            <line x1="60" y1="120" x2="60" y2="110" stroke="rgba(255,255,255,0.5)" stroke-width="2" />
-            <line x1="80" y1="120" x2="80" y2="100" stroke="white" stroke-width="3" />
-            <line x1="100" y1="120" x2="100" y2="110" stroke="rgba(255,255,255,0.5)" stroke-width="2" />
-            <line x1="120" y1="120" x2="120" y2="105" stroke="white" stroke-width="3" />
-            <line x1="140" y1="120" x2="140" y2="110" stroke="rgba(255,255,255,0.5)" stroke-width="2" />
-            <line x1="160" y1="120" x2="160" y2="100" stroke="white" stroke-width="3" />
-            <circle cx="160" cy="65" r="6" fill="white" />
-            <circle cx="160" cy="65" r="2" fill="#0f172a" />
+        <svg class="logo-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="90" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="10,5"/>
+            <circle cx="100" cy="100" r="65" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="100" cy="100" r="40" fill="#0ea5e9"/>
+            <path d="M75,100 Q90,80 115,85 Q130,90 135,100 Q130,110 115,115 Q90,120 75,100" fill="white"/>
+            <path d="M75,100 L65,90 L65,110 Z" fill="white"/>
+            <g class="radar-sweep">
+                <line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+                <circle cx="160" cy="40" r="5" fill="#10b981"/>
+            </g>
         </svg>
         
         <h1 class="mb-1 display-5 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 89.0</p>
+        <p class="version-tag">Version 90.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
             <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Scorecards</button>
@@ -238,8 +233,22 @@
                 <label class="form-check-label" for="isCompetition">Competition Mode</label>
             </div>
             <div class="row g-2">
-                <div class="col-6"><select id="zoneInput" class="form-select" disabled><option selected>Zone</option><option>1</option><option>2</option><option>3</option><option>4</option><option>Red</option><option>Yellow</option><option>Green</option><option>Blue</option></select></div>
-                <div class="col-6"><select id="pegInput" class="form-select" disabled><option selected>Peg</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select></div>
+                <div class="col-6">
+                    <select id="zoneInput" class="form-select" disabled>
+                        <option value="" selected>Zone</option>
+                        <option>1</option><option>2</option><option>3</option><option>4</option>
+                        <option>Red</option><option>Yellow</option><option>Green</option><option>Blue</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <select id="pegInput" class="form-select" disabled>
+                        <option value="" selected>Peg</option>
+                        <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                        <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                        <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+                        <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -798,15 +807,12 @@
 
         window.resetApp=function(){ window.location.reload(); };
         window.confirmQuit=function(){ if(confirm("End session without saving?")) window.resetApp(); };
-        
         window.shareAsImage=function(ctx){
             const el = document.getElementById(ctx==='live'?'tallyVerificationPage':'fullScorecardView');
-            // Hide buttons and input borders for clean image
-            const btns = el.querySelectorAll('button, .btn');
+            const btns = el.querySelectorAll('button');
             btns.forEach(b=>b.style.display='none');
-            
             html2canvas(el, {backgroundColor:'#f0f4f8'}).then(c=>{
-                btns.forEach(b=>b.style.display=''); // Restore
+                btns.forEach(b=>b.style.display='');
                 c.toBlob(b=>{
                     const f=new File([b],"scorecard.png",{type:"image/png"});
                     if(navigator.share) navigator.share({files:[f]});
