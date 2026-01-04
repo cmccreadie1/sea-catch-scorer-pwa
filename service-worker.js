@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sea-catch-v86';
+const CACHE_NAME = 'sea-catch-v87';
 const FILES_TO_CACHE = [
   './',
   './index.html',
