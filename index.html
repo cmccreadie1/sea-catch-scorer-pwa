@@ -91,7 +91,7 @@
             padding: 12px 15px; border-radius: 8px; font-size: 0.85rem; margin-top: 15px; display: none;
         }
 
-        /* SPECIES HUNT VISUALIZER */
+        /* SPECIES HUNT VISUALIZER (3 PIPS) */
         .species-quota-card {
             background: white; border-radius: 16px; padding: 12px 15px; margin-bottom: 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
@@ -100,8 +100,8 @@
         .sq-name { font-weight: 700; color: var(--primary-color); font-size: 1rem; }
         .sq-pips { display: flex; align-items: center; gap: 6px; }
         .pip {
-            width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 0.7rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0;
+            width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0;
         }
         .pip.active { background: #10b981; color: white; border-color: #059669; }
         .pip.gold.active { background: #eab308; color: white; border-color: #ca8a04; }
@@ -113,14 +113,13 @@
         .table-custom tr td:first-child { border-left: 1px solid #f1f5f9; border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
         .table-custom tr td:last-child { border-right: 1px solid #f1f5f9; border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
 
-        /* TOGGLE SWITCH CUSTOM */
-        .toggle-container {
-            display: flex; align-items: center; justify-content: space-between;
-            background: #fff7ed; padding: 10px 15px; border-radius: 12px;
-            border: 1px solid #ffedd5; margin-top: 15px;
+        /* SWITCH */
+        .big-switch {
+            display: flex; align-items: center; padding: 10px; background: #ffffff;
+            border-radius: 12px; border: 2px solid #90a4ae; box-shadow: 0 3px 5px rgba(0,0,0,0.06);
         }
-        .toggle-label { font-size: 0.9rem; font-weight: 700; color: #ea580c; }
-        .form-check-input:checked { background-color: #f97316; border-color: #f97316; }
+        .big-switch .form-check-input { width: 3.2em; height: 1.6em; margin-right: 12px; }
+        .big-switch .form-check-label { font-size: 1rem; font-weight: 700; color: var(--primary-color); }
         
         .verification-box { display: none; background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 12px; margin-top: 20px; }
     </style>
@@ -129,7 +128,7 @@
     <div id="splashScreen" class="splash-screen">
         <img src="icon.png" alt="Logo">
         <h1 class="mb-1">Sea Catch Scorer</h1>
-        <p class="version-tag">Version 83.0</p>
+        <p class="version-tag">Version 84.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
             <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Saved Logs</button>
@@ -164,33 +163,30 @@
             <div class="section-title"><i class="bi bi-calculator"></i> Scoring Rules</div>
             <select id="scoringMethod" class="form-select" onchange="window.checkRuleInfo()">
                 <option value="" disabled selected>Select Scoring Method...</option>
-                <option value="measure_points">Total Length + Points</option>
+                <option value="measure_points">Length + 10 Pts (Per Fish)</option>
                 <option value="length_only">Total Length Only</option>
-                <option value="species_hunt">Species Hunt (Quota)</option>
+                <option value="species_hunt">Species Hunt (3=100pts)</option>
             </select>
 
-            <div id="bonusToggle" style="display:none;" class="toggle-container">
-                <span class="toggle-label"><i class="bi bi-star-fill me-1"></i> Bonus per Fish</span>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="bonusSwitch" onchange="window.updateBonusLabel()">
-                    <label class="form-check-label fw-bold ms-2" for="bonusSwitch" id="bonusLabel">5 Pts</label>
-                </div>
-            </div>
-
             <div id="speciesHuntInfo" class="rule-info-box">
-                <div class="fw-bold"><i class="bi bi-trophy me-2"></i>Quota Rules:</div>
+                <div class="fw-bold"><i class="bi bi-trophy me-2"></i>Target 3 Fish:</div>
                 <ul class="small mb-0 mt-1 ps-3">
-                    <li>1st: <strong>30</strong> | 2nd: <strong>20</strong></li>
-                    <li>3rd: <strong>20</strong> | 4th: <strong>30</strong></li>
-                    <li>5th+: <strong>1</strong> pt</li>
+                    <li>1st: <strong>30</strong> | 2nd: <strong>30</strong></li>
+                    <li>3rd: <strong>40</strong> (Full House 100)</li>
+                    <li>4th+: <strong>1</strong> pt</li>
                 </ul>
+            </div>
+            
+            <div id="measurePointsInfo" class="rule-info-box">
+                <div class="fw-bold"><i class="bi bi-ruler me-2"></i>Measure + 10:</div>
+                <div class="small mt-1">Score = Total Cm + (Count x 10)</div>
             </div>
         </div>
 
         <div class="inner-card">
-            <div class="form-check form-switch mb-3">
+            <div class="form-check form-switch big-switch mb-3">
                 <input class="form-check-input" type="checkbox" id="isCompetition" onchange="window.toggleCompetitionFields()">
-                <label class="form-check-label fw-bold text-primary" for="isCompetition">Competition Mode (Zone/Peg)</label>
+                <label class="form-check-label" for="isCompetition">Competition Mode</label>
             </div>
             <div class="row g-2">
                 <div class="col-6"><select id="zoneInput" class="form-select" disabled><option selected>Zone</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
@@ -325,19 +321,22 @@
     </div>
 
     <script>
-        // --- DATA & CONFIG ---
-        const speciesList = {
-            "Round Fish": ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Cod", "Coalfish", "Gurnard (Red)", "Gurnard (Tub)", "Gurnard (Grey)", "Mackerel", "Mullet (Grey)", "Mullet (Red)", "Pollack", "Pouting", "Scad", "Whiting", "Wrasse (Ballan)", "Wrasse (Cuckoo)"],
-            "Flatfish": ["Brill", "Dab", "Flounder", "Plaice", "Sole (Dover)", "Sole (Lemon)", "Turbot"],
-            "Rays & Skates": ["Ray (Blonde)", "Ray (Small-eyed)", "Ray (Spotted)", "Ray (Thornback)", "Ray (Undulate)", "Stingray"],
-            "Sharks": ["Dogfish (LSD)", "Bull Huss", "Smoothhound", "Tope"],
-            "Mini Species": ["Blenny (Tompot)", "Blenny (Common)", "Dragonet", "Goby (Common)", "Goby (Rock)", "Poor Cod", "Rockling (3-Bearded)", "Rockling (Shore)", "Scorpion Fish", "Weever (Lesser)"],
-            "Eels": ["Conger Eel", "Silver Eel", "Common Eel"],
-            "Rare/Exotic": ["Garfish", "Trigger Fish", "Squid"]
-        };
+        // --- SPECIES DATABASE ---
+        // Common species removed from sub-lists to prevent dups
+        const speciesList = [
+            { category: "Common Species", items: ["Cod", "Pollack", "Coalfish", "Whiting", "Dab", "Flounder", "Plaice", "Turbot", "Dogfish (LSD)", "Bull Huss"] },
+            { category: "Round Fish", items: ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Garfish", "Gurnard (Grey)", "Gurnard (Red)", "Gurnard (Tub)", "Mackerel", "Mullet (Golden)", "Mullet (Grey/Thick)", "Mullet (Red)", "Scad", "Weever (Lesser)"] },
+            { category: "Flatfish", items: ["Brill", "Megrim", "Sole (Dover)", "Sole (Lemon)", "Topknot"] },
+            { category: "Wrasse", items: ["Wrasse (Ballan)", "Wrasse (Corkwing)", "Wrasse (Cuckoo)", "Wrasse (Goldsinny)", "Wrasse (Rock Cook)"] },
+            { category: "Rockling", items: ["Rockling (3-Bearded)", "Rockling (5-Bearded)", "Rockling (4-Bearded)", "Rockling (Shore)"] },
+            { category: "Sharks", items: ["Dogfish (Blackmouth)", "Smoothhound (Common)", "Smoothhound (Starry)", "Spurdog", "Tope"] },
+            { category: "Rays & Skates", items: ["Ray (Blonde)", "Ray (Small-eyed)", "Ray (Spotted)", "Ray (Thornback)", "Ray (Undulate)", "Stingray"] },
+            { category: "Eels", items: ["Eel (Common)", "Eel (Conger)", "Eel (Silver)"] },
+            { category: "Mini / Rare", items: ["Blenny (Common)", "Blenny (Tompot)", "Dragonet", "Goby (Common)", "Goby (Rock)", "Poor Cod", "Pouting (Bib)", "Scorpion Fish", "Squid", "Trigger Fish"] }
+        ];
 
         let fishData=[], currentAngler=null, currentDate=null, currentVenue=null, currentZone=null, currentPeg=null;
-        let currentScoringMethod=null, currentFishBonus=5, isCompetitionMode=false;
+        let currentScoringMethod=null, isCompetitionMode=false;
 
         // --- UTILS ---
         const PageManager={show:function(e){["splashScreen","anglerRegistration","anglerFishingPage","tallyVerificationPage"].forEach(e=>{document.getElementById(e).style.display="none"});document.getElementById(e).style.display="block";window.scrollTo(0,0)}};
@@ -349,51 +348,47 @@
             PageManager.show("anglerRegistration");
         };
 
-        window.updateBonusLabel=function(){
-            const checked = document.getElementById("bonusSwitch").checked;
-            document.getElementById("bonusLabel").textContent = checked ? "10 Pts" : "5 Pts";
-        };
-
         window.checkRuleInfo=function(){
             const m=document.getElementById("scoringMethod").value;
-            const ids=["speciesHuntInfo","bonusToggle"];
+            const ids=["speciesHuntInfo","measurePointsInfo"];
             ids.forEach(i=>document.getElementById(i).style.display='none');
             
             if(m==="species_hunt") document.getElementById("speciesHuntInfo").style.display='block';
-            else if(m==="measure_points") document.getElementById("bonusToggle").style.display='flex';
+            else if(m==="measure_points") document.getElementById("measurePointsInfo").style.display='block';
         };
 
         window.populateSpeciesDropdown=function(){
             const sel=document.getElementById("speciesInput");
             sel.innerHTML='<option value="" selected>Select Fish...</option><option value="Other">Other (specify)</option>';
             
-            for(const [cat, fishes] of Object.entries(speciesList)){
-                const grp = document.createElement('optgroup');
-                grp.label = cat;
-                fishes.sort().forEach(f=>{
+            speciesList.forEach(grp=>{
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = grp.category;
+                grp.items.sort().forEach(f=>{
                     const opt = document.createElement('option');
                     opt.value=f; opt.textContent=f;
-                    grp.appendChild(opt);
+                    optgroup.appendChild(opt);
                 });
-                sel.appendChild(grp);
-            }
+                sel.appendChild(optgroup);
+            });
         };
 
         // --- SCORING ---
-        window.calculatePoints=function(data, method, bonus=5){
+        window.calculatePoints=function(data, method){
             if(method==='species_hunt'){
                 const c={}; let t=0;
                 data.forEach(f=>{
                     if(!c[f.species])c[f.species]=0; c[f.species]++;
                     const n=c[f.species];
-                    if(n===1)t+=30; else if(n===2||n===3)t+=20; else if(n===4)t+=30; else t+=1;
+                    if(n===1)t+=30; else if(n===2)t+=30; else if(n===3)t+=40; else t+=1;
                 });
                 return t;
             } else if(method==='length_only'){
                 return Math.round(data.reduce((a,b)=>a+parseFloat(b.length||0),0));
             } else {
+                // Length + 10
                 const len=data.reduce((a,b)=>a+parseFloat(b.length||0),0);
-                return Math.round((data.length*bonus)+len);
+                return Math.round((data.length*10)+len);
             }
         };
 
@@ -404,14 +399,12 @@
             const venue=document.getElementById("venueInput").value.trim();
             const method=document.getElementById("scoringMethod").value;
             const isComp=document.getElementById("isCompetition").checked;
-            const bonus10=document.getElementById("bonusSwitch").checked;
 
             if(!method) return alert("Select Scoring Method");
             if(!name||!date||!venue) return alert("Fill in Name, Date and Venue");
 
             currentAngler=name; currentDate=date; currentVenue=venue;
             currentScoringMethod=method; isCompetitionMode=isComp;
-            currentFishBonus = bonus10 ? 10 : 5;
             
             if(isComp){
                 currentZone=document.getElementById("zoneInput").value;
@@ -421,7 +414,6 @@
             fishData=[];
             window.populateSpeciesDropdown();
             
-            // Toggle UI inputs
             const lenBox=document.getElementById('lengthInputContainer');
             const spBtn=document.getElementById('speciesHuntAddBtn');
             if(method==='species_hunt'){ lenBox.style.display='none'; spBtn.style.display='block'; }
@@ -455,35 +447,34 @@
         window.updateFishLog=function(){
             const log=document.getElementById("fishLog");
             log.innerHTML="";
-            const spTracker={};
             
-            // Show newest first
-            [...fishData].reverse().forEach((f, idxInReverse)=>{
-                // Get real index
-                const realIdx = fishData.length - 1 - idxInReverse;
-                
-                let displayHtml="";
+            // To calc correct badges, need to process in catch order first
+            const badges=[];
+            const spCounts={};
+            fishData.forEach(f=>{
+                if(!spCounts[f.species]) spCounts[f.species]=0;
+                spCounts[f.species]++;
+                const c=spCounts[f.species];
                 if(currentScoringMethod==='species_hunt'){
-                    // Need to calculate which number of fish this is for this species
-                    // (Requires iterating full list to count properly)
-                    let countForThisFish = 0;
-                    for(let i=0; i<=realIdx; i++){
-                        if(fishData[i].species === f.species) countForThisFish++;
-                    }
-                    
-                    let label="", cls="bg-secondary";
-                    if(countForThisFish===1){ label="1st: Starter (+30)"; cls="bg-success"; }
-                    else if(countForThisFish===2){ label="2nd: Builder (+20)"; cls="bg-info text-dark"; }
-                    else if(countForThisFish===3){ label="3rd: Builder (+20)"; cls="bg-info text-dark"; }
-                    else if(countForThisFish===4){ label="4th: Full House (+30)"; cls="bg-warning text-dark"; }
-                    else { label="Extra (+1)"; cls="bg-light text-muted border"; }
-                    
-                    displayHtml = `<span class="badge ${cls}" style="font-size:0.8rem;">${label}</span>`;
+                    if(c===1) badges.push({lbl:"1st: Starter (+30)", cls:"bg-success"});
+                    else if(c===2) badges.push({lbl:"2nd: Builder (+30)", cls:"bg-info text-dark"});
+                    else if(c===3) badges.push({lbl:"3rd: Full House (+40)", cls:"bg-warning text-dark"});
+                    else badges.push({lbl:"Extra (+1)", cls:"bg-secondary"});
                 } else {
-                    displayHtml = `<span class="fw-bold fs-5 text-primary">${f.length} cm</span>`;
+                    badges.push({lbl:`${f.length} cm`, cls:"bg-transparent text-primary fs-5"});
                 }
+            });
+
+            // Display in reverse
+            [...fishData].reverse().forEach((f, revIdx)=>{
+                const realIdx = fishData.length - 1 - revIdx;
+                const b = badges[realIdx];
                 
                 const row=document.createElement("tr");
+                let displayHtml = (currentScoringMethod==='species_hunt') ? 
+                    `<span class="badge ${b.cls}" style="font-size:0.8rem;">${b.lbl}</span>` :
+                    `<span class="fw-bold fs-5 text-primary">${f.length} cm</span>`;
+
                 row.innerHTML=`
                     <td class="align-middle"><div class="fw-bold text-dark">${f.species}</div>${displayHtml}</td>
                     <td class="text-end align-middle"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${realIdx})"><i class="bi bi-trash"></i></button></td>
@@ -502,12 +493,10 @@
         window.endSession=function(){
             PageManager.show('tallyVerificationPage');
             
-            // Header
             document.getElementById('session_angler').textContent=currentAngler;
             document.getElementById('session_date').textContent=window.formatDate(currentDate);
             document.getElementById('session_venue').textContent=currentVenue;
             
-            // Comp Logic
             const compBox=document.getElementById('session_comp_details');
             const verifBox=document.getElementById('session_verification_box');
             if(isCompetitionMode){
@@ -520,49 +509,43 @@
                 verifBox.style.display='none';
             }
             
-            // Biggest Fish Box Logic
             const bigFishBox=document.getElementById('session_biggest_fish_card');
             if(currentScoringMethod==='species_hunt') bigFishBox.style.display='none';
             else bigFishBox.style.display='block';
             
-            // Calcs
-            const pts=window.calculatePoints(fishData, currentScoringMethod, currentFishBonus);
+            const pts=window.calculatePoints(fishData, currentScoringMethod);
             document.getElementById('session_total_points').textContent=pts;
             document.getElementById('session_total_fish').textContent=fishData.length;
             document.getElementById('session_species_count').textContent=new Set(fishData.map(f=>f.species)).size;
             document.getElementById('session_total_len').textContent=fishData.reduce((a,b)=>a+parseFloat(b.length||0),0).toFixed(1);
             
-            // Biggest Fish Calc
             let max=0, name="-";
             fishData.forEach(f=>{if(f.length>max){max=f.length; name=`${f.species} (${f.length}cm)`}});
             document.getElementById('session_biggest_fish').textContent=name;
             
-            // Breakdown Builder
             const container=document.getElementById('session_breakdown_area');
             container.innerHTML='';
             
             if(currentScoringMethod==='species_hunt'){
                 const counts={};
                 fishData.forEach(f=>{ if(!counts[f.species]) counts[f.species]=0; counts[f.species]++; });
-                
                 for(const sp in counts){
                     const c = counts[sp];
                     let rowPts = 0;
                     let pipsHtml = '';
-                    for(let i=1; i<=4; i++){
+                    for(let i=1; i<=3; i++){
                         let act = c>=i ? 'active' : '';
-                        let gold = i===4 ? 'gold' : '';
-                        let val = (i===1||i===4)?30:20;
+                        let gold = i===3 ? 'gold' : '';
+                        let val = (i===1||i===2)?30:40;
                         if(c>=i) rowPts += val;
                         pipsHtml += `<span class="pip ${gold} ${act}">${val}</span>`;
                     }
                     let extraHtml='';
-                    if(c>4){
-                        const ex = c-4;
+                    if(c>3){
+                        const ex = c-3;
                         rowPts += ex;
-                        extraHtml = `<span class="pip-extra">+${ex} extra (+${ex})</span>`;
+                        extraHtml = `<span class="pip-extra">+${ex} extra</span>`;
                     }
-                    
                     container.innerHTML += `
                         <div class="species-quota-card">
                             <div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${rowPts} pts</span></div>
@@ -570,7 +553,6 @@
                         </div>`;
                 }
             } else {
-                // Standard Table
                 let html='<table class="table-custom"><thead><tr><th class="ps-3 small text-muted">SPECIES</th><th class="text-center small text-muted">QTY</th><th class="text-end pe-3 small text-muted">LENGTHS</th></tr></thead><tbody>';
                 const sum={};
                 fishData.forEach(f=>{
@@ -592,9 +574,8 @@
             
             const record = {
                 angler: currentAngler, date: currentDate, venue: currentVenue,
-                scoringMethod: currentScoringMethod, fishBonus: currentFishBonus,
-                isComp: isCompetitionMode, zone: currentZone, peg: currentPeg,
-                fishData: fishData, witness: wit, verified: ver
+                scoringMethod: currentScoringMethod, isComp: isCompetitionMode,
+                zone: currentZone, peg: currentPeg, fishData: fishData, witness: wit, verified: ver
             };
             
             StorageHelper.save(`scorecard_${Date.now()}`, JSON.stringify(record));
@@ -607,7 +588,7 @@
             Object.keys(all).sort().reverse().forEach(k=>{
                 if(k.startsWith("scorecard_")){
                     const d=JSON.parse(all[k]);
-                    const pts = window.calculatePoints(d.fishData, d.scoringMethod, d.fishBonus);
+                    const pts = window.calculatePoints(d.fishData, d.scoringMethod);
                     list.innerHTML += `<div class="inner-card p-3 mb-2" onclick="window.viewSaved('${k}')">
                         <div class="d-flex justify-content-between align-items-center">
                             <div><div class="fw-bold text-dark">${d.venue}</div><div class="small text-muted">${window.formatDate(d.date)} <span class="badge bg-primary bg-opacity-10 text-primary ms-2">${pts} pts</span></div></div>
@@ -622,20 +603,17 @@
             const d=JSON.parse(StorageHelper.get(k));
             if(!d) return;
             
-            // Re-render End Session logic but in read-only view
             document.getElementById('saved_view_angler').textContent = d.angler;
             document.getElementById('saved_view_date').textContent = window.formatDate(d.date);
             document.getElementById('saved_view_venue').textContent = d.venue;
             
-            const pts = window.calculatePoints(d.fishData, d.scoringMethod, d.fishBonus);
+            const pts = window.calculatePoints(d.fishData, d.scoringMethod);
             document.getElementById('saved_view_points').textContent = pts;
             
-            // Show verification if comp
             const vDiv = document.getElementById('saved_view_verif');
             if(d.isComp && d.verified) { vDiv.style.display='block'; vDiv.textContent=`Verified by: ${d.witness}`; }
             else { vDiv.style.display='none'; }
             
-            // Breakdown
             const container = document.getElementById('saved_view_breakdown');
             container.innerHTML = '';
             
@@ -645,7 +623,7 @@
                 for(const sp in counts){
                     const c=counts[sp];
                     let rowPts=0;
-                    for(let i=1; i<=c; i++) { if(i===1||i===4) rowPts+=30; else if(i<5) rowPts+=20; else rowPts+=1; }
+                    for(let i=1; i<=c; i++) { if(i===1||i===2) rowPts+=30; else if(i===3) rowPts+=40; else rowPts+=1; }
                     container.innerHTML += `<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${rowPts} pts</span></div><div class="small text-muted">Count: ${c}</div></div>`;
                 }
             } else {
@@ -677,6 +655,19 @@
 
         window.resetApp=function(){ window.location.reload(); };
         window.confirmQuit=function(){ if(confirm("End session without saving?")) window.resetApp(); };
+        window.shareAsImage=function(ctx){
+            const el = document.getElementById(ctx==='live'?'tallyVerificationPage':'fullScorecardView');
+            const btns = el.querySelectorAll('button');
+            btns.forEach(b=>b.style.display='none');
+            html2canvas(el, {backgroundColor:'#f0f4f8'}).then(c=>{
+                btns.forEach(b=>b.style.display='');
+                c.toBlob(b=>{
+                    const f=new File([b],"scorecard.png",{type:"image/png"});
+                    if(navigator.share) navigator.share({files:[f]});
+                    else { const l=document.createElement('a'); l.download='score.png'; l.href=c.toDataURL(); l.click(); }
+                });
+            });
+        };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
