@@ -310,6 +310,7 @@
             border-radius: 12px;
             padding: 15px;
             margin-top: 20px;
+            display: none; /* Hidden by default */
         }
 
         .rule-info-box {
@@ -343,7 +344,7 @@
         <div id="splashScreen" class="splash-screen">
             <img src="icon.png" alt="Sea Catch Scorer Logo">
             <h1 class="mb-1">Sea Catch Scorer</h1>
-            <p class="version-tag">Version 80.0 (Smart Scoring)</p>
+            <p class="version-tag">Version 81.0 (Smart Interface)</p>
             <div class="d-grid gap-3 col-10 col-md-6">
                 <button id="btnStartFishing" class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">
                     <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -400,7 +401,7 @@
                                         <span class="official-detail-label">Peg</span>
                                         <span id="saved_peg" class="official-detail-value fw-bold text-primary"></span>
                                     </div>
-                                    <div class="official-detail-item" style="grid-column: span 2;">
+                                    <div class="official-detail-item" style="grid-column: span 2;" id="saved_verification_container">
                                         <span class="official-detail-label">Verified By</span>
                                         <span id="saved_witness" class="official-detail-value text-success"></span>
                                     </div>
@@ -415,7 +416,7 @@
                             <div id="saved_equation_container" class="equation-box"></div>
 
                             <div class="stat-grid">
-                                <div class="stat-card border-success border-opacity-50" style="grid-column: span 3;">
+                                <div id="saved_biggest_fish_card" class="stat-card border-success border-opacity-50" style="grid-column: span 3;">
                                     <small class="text-success">Biggest Fish</small>
                                     <strong id="saved_biggest_fish" class="text-success">-</strong>
                                 </div>
@@ -642,7 +643,7 @@
             <div id="session_equation_container" class="equation-box"></div>
 
             <div class="stat-grid">
-                <div class="stat-card border-success border-opacity-50" style="grid-column: span 3;">
+                <div id="session_biggest_fish_card" class="stat-card border-success border-opacity-50" style="grid-column: span 3;">
                     <small class="text-success">Biggest Fish</small>
                     <strong id="session_biggest_fish" class="text-success">-</strong>
                 </div>
@@ -668,7 +669,7 @@
                 <tbody id="live_tally_table"></tbody>
             </table>
 
-            <div class="verification-box">
+            <div id="session_verification_box" class="verification-box">
                 <h6 class="fw-bold text-primary mb-3"><i class="bi bi-person-check-fill me-2"></i>Verification</h6>
                 <div class="mb-2">
                     <label class="form-label text-muted small">Steward / Witness Name</label>
@@ -786,6 +787,7 @@
         let currentAngler = null, currentDate = null, currentVenue = null, currentZone = null, currentPeg = null, currentViewingLog = null;
         let currentScoringMethod = null;
         let currentFishBonus = 5; 
+        let isCompetitionMode = false;
         let pendingRestoreData = null; 
 
         window.formatDate = function(dateString) {
@@ -839,6 +841,7 @@
             } else if (method === 'length_only') {
                 return Math.round(fishList.reduce((acc, fish) => acc + parseFloat(fish.length || 0), 0));
             } else {
+                // Measure Points (Use dynamic bonus)
                 const len = fishList.reduce((acc, fish) => acc + parseFloat(fish.length || 0), 0);
                 return Math.round((fishList.length * bonus) + len);
             }
@@ -892,6 +895,7 @@
                     zone: currentZone, peg: currentPeg, 
                     scoringMethod: currentScoringMethod,
                     fishBonus: currentFishBonus,
+                    isCompetitionMode: isCompetitionMode,
                     fishData: fishData
                 };
                 StorageHelper.save('active_session', JSON.stringify(activeData));
@@ -928,11 +932,12 @@
             currentPeg = data.peg;
             currentScoringMethod = data.scoringMethod || 'measure_points';
             currentFishBonus = data.fishBonus || 5; 
+            isCompetitionMode = data.isCompetitionMode || false;
             fishData = data.fishData || [];
 
             window.populateSpeciesDropdown();
 
-            if(currentZone || currentPeg) {
+            if(isCompetitionMode) {
                 document.getElementById('isCompetition').checked = true;
                 window.toggleCompetitionFields();
                 document.getElementById('zoneInput').value = currentZone;
@@ -997,6 +1002,16 @@
             document.getElementById('session_zone').textContent = currentZone || '-';
             document.getElementById('session_peg').textContent = currentPeg || '-';
             
+            // Toggle Verification & Biggest Fish Box
+            const verifBox = document.getElementById('session_verification_box');
+            const bigFishCard = document.getElementById('session_biggest_fish_card');
+            
+            if(isCompetitionMode) verifBox.style.display = 'block';
+            else verifBox.style.display = 'none';
+            
+            if(currentScoringMethod === 'species_hunt') bigFishCard.style.display = 'none';
+            else bigFishCard.style.display = 'block';
+
             const tallyTable = document.getElementById('live_tally_table');
             tallyTable.innerHTML = '';
             
@@ -1021,7 +1036,7 @@
             document.getElementById('session_total_fish').textContent = totalFish;
             document.getElementById('session_species_count').textContent = uniqueSpecies.size;
             document.getElementById('session_total_len').textContent = parseFloat(totalLength.toFixed(2)) + ' cm';
-            document.getElementById('session_biggest_fish').textContent = (currentScoringMethod === 'species_hunt') ? '-' : biggestFishName;
+            document.getElementById('session_biggest_fish').textContent = biggestFishName;
 
             const tableHead = document.getElementById('session_log_head');
             
@@ -1073,47 +1088,31 @@
             const fishLog = document.getElementById('fishLog');
             fishLog.innerHTML = '';
             
-            // For Species Hunt, we do specific visual grouping
-            if (currentScoringMethod === 'species_hunt') {
-                const speciesTracker = {};
-                fishData.forEach((fish, index) => {
-                    if(!speciesTracker[fish.species]) speciesTracker[fish.species] = 0;
-                    speciesTracker[fish.species]++;
-                    let c = speciesTracker[fish.species];
-                    let pts = 1;
-                    let msg = "";
-                    
-                    if(c===1) { pts=30; msg=`<span class="badge bg-success">Start +30</span>`; }
-                    else if(c===2) { pts=20; msg=`<span class="badge bg-info text-dark">+20</span>`; }
-                    else if(c===3) { pts=20; msg=`<span class="badge bg-info text-dark">+20</span> <small class="ms-1 text-danger fw-bold">Next: 30pts!</small>`; }
-                    else if(c===4) { pts=30; msg=`<span class="badge bg-warning text-dark">+30 (Max)</span>`; }
-                    else { pts=1; msg=`<span class="text-muted small">+1 pt</span>`; }
+            const speciesCounts = {}; 
 
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="align-middle">
-                            <div class="fw-bold text-dark">${fish.species}</div>
-                            <div class="small">${msg}</div>
-                        </td>
-                        <td class="text-end align-middle">
-                            <span class="fs-4 fw-bold text-primary">${pts}</span>
-                        </td>
-                        <td class="text-end align-middle" style="width:50px;">
-                            <button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${index})"><i class="bi bi-trash"></i></button>
-                        </td>`;
-                    fishLog.appendChild(row);
-                });
-                // Reverse order so newest is top? Standard array order is bottom-up in appendChild.
-                // If we want newest top, we'd prepend. For now, keep standard list.
-            } else {
-                // Standard Logic
-                fishData.forEach((fish, index) => {
-                    const row = document.createElement('tr');
-                    let displayInfo = `<span class="text-dark fw-bold fs-5 ps-3 border-start border-2">${fish.length} cm</span>`;
-                    row.innerHTML = `<td class="fw-bold text-dark align-middle">${fish.species}</td><td class="text-end align-middle">${displayInfo}</td><td class="text-end align-middle" style="width:50px;"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${index})"><i class="bi bi-trash"></i></button></td>`;
-                    fishLog.appendChild(row);
-                });
-            }
+            fishData.forEach((fish, index) => {
+                const row = document.createElement('tr');
+                let displayInfo = `<span class="text-dark fw-bold fs-5 ps-3 border-start border-2">${fish.length} cm</span>`;
+                
+                if (currentScoringMethod === 'species_hunt') {
+                    if(!speciesCounts[fish.species]) speciesCounts[fish.species] = 0;
+                    speciesCounts[fish.species]++;
+                    let c = speciesCounts[fish.species];
+                    let msg = "";
+                    let badgeClass = "bg-secondary";
+                    
+                    if(c===1) { msg="1st: Starter (+30)"; badgeClass="bg-success"; }
+                    else if(c===2) { msg="2nd: Builder (+20)"; badgeClass="bg-info text-dark"; }
+                    else if(c===3) { msg="3rd: Builder (+20)"; badgeClass="bg-info text-dark"; }
+                    else if(c===4) { msg="4th: Full House (+30)"; badgeClass="bg-warning text-dark"; }
+                    else { msg="Extra (+1)"; badgeClass="bg-light text-muted border"; }
+                    
+                    displayInfo = `<span class="badge ${badgeClass} fs-6">${msg}</span>`;
+                }
+                
+                row.innerHTML = `<td class="fw-bold text-dark align-middle">${fish.species}</td><td class="text-end align-middle">${displayInfo}</td><td class="text-end align-middle" style="width:50px;"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${index})"><i class="bi bi-trash"></i></button></td>`;
+                fishLog.appendChild(row);
+            });
         };
 
         window.addFish = function() {
@@ -1127,11 +1126,10 @@
                 if (species === 'Other') species = customSpeciesInput.value.trim();
                 if (!species || species === '') { alert("Select a species"); return; }
                 
-                // Length check only if NOT species hunt
                 if (currentScoringMethod !== 'species_hunt') {
                     if (isNaN(length) || length <= 0) { alert("Enter valid length"); return; }
                 } else {
-                    length = 0; // Length irrelevant for species hunt
+                    length = 0; 
                 }
 
                 fishData.push({ species, length });
@@ -1191,12 +1189,12 @@
             const scoringSelect = document.getElementById('scoringMethod');
             
             currentScoringMethod = scoringSelect.value;
+            isCompetitionMode = isCompetition; // Capture Mode
 
             if (!currentScoringMethod || currentScoringMethod === "") {
                  return alert("Please select a Scoring Method from the list.");
             }
             
-            // Get Bonus Value if Applicable
             const bonusRadio = document.querySelector('input[name="fishBonus"]:checked');
             currentFishBonus = bonusRadio ? parseInt(bonusRadio.value) : 5;
             
@@ -1214,7 +1212,6 @@
             window.saveActiveSession();
             window.populateSpeciesDropdown();
             
-            // UI Adjustment for Species Hunt
             const lenContainer = document.getElementById('lengthInputContainer');
             const spBtn = document.getElementById('speciesHuntAddBtn');
             
@@ -1229,7 +1226,6 @@
             PageManager.show('anglerFishingPage');
         };
         
-        // SAVE WITH VERIFICATION
         window.saveAndEndSession = function() {
             const witnessName = document.getElementById('witnessNameInput').value;
             const isVerified = document.getElementById('witnessCheckbox').checked;
@@ -1243,6 +1239,7 @@
                 zone: currentZone, peg: currentPeg, 
                 scoringMethod: currentScoringMethod, 
                 fishBonus: currentFishBonus,
+                isCompetitionMode: isCompetitionMode,
                 fishData: fishData,
                 totalPoints: window.calculatePoints(fishData, currentScoringMethod, currentFishBonus),
                 totalFish: totalFish, totalLength: totalLength,
@@ -1354,6 +1351,7 @@
                 
                 const method = data.scoringMethod || 'measure_points';
                 const bonus = data.fishBonus || 5;
+                const isComp = data.isCompetitionMode || false;
 
                 if (!data.fishData) data.fishData = [];
                 let totalFish = 0, totalLength = 0, maxLen = 0, biggestFishName = "None";
@@ -1375,14 +1373,25 @@
                 document.getElementById('saved_zone').textContent = data.zone || '-';
                 document.getElementById('saved_peg').textContent = data.peg || '-';
                 
-                // Show Verification
                 const witEl = document.getElementById('saved_witness');
-                if(data.witness && data.verified) {
-                    witEl.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> ${data.witness}`;
-                    witEl.parentElement.style.display = 'block';
+                const verifContainer = document.getElementById('saved_verification_container');
+                const bigFishCard = document.getElementById('saved_biggest_fish_card');
+
+                // Toggle Verification Display
+                if(isComp) {
+                    verifContainer.style.display = 'grid'; 
+                    if(data.witness && data.verified) {
+                        witEl.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> ${data.witness}`;
+                    } else {
+                        witEl.innerHTML = `<span class="text-muted">Not Verified</span>`;
+                    }
                 } else {
-                    witEl.parentElement.style.display = 'none';
+                    verifContainer.style.display = 'none';
                 }
+
+                // Toggle Biggest Fish Display
+                if(method === 'species_hunt') bigFishCard.style.display = 'none';
+                else bigFishCard.style.display = 'block';
                 
                 document.getElementById('saved_total_points').textContent = totalPts;
 
