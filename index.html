@@ -91,7 +91,7 @@
             padding: 12px 15px; border-radius: 8px; font-size: 0.85rem; margin-top: 15px; display: none;
         }
 
-        /* SPECIES HUNT VISUALIZER (3 PIPS) */
+        /* SPECIES HUNT VISUALIZER (3 PIPS: Bronze, Silver, Gold) */
         .species-quota-card {
             background: white; border-radius: 16px; padding: 12px 15px; margin-bottom: 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
@@ -99,12 +99,16 @@
         .sq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .sq-name { font-weight: 700; color: var(--primary-color); font-size: 1rem; }
         .sq-pips { display: flex; align-items: center; gap: 6px; }
+        
         .pip {
             width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             font-size: 0.75rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0;
         }
-        .pip.active { background: #10b981; color: white; border-color: #059669; }
-        .pip.gold.active { background: #eab308; color: white; border-color: #ca8a04; }
+        /* Active States */
+        .pip.bronze.active { background: #cd7f32; color: white; border-color: #a05a2c; box-shadow: 0 2px 5px rgba(205, 127, 50, 0.4); }
+        .pip.silver.active { background: #94a3b8; color: white; border-color: #64748b; box-shadow: 0 2px 5px rgba(148, 163, 184, 0.4); }
+        .pip.gold.active { background: #eab308; color: white; border-color: #ca8a04; box-shadow: 0 2px 5px rgba(234, 179, 8, 0.4); }
+        
         .pip-extra { font-size: 0.75rem; color: #64748b; margin-left: auto; font-weight: 500; }
 
         /* LISTS */
@@ -122,13 +126,22 @@
         .big-switch .form-check-label { font-size: 1rem; font-weight: 700; color: var(--primary-color); }
         
         .verification-box { display: none; background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 12px; margin-top: 20px; }
+        
+        /* CARD ACTIONS */
+        .card-actions { display: flex; gap: 10px; }
+        .btn-card-icon {
+            width: 36px; height: 36px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; transition: background 0.2s;
+        }
+        .btn-card-icon.view { background: #eff6ff; color: var(--primary-color); }
+        .btn-card-icon.delete { background: #fef2f2; color: #ef4444; }
     </style>
 </head>
 <body>
     <div id="splashScreen" class="splash-screen">
         <img src="icon.png" alt="Logo">
         <h1 class="mb-1">Sea Catch Scorer</h1>
-        <p class="version-tag">Version 85.0</p>
+        <p class="version-tag">Version 86.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
             <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Saved Scorecards</button>
@@ -171,8 +184,9 @@
             <div id="speciesHuntInfo" class="rule-info-box">
                 <div class="fw-bold"><i class="bi bi-trophy me-2"></i>Target 3 Fish:</div>
                 <ul class="small mb-0 mt-1 ps-3">
-                    <li>1st: <strong>30</strong> | 2nd: <strong>30</strong></li>
-                    <li>3rd: <strong>40</strong> (Full House 100)</li>
+                    <li>1st: <strong>30</strong> (Bronze)</li>
+                    <li>2nd: <strong>30</strong> (Silver)</li>
+                    <li>3rd: <strong>40</strong> (Gold)</li>
                     <li>4th+: <strong>1</strong> pt</li>
                 </ul>
             </div>
@@ -274,6 +288,11 @@
         <h6 class="text-muted fs-7 mb-2 text-uppercase fw-bold ps-2">Catch Breakdown</h6>
         <div id="session_breakdown_area"></div>
 
+        <div class="inner-card p-3 mt-3">
+            <label class="form-label text-muted small"><i class="bi bi-journal-text me-1"></i>Session Notes</label>
+            <textarea id="sessionNotesInput" class="form-control" rows="2" placeholder="Add notes (e.g., weather, bait used)..."></textarea>
+        </div>
+
         <div id="session_verification_box" class="verification-box">
             <h6 class="fw-bold text-primary mb-2"><i class="bi bi-pen-fill me-2"></i>Steward Sign-off</h6>
             <div class="mb-2"><input type="text" id="witnessNameInput" class="form-control" placeholder="Witness Name"></div>
@@ -296,7 +315,7 @@
     <div class="modal fade" id="savedModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold text-primary">Scorecard History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold text-primary">Scorecards</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
                     <div id="savedScorecardsList"><div id="recentList"></div></div>
                     
@@ -309,12 +328,11 @@
                             </div>
                             <div id="saved_view_verif" class="mt-2 text-success fw-bold small" style="display:none;"></div>
                         </div>
-                        
                         <div class="score-hero-container">
                             <div class="score-hero-label">Total Score</div>
                             <div id="saved_view_points" class="score-hero-val">0</div>
                         </div>
-
+                        
                         <div class="stat-grid">
                             <div id="saved_view_biggest_fish_card" class="stat-card border-success" style="grid-column: span 3; border-color: #86efac; background:#f0fdf4;">
                                 <small class="text-success">Biggest Fish</small>
@@ -328,11 +346,19 @@
                         <h6 class="text-muted fs-7 mb-2 text-uppercase fw-bold ps-2">Catch Breakdown</h6>
                         <div id="saved_view_breakdown"></div>
                         
-                        <div class="d-grid gap-2 mt-3">
+                        <div id="saved_view_notes_container" class="inner-card p-3 mt-3" style="display:none; background:#fffbeb; border-color:#fef3c7;">
+                            <label class="form-label text-muted small mb-1"><i class="bi bi-journal-text me-1"></i>Notes</label>
+                            <div id="saved_view_notes" class="fw-bold text-dark" style="font-size:0.9rem;"></div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
                             <button class="btn btn-whatsapp" onclick="window.shareAsImage('saved')">
                                 <i class="bi bi-share-fill me-2"></i> Share Image
                             </button>
-                            <button class="btn btn-secondary" onclick="window.backToScorecardList()">Back</button>
+                            <button class="btn btn-danger" onclick="window.deleteCurrentSaved()">
+                                <i class="bi bi-trash me-2"></i> Delete Scorecard
+                            </button>
+                            <button class="btn btn-secondary" onclick="window.backToScorecardList()">Back to List</button>
                         </div>
                     </div>
                 </div>
@@ -356,6 +382,7 @@
 
         let fishData=[], currentAngler=null, currentDate=null, currentVenue=null, currentZone=null, currentPeg=null;
         let currentScoringMethod=null, isCompetitionMode=false;
+        let currentSavedKey = null; // Track which card is open for deletion
 
         // --- UTILS ---
         const PageManager={show:function(e){["splashScreen","anglerRegistration","anglerFishingPage","tallyVerificationPage"].forEach(e=>{document.getElementById(e).style.display="none"});document.getElementById(e).style.display="block";window.scrollTo(0,0)}};
@@ -364,8 +391,6 @@
         window.formatDate=function(d){try{return d?new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"N/A"}catch(e){return"N/A"}};
         window.startFishing=function(){
             fishData=[]; document.getElementById("anglerName").value=""; 
-            
-            // SAFE AUTO DATE
             try {
                 const now = new Date();
                 const year = now.getFullYear();
@@ -373,7 +398,6 @@
                 const day = String(now.getDate()).padStart(2, '0');
                 document.getElementById("competitionDate").value = `${year}-${month}-${day}`;
             } catch(e) { console.log("Date auto-fill skipped"); }
-
             document.getElementById("venueInput").value="";
             PageManager.show("anglerRegistration");
         };
@@ -416,7 +440,6 @@
             } else if(method==='length_only'){
                 return Math.round(data.reduce((a,b)=>a+parseFloat(b.length||0),0));
             } else {
-                // Length + 10
                 const len=data.reduce((a,b)=>a+parseFloat(b.length||0),0);
                 return Math.round((data.length*10)+len);
             }
@@ -562,14 +585,22 @@
                     let pipsHtml = '';
                     for(let i=1; i<=3; i++){
                         let act = c>=i ? 'active' : '';
-                        let gold = i===3 ? 'gold' : '';
+                        let type = (i===1)?'bronze':(i===2)?'silver':'gold';
                         let val = (i===1||i===2)?30:40;
                         if(c>=i) rowPts += val;
-                        pipsHtml += `<span class="pip ${gold} ${act}">${val}</span>`;
+                        pipsHtml += `<span class="pip ${type} ${act}">${val}</span>`;
                     }
                     let extraHtml='';
-                    if(c>3){ const ex = c-3; rowPts += ex; extraHtml = `<span class="pip-extra">+${ex} extra</span>`; }
-                    container.innerHTML += `<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${rowPts} pts</span></div><div class="sq-pips">${pipsHtml}${extraHtml}</div></div>`;
+                    if(c>3){
+                        const ex = c-3;
+                        rowPts += ex;
+                        extraHtml = `<span class="pip-extra">+${ex} extra</span>`;
+                    }
+                    container.innerHTML += `
+                        <div class="species-quota-card">
+                            <div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${rowPts} pts</span></div>
+                            <div class="sq-pips">${pipsHtml}${extraHtml}</div>
+                        </div>`;
                 }
             } else {
                 let html='<table class="table-custom"><thead><tr><th class="ps-3 small text-muted">SPECIES</th><th class="text-center small text-muted">QTY</th><th class="text-end pe-3 small text-muted">LENGTHS</th></tr></thead><tbody>';
@@ -584,11 +615,13 @@
         window.saveAndEndSession=function(){
             const wit=document.getElementById("witnessNameInput").value;
             const ver=document.getElementById("witnessCheckbox").checked;
+            const notes=document.getElementById("sessionNotesInput").value;
             
             const record = {
                 angler: currentAngler, date: currentDate, venue: currentVenue,
                 scoringMethod: currentScoringMethod, isComp: isCompetitionMode,
-                zone: currentZone, peg: currentPeg, fishData: fishData, witness: wit, verified: ver
+                zone: currentZone, peg: currentPeg, fishData: fishData, 
+                witness: wit, verified: ver, notes: notes
             };
             
             StorageHelper.save(`scorecard_${Date.now()}`, JSON.stringify(record));
@@ -602,19 +635,42 @@
                 if(k.startsWith("scorecard_")){
                     const d=JSON.parse(all[k]);
                     const pts = window.calculatePoints(d.fishData, d.scoringMethod);
-                    list.innerHTML += `<div class="inner-card p-3 mb-2" onclick="window.viewSaved('${k}')">
+                    list.innerHTML += `<div class="inner-card p-3 mb-2">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div><div class="fw-bold text-dark">${d.venue}</div><div class="small text-muted">${window.formatDate(d.date)} <span class="badge bg-primary bg-opacity-10 text-primary ms-2">${pts} pts</span></div></div>
-                            <i class="bi bi-chevron-right text-muted"></i>
+                            <div onclick="window.viewSaved('${k}')" style="flex-grow:1; cursor:pointer;">
+                                <div class="fw-bold text-dark">${d.venue}</div>
+                                <div class="small text-muted">${window.formatDate(d.date)} <span class="badge bg-primary bg-opacity-10 text-primary ms-2">${pts} pts</span></div>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn-card-icon delete" onclick="window.deleteScorecard('${k}')"><i class="bi bi-trash"></i></button>
+                                <button class="btn-card-icon view" onclick="window.viewSaved('${k}')"><i class="bi bi-chevron-right"></i></button>
+                            </div>
                         </div>
                     </div>`;
                 }
             });
         };
 
+        window.deleteScorecard=function(k){
+            if(confirm("Permanently delete this scorecard?")){
+                StorageHelper.remove(k);
+                window.loadSavedScorecards();
+            }
+        };
+        
+        window.deleteCurrentSaved=function(){
+            if(currentSavedKey){
+                if(confirm("Permanently delete this scorecard?")){
+                    StorageHelper.remove(currentSavedKey);
+                    window.backToScorecardList();
+                }
+            }
+        };
+
         window.viewSaved=function(k){
             const d=JSON.parse(StorageHelper.get(k));
             if(!d) return;
+            currentSavedKey = k;
             
             document.getElementById('saved_view_angler').textContent = d.angler;
             document.getElementById('saved_view_date').textContent = window.formatDate(d.date);
@@ -631,7 +687,7 @@
             const pts = window.calculatePoints(d.fishData, d.scoringMethod);
             document.getElementById('saved_view_points').textContent = pts;
             
-            // Saved Stats Logic
+            // Stats
             document.getElementById('saved_view_total_fish').textContent = d.fishData.length;
             document.getElementById('saved_view_species_count').textContent = new Set(d.fishData.map(f=>f.species)).size;
             document.getElementById('saved_view_total_len').textContent = d.fishData.reduce((a,b)=>a+parseFloat(b.length||0),0).toFixed(1);
@@ -649,6 +705,16 @@
             if(d.isComp && d.verified) { vDiv.style.display='block'; vDiv.textContent=`Verified by: ${d.witness}`; }
             else { vDiv.style.display='none'; }
             
+            // Notes
+            const nDiv = document.getElementById('saved_view_notes_container');
+            const nText = document.getElementById('saved_view_notes');
+            if(d.notes && d.notes.trim() !== "") {
+                nDiv.style.display = 'block';
+                nText.textContent = d.notes;
+            } else {
+                nDiv.style.display = 'none';
+            }
+            
             const container = document.getElementById('saved_view_breakdown');
             container.innerHTML = '';
             
@@ -660,9 +726,11 @@
                     let rowPts=0;
                     let pipsHtml='';
                     for(let i=1; i<=3; i++) { 
-                        let act=c>=i?'active':''; let gold=i===3?'gold':''; let val=(i===1||i===2)?30:40; 
+                        let act=c>=i?'active':''; 
+                        let type = (i===1)?'bronze':(i===2)?'silver':'gold';
+                        let val=(i===1||i===2)?30:40; 
                         if(c>=i) rowPts+=val;
-                        pipsHtml+=`<span class="pip ${gold} ${act}">${val}</span>`;
+                        pipsHtml+=`<span class="pip ${type} ${act}">${val}</span>`;
                     }
                     if(c>3) { rowPts+=(c-3); pipsHtml+=`<span class="pip-extra">+${c-3} extra</span>`; }
                     container.innerHTML += `<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${rowPts} pts</span></div><div class="sq-pips">${pipsHtml}</div></div>`;
