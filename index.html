@@ -128,10 +128,10 @@
     <div id="splashScreen" class="splash-screen">
         <img src="icon.png" alt="Logo">
         <h1 class="mb-1">Sea Catch Scorer</h1>
-        <p class="version-tag">Version 84.0</p>
+        <p class="version-tag">Version 85.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
-            <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Saved Logs</button>
+            <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Saved Scorecards</button>
             <button id="btnInstall" class="btn btn-info btn-sm rounded-pill mt-2 text-white fw-bold" style="display:none;">Install App</button>
         </div>
     </div>
@@ -296,7 +296,7 @@
     <div class="modal fade" id="savedModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold text-primary">History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold text-primary">Scorecard History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
                     <div id="savedScorecardsList"><div id="recentList"></div></div>
                     
@@ -304,14 +304,34 @@
                         <div class="inner-card p-3 mb-3 text-center">
                             <h4 id="saved_view_angler" class="fw-bold text-primary m-0"></h4>
                             <div class="text-muted small"><span id="saved_view_date"></span> • <span id="saved_view_venue"></span></div>
+                            <div id="saved_view_comp_details" style="display:none;" class="mt-2 badge bg-primary bg-opacity-10 text-primary">
+                                Zone: <span id="saved_view_zone"></span> | Peg: <span id="saved_view_peg"></span>
+                            </div>
                             <div id="saved_view_verif" class="mt-2 text-success fw-bold small" style="display:none;"></div>
                         </div>
+                        
                         <div class="score-hero-container">
                             <div class="score-hero-label">Total Score</div>
                             <div id="saved_view_points" class="score-hero-val">0</div>
                         </div>
+
+                        <div class="stat-grid">
+                            <div id="saved_view_biggest_fish_card" class="stat-card border-success" style="grid-column: span 3; border-color: #86efac; background:#f0fdf4;">
+                                <small class="text-success">Biggest Fish</small>
+                                <strong id="saved_view_biggest_fish" class="text-success">-</strong>
+                            </div>
+                            <div class="stat-card"><small>Fish</small><strong id="saved_view_total_fish">0</strong></div>
+                            <div class="stat-card"><small>Species</small><strong id="saved_view_species_count">0</strong></div>
+                            <div class="stat-card"><small>Total Cm</small><strong id="saved_view_total_len">0</strong></div>
+                        </div>
+
+                        <h6 class="text-muted fs-7 mb-2 text-uppercase fw-bold ps-2">Catch Breakdown</h6>
                         <div id="saved_view_breakdown"></div>
+                        
                         <div class="d-grid gap-2 mt-3">
+                            <button class="btn btn-whatsapp" onclick="window.shareAsImage('saved')">
+                                <i class="bi bi-share-fill me-2"></i> Share Image
+                            </button>
                             <button class="btn btn-secondary" onclick="window.backToScorecardList()">Back</button>
                         </div>
                     </div>
@@ -322,7 +342,6 @@
 
     <script>
         // --- SPECIES DATABASE ---
-        // Common species removed from sub-lists to prevent dups
         const speciesList = [
             { category: "Common Species", items: ["Cod", "Pollack", "Coalfish", "Whiting", "Dab", "Flounder", "Plaice", "Turbot", "Dogfish (LSD)", "Bull Huss"] },
             { category: "Round Fish", items: ["Bass", "Bream (Black)", "Bream (Gilthead)", "Bream (Red)", "Garfish", "Gurnard (Grey)", "Gurnard (Red)", "Gurnard (Tub)", "Mackerel", "Mullet (Golden)", "Mullet (Grey/Thick)", "Mullet (Red)", "Scad", "Weever (Lesser)"] },
@@ -344,7 +363,18 @@
 
         window.formatDate=function(d){try{return d?new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"N/A"}catch(e){return"N/A"}};
         window.startFishing=function(){
-            fishData=[]; document.getElementById("anglerName").value=""; document.getElementById("competitionDate").value=""; document.getElementById("venueInput").value="";
+            fishData=[]; document.getElementById("anglerName").value=""; 
+            
+            // SAFE AUTO DATE
+            try {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                document.getElementById("competitionDate").value = `${year}-${month}-${day}`;
+            } catch(e) { console.log("Date auto-fill skipped"); }
+
+            document.getElementById("venueInput").value="";
             PageManager.show("anglerRegistration");
         };
 
@@ -448,7 +478,6 @@
             const log=document.getElementById("fishLog");
             log.innerHTML="";
             
-            // To calc correct badges, need to process in catch order first
             const badges=[];
             const spCounts={};
             fishData.forEach(f=>{
@@ -465,11 +494,9 @@
                 }
             });
 
-            // Display in reverse
             [...fishData].reverse().forEach((f, revIdx)=>{
                 const realIdx = fishData.length - 1 - revIdx;
                 const b = badges[realIdx];
-                
                 const row=document.createElement("tr");
                 let displayHtml = (currentScoringMethod==='species_hunt') ? 
                     `<span class="badge ${b.cls}" style="font-size:0.8rem;">${b.lbl}</span>` :
@@ -541,28 +568,14 @@
                         pipsHtml += `<span class="pip ${gold} ${act}">${val}</span>`;
                     }
                     let extraHtml='';
-                    if(c>3){
-                        const ex = c-3;
-                        rowPts += ex;
-                        extraHtml = `<span class="pip-extra">+${ex} extra</span>`;
-                    }
-                    container.innerHTML += `
-                        <div class="species-quota-card">
-                            <div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${rowPts} pts</span></div>
-                            <div class="sq-pips">${pipsHtml}${extraHtml}</div>
-                        </div>`;
+                    if(c>3){ const ex = c-3; rowPts += ex; extraHtml = `<span class="pip-extra">+${ex} extra</span>`; }
+                    container.innerHTML += `<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${rowPts} pts</span></div><div class="sq-pips">${pipsHtml}${extraHtml}</div></div>`;
                 }
             } else {
                 let html='<table class="table-custom"><thead><tr><th class="ps-3 small text-muted">SPECIES</th><th class="text-center small text-muted">QTY</th><th class="text-end pe-3 small text-muted">LENGTHS</th></tr></thead><tbody>';
                 const sum={};
-                fishData.forEach(f=>{
-                    if(!sum[f.species]) sum[f.species]={c:0, l:[]};
-                    sum[f.species].c++;
-                    sum[f.species].l.push(f.length);
-                });
-                for(const sp in sum){
-                    html+=`<tr><td class="fw-bold">${sp}</td><td class="text-center"><span class="badge bg-secondary rounded-pill">${sum[sp].c}</span></td><td class="text-end small text-muted">${sum[sp].l.join(', ')}</td></tr>`;
-                }
+                fishData.forEach(f=>{ if(!sum[f.species]) sum[f.species]={c:0, l:[]}; sum[f.species].c++; sum[f.species].l.push(f.length); });
+                for(const sp in sum){ html+=`<tr><td class="fw-bold">${sp}</td><td class="text-center"><span class="badge bg-secondary rounded-pill">${sum[sp].c}</span></td><td class="text-end small text-muted">${sum[sp].l.join(', ')}</td></tr>`; }
                 html+='</tbody></table>';
                 container.innerHTML=html;
             }
@@ -607,9 +620,31 @@
             document.getElementById('saved_view_date').textContent = window.formatDate(d.date);
             document.getElementById('saved_view_venue').textContent = d.venue;
             
+            if(d.isComp){
+                document.getElementById('saved_view_comp_details').style.display='inline-block';
+                document.getElementById('saved_view_zone').textContent = d.zone;
+                document.getElementById('saved_view_peg').textContent = d.peg;
+            } else {
+                document.getElementById('saved_view_comp_details').style.display='none';
+            }
+
             const pts = window.calculatePoints(d.fishData, d.scoringMethod);
             document.getElementById('saved_view_points').textContent = pts;
             
+            // Saved Stats Logic
+            document.getElementById('saved_view_total_fish').textContent = d.fishData.length;
+            document.getElementById('saved_view_species_count').textContent = new Set(d.fishData.map(f=>f.species)).size;
+            document.getElementById('saved_view_total_len').textContent = d.fishData.reduce((a,b)=>a+parseFloat(b.length||0),0).toFixed(1);
+            
+            const bigFishBox = document.getElementById('saved_view_biggest_fish_card');
+            if(d.scoringMethod==='species_hunt') bigFishBox.style.display='none';
+            else {
+                bigFishBox.style.display='block';
+                let max=0, name="-";
+                d.fishData.forEach(f=>{if(f.length>max){max=f.length; name=`${f.species} (${f.length}cm)`}});
+                document.getElementById('saved_view_biggest_fish').textContent=name;
+            }
+
             const vDiv = document.getElementById('saved_view_verif');
             if(d.isComp && d.verified) { vDiv.style.display='block'; vDiv.textContent=`Verified by: ${d.witness}`; }
             else { vDiv.style.display='none'; }
@@ -623,8 +658,14 @@
                 for(const sp in counts){
                     const c=counts[sp];
                     let rowPts=0;
-                    for(let i=1; i<=c; i++) { if(i===1||i===2) rowPts+=30; else if(i===3) rowPts+=40; else rowPts+=1; }
-                    container.innerHTML += `<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${rowPts} pts</span></div><div class="small text-muted">Count: ${c}</div></div>`;
+                    let pipsHtml='';
+                    for(let i=1; i<=3; i++) { 
+                        let act=c>=i?'active':''; let gold=i===3?'gold':''; let val=(i===1||i===2)?30:40; 
+                        if(c>=i) rowPts+=val;
+                        pipsHtml+=`<span class="pip ${gold} ${act}">${val}</span>`;
+                    }
+                    if(c>3) { rowPts+=(c-3); pipsHtml+=`<span class="pip-extra">+${c-3} extra</span>`; }
+                    container.innerHTML += `<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${rowPts} pts</span></div><div class="sq-pips">${pipsHtml}</div></div>`;
                 }
             } else {
                 let h='<table class="table-custom"><tbody>';
