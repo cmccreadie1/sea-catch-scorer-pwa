@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sea-score-v90';
+const CACHE_NAME = 'sea-score-v91';
 const FILES_TO_CACHE = [
   './',
   './index.html',
