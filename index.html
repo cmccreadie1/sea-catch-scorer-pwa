@@ -92,7 +92,7 @@
             padding: 12px 15px; border-radius: 8px; font-size: 0.85rem; margin-top: 15px; display: none;
         }
 
-        /* SPECIES HUNT VISUALIZER (3 PIPS: Bronze, Silver, Gold) */
+        /* SPECIES HUNT VISUALIZER */
         .species-quota-card {
             background: white; border-radius: 16px; padding: 12px 15px; margin-bottom: 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
@@ -105,11 +105,9 @@
             width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             font-size: 0.75rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0;
         }
-        /* Active States */
         .pip.bronze.active { background: #cd7f32; color: white; border-color: #a05a2c; box-shadow: 0 2px 5px rgba(205, 127, 50, 0.4); }
         .pip.silver.active { background: #94a3b8; color: white; border-color: #64748b; box-shadow: 0 2px 5px rgba(148, 163, 184, 0.4); }
         .pip.gold.active { background: #eab308; color: white; border-color: #ca8a04; box-shadow: 0 2px 5px rgba(234, 179, 8, 0.4); }
-        
         .pip-extra { font-size: 0.75rem; color: #64748b; margin-left: auto; font-weight: 500; }
 
         /* LISTS */
@@ -128,7 +126,6 @@
         
         .verification-box { display: none; background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 12px; margin-top: 20px; }
         
-        /* CARD ACTIONS */
         .card-actions { display: flex; gap: 10px; }
         .btn-card-icon {
             width: 36px; height: 36px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center;
@@ -142,7 +139,7 @@
     <div id="splashScreen" class="splash-screen">
         <img src="icon.png" alt="Logo">
         <h1 class="mb-1">Sea Catch Scorer</h1>
-        <p class="version-tag">Version 86.0</p>
+        <p class="version-tag">Version 88.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
             <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Saved Scorecards</button>
@@ -204,8 +201,22 @@
                 <label class="form-check-label" for="isCompetition">Competition Mode</label>
             </div>
             <div class="row g-2">
-                <div class="col-6"><select id="zoneInput" class="form-select" disabled><option selected>Zone</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
-                <div class="col-6"><select id="pegInput" class="form-select" disabled><option selected>Peg</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+                <div class="col-6">
+                    <select id="zoneInput" class="form-select" disabled>
+                        <option value="" selected>Zone</option>
+                        <option>1</option><option>2</option><option>3</option><option>4</option>
+                        <option>Red</option><option>Yellow</option><option>Green</option><option>Blue</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <select id="pegInput" class="form-select" disabled>
+                        <option value="" selected>Peg</option>
+                        <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                        <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                        <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+                        <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -291,7 +302,7 @@
 
         <div class="inner-card p-3 mt-3">
             <label class="form-label text-muted small"><i class="bi bi-journal-text me-1"></i>Session Notes</label>
-            <textarea id="sessionNotesInput" class="form-control" rows="2" placeholder="Add notes (e.g., weather, bait used)..."></textarea>
+            <textarea id="sessionNotesInput" class="form-control" rows="2" placeholder="Add notes..."></textarea>
         </div>
 
         <div id="session_verification_box" class="verification-box">
@@ -384,7 +395,7 @@
 
         let fishData=[], currentAngler=null, currentDate=null, currentVenue=null, currentZone=null, currentPeg=null;
         let currentScoringMethod=null, isCompetitionMode=false;
-        let currentSavedKey = null; // Track which card is open
+        let currentSavedKey = null;
 
         // --- UTILS ---
         const PageManager={show:function(e){["splashScreen","anglerRegistration","anglerFishingPage","tallyVerificationPage"].forEach(e=>{document.getElementById(e).style.display="none"});document.getElementById(e).style.display="block";window.scrollTo(0,0)}};
@@ -695,7 +706,6 @@
             const pts = window.calculatePoints(d.fishData, d.scoringMethod);
             document.getElementById('saved_view_points').textContent = pts;
             
-            // Stats
             document.getElementById('saved_view_total_fish').textContent = d.fishData.length;
             document.getElementById('saved_view_species_count').textContent = new Set(d.fishData.map(f=>f.species)).size;
             document.getElementById('saved_view_total_len').textContent = d.fishData.reduce((a,b)=>a+parseFloat(b.length||0),0).toFixed(1);
@@ -713,7 +723,6 @@
             if(d.isComp && d.verified) { vDiv.style.display='block'; vDiv.textContent=`Verified by: ${d.witness}`; }
             else { vDiv.style.display='none'; }
             
-            // Notes Populate
             document.getElementById('saved_view_notes_input').value = d.notes || "";
             
             const container = document.getElementById('saved_view_breakdown');
