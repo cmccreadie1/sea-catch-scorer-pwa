@@ -24,14 +24,13 @@
             --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
-        /* --- SIZING FIX: Reverted to standard, handling "Big" via classes instead of Zoom --- */
         body { 
             font-family: 'Inter', sans-serif; 
             background: var(--bg-gradient); 
             color: #1e293b; 
             padding-bottom: 90px;
             min-height: 100vh;
-            overflow-x: hidden; /* Prevents horizontal scroll */
+            overflow-x: hidden;
         }
         
         h1, h2, h3, h4, .btn { font-family: 'Poppins', sans-serif; }
@@ -66,7 +65,7 @@
             border: 1px solid rgba(255,255,255,0.8); 
         }
 
-        /* INPUTS & BUTTONS - MOBILE OPTIMIZED */
+        /* INPUTS & BUTTONS */
         .form-label { 
             font-weight: 700; 
             color: var(--primary-color); 
@@ -91,7 +90,7 @@
             letter-spacing: 0.5px;
         }
         
-        /* SPECIFIC BUTTON COLORS */
+        /* HOME BUTTONS */
         .btn-home { background: white; color: var(--primary-color); border: 2px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 100%; margin-bottom: 15px; }
         .btn-home-secondary { background: rgba(255,255,255,0.9); color: #334155; border: none; }
         .btn-primary { background: linear-gradient(to right, #0f172a, #334155); color: white; }
@@ -164,7 +163,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-4 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 109.0</p>
+        <p class="version-tag">Version 110.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-home btn-lg fw-bold py-3" onclick="window.startFishing()">
                 <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -310,14 +309,16 @@
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold text-primary">Scorecards</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
-                    <h6 class="text-muted small text-uppercase fw-bold mb-3">Recent (Last 4)</h6>
-                    <div id="recentList"></div>
-                    
-                    <div id="archiveSection" style="display:none; border-top:1px dashed #cbd5e1; margin-top:20px; padding-top:20px;">
-                        <button class="btn btn-outline-secondary w-100 btn-lg" onclick="document.getElementById('archiveList').style.display='block'; this.style.display='none';">
-                            <i class="bi bi-archive me-2"></i> View Archive (<span id="archiveCount">0</span>)
-                        </button>
-                        <div id="archiveList" style="display:none; margin-top:15px;"></div>
+                    <div id="savedScorecardsList">
+                        <h6 class="text-muted small text-uppercase fw-bold mb-3">Recent (Last 4)</h6>
+                        <div id="recentList"></div>
+                        
+                        <div id="archiveSection" style="display:none; border-top:1px dashed #cbd5e1; margin-top:20px; padding-top:20px;">
+                            <button class="btn btn-outline-secondary w-100 btn-lg" onclick="document.getElementById('archiveList').style.display='block'; this.style.display='none';">
+                                <i class="bi bi-archive me-2"></i> View Archive (<span id="archiveCount">0</span>)
+                            </button>
+                            <div id="archiveList" style="display:none; margin-top:15px;"></div>
+                        </div>
                     </div>
 
                     <div id="fullScorecardView" style="display:none;">
@@ -336,7 +337,7 @@
                         </div>
                         <h6 class="text-muted fs-7 mb-2 text-uppercase fw-bold ps-2">Catch Breakdown</h6>
                         <div id="saved_view_breakdown"></div>
-                        <div class="inner-card p-3 mt-3" style="background:#fffbeb; border-color:#fef3c7;"><label class="form-label text-muted small mb-1"><i class="bi bi-journal-text me-1"></i>Notes</label><textarea id="saved_view_notes_input" class="form-control form-control-lg" rows="2"></textarea><button class="btn btn-sm btn-warning w-100 mt-2 text-dark fw-bold" onclick="window.updateSavedNote()">Update Note</button></div>
+                        <div class="inner-card p-3 mt-3" style="background:#fffbeb; border-color:#fef3c7;"><label class="form-label text-muted small mb-1"><i class="bi bi-journal-text me-1"></i>Notes</label><textarea id="saved_view_notes_input" class="form-control" rows="2"></textarea><button class="btn btn-sm btn-warning w-100 mt-2 text-dark fw-bold" onclick="window.updateSavedNote()">Update Note</button></div>
                         <div class="d-grid gap-2 mt-4"><button class="btn btn-whatsapp btn-lg" onclick="window.shareAsImage('saved')"><i class="bi bi-share-fill me-2"></i> Share Image</button><button class="btn btn-danger btn-lg" onclick="window.deleteCurrentSaved()"><i class="bi bi-trash me-2"></i> Delete Scorecard</button><button class="btn btn-secondary btn-lg" onclick="window.backToScorecardList()">Back to List</button></div>
                     </div>
                 </div>
