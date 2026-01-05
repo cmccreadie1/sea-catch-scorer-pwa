@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Sea Score</title>
     <link rel="manifest" href="manifest.json">
     
@@ -24,8 +24,20 @@
             --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
-        /* REVERTED BASE STYLES TO V100 */
-        body { font-family: 'Inter', sans-serif; background: var(--bg-gradient); color: #1e293b; padding-bottom: 60px; min-height: 100vh; }
+        /* --- MOBILE TYPOGRAPHY OPTIMIZATION --- */
+        html {
+            font-size: 18px; /* Sets a larger baseline for 1rem units */
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-gradient); 
+            color: #1e293b; 
+            padding-bottom: 100px; /* Extra space for scrolling past floating buttons if needed */
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent; /* Removes tap flash on mobile */
+        }
+        
         h1, h2, h3, h4, .btn { font-family: 'Poppins', sans-serif; }
 
         /* ANIMATION */
@@ -36,33 +48,58 @@
         }
         .new-catch-anim { animation: slideFlash 1.5s ease-out; }
 
-        /* LOGO */
-        .logo-svg { width: 140px; height: 140px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); margin-bottom: 25px; }
-        .radar-sweep { transform-origin: 100px 100px; animation: scan 4s linear infinite; }
-        @keyframes scan { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
         /* SPLASH */
         .splash-screen {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white;
             text-align: center; padding: 20px;
         }
-        .version-tag { font-size: 0.75rem; color: #94a3b8; margin-bottom: 30px; letter-spacing: 2px; text-transform: uppercase; }
+        .logo-svg { width: 150px; height: 150px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); margin-bottom: 30px; }
+        .version-tag { font-size: 0.8rem; color: #94a3b8; margin-bottom: 40px; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* LAYOUT */
-        .app-page { display: none; max-width: 600px; margin: 20px auto; padding: 0 15px 30px 15px; }
-        .inner-card { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.8); }
-
-        /* CONTROLS (Standard Sizes) */
-        .form-label { font-weight: 700; color: var(--primary-color); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px; }
-        .form-control, .form-select { border-radius: 12px; padding: 12px 16px; font-weight: 500; background-color: #f8fafc; border: 1px solid #cbd5e1; }
-        .btn { border-radius: 50px; padding: 12px 24px; font-weight: 600; text-transform: uppercase; border: none; }
+        /* MAIN LAYOUT CONTAINER */
+        .app-page { display: none; max-width: 600px; margin: 0 auto; padding: 15px 15px 40px 15px; }
         
-        /* HOME BUTTONS */
-        .btn-home { background: white; color: var(--primary-color); border: 2px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 100%; margin-bottom: 15px; transition: transform 0.1s; }
-        .btn-home:active { transform: scale(0.98); }
-        .btn-home-secondary { background: rgba(255,255,255,0.9); color: #334155; border: none; }
+        /* CARDS */
+        .inner-card { 
+            background: var(--card-bg); 
+            border-radius: 20px; 
+            padding: 20px; 
+            box-shadow: var(--shadow-md); 
+            margin-bottom: 20px; 
+            border: 1px solid rgba(255,255,255,0.8); 
+        }
 
+        /* INPUTS & BUTTONS - MOBILE OPTIMIZED */
+        .form-label { 
+            font-weight: 700; 
+            color: var(--primary-color); 
+            font-size: 0.9rem; 
+            text-transform: uppercase; 
+            margin-bottom: 8px; 
+            letter-spacing: 0.5px;
+        }
+        
+        /* Force rounded corners and larger touch area */
+        .form-control, .form-select { 
+            border-radius: 12px; 
+            font-weight: 500; 
+            background-color: #f8fafc; 
+            border: 1px solid #cbd5e1;
+            /* Bootstrap 'lg' classes will handle padding/font-size */
+        }
+        
+        .btn { 
+            border-radius: 50px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            border: none; 
+            letter-spacing: 0.5px;
+        }
+        
+        /* SPECIFIC BUTTON COLORS */
+        .btn-home { background: white; color: var(--primary-color); border: 2px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 100%; margin-bottom: 15px; }
+        .btn-home-secondary { background: rgba(255,255,255,0.9); color: #334155; border: none; }
         .btn-primary { background: linear-gradient(to right, #0f172a, #334155); color: white; }
         .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
         .btn-camera { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
@@ -71,50 +108,51 @@
         /* LIVE SCOREBOARD */
         .live-score-box {
             border: 3px solid var(--accent-color); background-color: white; border-radius: 16px;
-            padding: 10px; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md);
+            padding: 15px; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md);
         }
         .live-score-label { font-size: 0.85rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 1px; margin-bottom: 0px; }
-        .live-score-value { font-size: 3rem; font-weight: 800; color: var(--primary-color); line-height: 1; font-family: 'Poppins', sans-serif; }
+        .live-score-value { font-size: 3.5rem; font-weight: 800; color: var(--primary-color); line-height: 1; font-family: 'Poppins', sans-serif; }
 
         /* THUMBNAILS */
-        .fish-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; float: right; margin-left: 10px; }
+        .fish-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; float: right; margin-left: 10px; }
 
-        /* HEADER & HERO */
-        .app-header { text-align: center; margin-bottom: 25px; margin-top: 10px; }
+        /* HEADERS */
+        .app-header { text-align: center; margin-bottom: 20px; margin-top: 10px; }
         .score-hero-container { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #e2e8f0; }
         .score-hero-val { font-size: 3.5rem; font-weight: 800; color: var(--primary-color); line-height: 1; }
+        .score-hero-label { font-size: 0.9rem; font-weight: 700; color:#64748b; text-transform: uppercase; margin-bottom: 5px; }
         
         /* STATS GRID */
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: #ffffff; padding: 10px 5px; border-radius: 14px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
-        .stat-card small { display: block; color: #64748b; font-size: 0.65rem; text-transform: uppercase; font-weight: 700; }
-        .stat-card strong { font-size: 1.1rem; color: #1e293b; font-weight: 700; }
+        .stat-card { background: #ffffff; padding: 12px 5px; border-radius: 14px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
+        .stat-card small { display: block; color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+        .stat-card strong { font-size: 1.2rem; color: #1e293b; font-weight: 700; }
 
-        /* LISTS */
+        /* TABLES */
         .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        .table-custom td { background: white; padding: 12px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; vertical-align: middle; transition: background-color 0.5s; }
+        .table-custom td { background: white; padding: 15px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; vertical-align: middle; transition: background-color 0.5s; font-size: 1.05rem; }
         .table-custom tr td:first-child { border-left: 1px solid #f1f5f9; border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
         .table-custom tr td:last-child { border-right: 1px solid #f1f5f9; border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
 
-        /* MISC */
-        .big-switch { display: flex; align-items: center; padding: 10px; background: #ffffff; border-radius: 12px; border: 2px solid #cbd5e1; box-shadow: 0 3px 5px rgba(0,0,0,0.06); }
+        /* BIG SWITCH */
+        .big-switch { display: flex; align-items: center; padding: 12px; background: #ffffff; border-radius: 12px; border: 2px solid #cbd5e1; box-shadow: 0 3px 5px rgba(0,0,0,0.06); }
         .big-switch .form-check-input { width: 3.2em; height: 1.6em; margin-right: 12px; }
-        .verification-box { display: none; background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 12px; margin-top: 20px; }
+        .big-switch .form-check-label { font-size: 1rem; font-weight: 600; }
         
-        /* STYLED POPUP INFO */
-        .rule-info-box { background-color: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; padding: 12px 15px; border-radius: 8px; font-size: 0.85rem; margin-top: 15px; display: none; }
+        /* RULES POPUP */
+        .rule-info-box { background-color: #eff6ff; border-left: 5px solid #3b82f6; color: #1e40af; padding: 15px; border-radius: 8px; font-size: 0.95rem; margin-top: 15px; display: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
         .species-quota-card { background: white; border-radius: 16px; padding: 12px 15px; margin-bottom: 10px; box-shadow: var(--shadow-md); border: 1px solid #f1f5f9; }
         .sq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .sq-name { font-weight: 700; color: var(--primary-color); font-size: 1rem; }
         .sq-pips { display: flex; align-items: center; gap: 6px; }
-        .pip { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; }
+        .pip { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; }
         .pip.bronze.active { background: #d97706; color: white; }
         .pip.silver.active { background: #94a3b8; color: white; }
         .pip.gold.active { background: #eab308; color: white; }
         .pip-extra { font-size: 0.75rem; color: #64748b; margin-left: auto; font-weight: 500; }
         .card-actions { display: flex; gap: 10px; }
-        .btn-card-icon { width: 36px; height: 36px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .btn-card-icon { width: 40px; height: 40px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
         .btn-card-icon.view { background: #eff6ff; color: var(--primary-color); }
         .btn-card-icon.delete { background: #fef2f2; color: #ef4444; }
     </style>
@@ -129,13 +167,13 @@
             <path d="M75,100 L65,90 L65,110 Z" fill="white"/>
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
-        <h1 class="mb-1 display-5 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 107.0</p>
-        <div class="d-grid gap-2 col-10 col-md-6">
-            <button class="btn btn-home btn-lg fw-bold" onclick="window.startFishing()">
+        <h1 class="mb-1 display-4 fw-bold">Sea Score</h1>
+        <p class="version-tag">Version 108.0</p>
+        <div class="d-grid gap-3 col-10 col-md-6">
+            <button class="btn btn-home btn-lg fw-bold py-3" onclick="window.startFishing()">
                 <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
             </button>
-            <button class="btn btn-home btn-home-secondary btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">
+            <button class="btn btn-home btn-home-secondary btn-lg fw-bold py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">
                 <i class="bi bi-journal-album me-2"></i> View History
             </button>
             <button id="btnInstall" class="btn btn-info btn-sm rounded-pill mt-2 text-white fw-bold" style="display:none;">Install App</button>
@@ -143,17 +181,26 @@
     </div>
 
     <div id="anglerRegistration" class="app-page">
-        <div class="app-header"><h2>New Session</h2><p>Setup match details</p></div>
+        <div class="app-header"><h2>New Session</h2><p class="text-muted">Setup match details</p></div>
         <div class="inner-card">
-            <div class="mb-3"><label class="form-label">Angler Name</label><input type="text" id="anglerName" class="form-control" placeholder="Your Name" oninput="window.saveActiveSession()"></div>
-            <div class="row g-2">
-                <div class="col-6"><label class="form-label">Date</label><input type="date" id="competitionDate" class="form-control" onchange="window.saveActiveSession()"></div>
-                <div class="col-6"><label class="form-label">Venue</label><input type="text" id="venueInput" class="form-control" placeholder="Location" oninput="window.saveActiveSession()"></div>
+            <div class="mb-4">
+                <label class="form-label">Angler Name</label>
+                <input type="text" id="anglerName" class="form-control form-control-lg" placeholder="Your Name" oninput="window.saveActiveSession()">
+            </div>
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label">Date</label>
+                    <input type="date" id="competitionDate" class="form-control form-control-lg" onchange="window.saveActiveSession()">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Venue</label>
+                    <input type="text" id="venueInput" class="form-control form-control-lg" placeholder="Location" oninput="window.saveActiveSession()">
+                </div>
             </div>
         </div>
         <div class="inner-card">
-            <div class="section-title"><i class="bi bi-calculator"></i> Scoring Rules</div>
-            <select id="scoringMethod" class="form-select" onchange="window.handleMethodChange()">
+            <div class="section-title mb-2 fw-bold text-primary"><i class="bi bi-calculator"></i> Scoring Rules</div>
+            <select id="scoringMethod" class="form-select form-select-lg" onchange="window.handleMethodChange()">
                 <option value="" disabled selected>Select Scoring Method...</option>
                 <option value="measure_points">Length + 10 Pts (Per Fish)</option>
                 <option value="length_only">Total Length Only</option>
@@ -172,52 +219,52 @@
                 <input class="form-check-input" type="checkbox" id="isCompetition" onchange="window.toggleCompetitionFields(); window.saveActiveSession();">
                 <label class="form-check-label" for="isCompetition">Competition Mode</label>
             </div>
-            <div class="row g-2">
-                <div class="col-6"><select id="zoneInput" class="form-select" disabled onchange="window.saveActiveSession()"><option selected>Zone</option><option>1</option><option>2</option><option>3</option><option>4</option><option>Red</option><option>Yellow</option><option>Green</option><option>Blue</option></select></div>
-                <div class="col-6"><select id="pegInput" class="form-select" disabled onchange="window.saveActiveSession()"><option selected>Peg</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select></div>
+            <div class="row g-3">
+                <div class="col-6"><select id="zoneInput" class="form-select form-select-lg" disabled onchange="window.saveActiveSession()"><option selected>Zone</option><option>1</option><option>2</option><option>3</option><option>4</option><option>Red</option><option>Yellow</option><option>Green</option><option>Blue</option></select></div>
+                <div class="col-6"><select id="pegInput" class="form-select form-select-lg" disabled onchange="window.saveActiveSession()"><option selected>Peg</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select></div>
             </div>
         </div>
         <div class="d-flex gap-3 mt-4">
-            <button class="btn btn-secondary flex-grow-1" onclick="window.resetApp()">Cancel</button>
-            <button class="btn btn-primary flex-grow-1 shadow" onclick="window.registerAngler()">Let's Fish <i class="bi bi-arrow-right ms-2"></i></button>
+            <button class="btn btn-secondary btn-lg flex-grow-1" onclick="window.resetApp()">Cancel</button>
+            <button class="btn btn-primary btn-lg flex-grow-1 shadow" onclick="window.registerAngler()">Let's Fish <i class="bi bi-arrow-right ms-2"></i></button>
         </div>
     </div>
 
     <div id="anglerFishingPage" class="app-page">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="m-0 fw-bold text-primary">Live Catch</h4>
-            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="window.confirmQuit()">Quit</button>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4" onclick="window.confirmQuit()">Quit</button>
         </div>
         <div class="inner-card mb-4" style="background: #f8fafc;">
             <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="window.handleCameraInput()">
 
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="form-label text-primary">Species</label>
                 <select id="speciesInput" class="form-select form-select-lg" onchange="window.toggleCustomSpeciesInput()"><option value="" selected>Select Fish...</option></select>
-                <input type="text" id="customSpeciesInput" class="form-control mt-2" placeholder="Enter Name" style="display:none;">
+                <input type="text" id="customSpeciesInput" class="form-control form-control-lg mt-2" placeholder="Enter Name" style="display:none;">
             </div>
             
-            <div class="mb-3" id="lengthInputContainer">
+            <div class="mb-4" id="lengthInputContainer">
                 <label class="form-label text-primary">Length (cm)</label>
                 <input type="number" id="lengthInput" class="form-control form-control-lg" placeholder="0">
             </div>
 
-            <div class="mb-3" id="weightMetricContainer" style="display:none;">
+            <div class="mb-4" id="weightMetricContainer" style="display:none;">
                 <label class="form-label text-primary">Weight (Kg)</label>
                 <input type="number" id="weightInputKg" class="form-control form-control-lg" placeholder="0.00" step="0.01">
             </div>
 
-            <div class="mb-3" id="weightImperialContainer" style="display:none;">
+            <div class="mb-4" id="weightImperialContainer" style="display:none;">
                 <label class="form-label text-primary">Weight</label>
                 <div class="row g-2">
                     <div class="col-6">
-                        <div class="input-group">
+                        <div class="input-group input-group-lg">
                             <input type="number" id="weightInputLb" class="form-control form-control-lg" placeholder="0">
                             <span class="input-group-text">lb</span>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="input-group">
+                        <div class="input-group input-group-lg">
                             <input type="number" id="weightInputOz" class="form-control form-control-lg" placeholder="0">
                             <span class="input-group-text">oz</span>
                         </div>
@@ -226,8 +273,8 @@
             </div>
             
             <div class="row g-3 pt-3 border-top">
-                <div class="col-6"><button class="btn btn-success w-100 py-3 shadow-sm" onclick="window.addFishTextOnly()"><i class="bi bi-check-lg me-1"></i> Record Fish</button></div>
-                <div class="col-6"><button class="btn btn-camera w-100 py-3 shadow-sm" onclick="window.triggerCamera()"><i class="bi bi-camera-fill me-1"></i> With Photo (Optional)</button></div>
+                <div class="col-6"><button class="btn btn-success btn-lg w-100 py-3 shadow-sm" onclick="window.addFishTextOnly()"><i class="bi bi-check-lg me-1"></i> Record Fish</button></div>
+                <div class="col-6"><button class="btn btn-camera btn-lg w-100 py-3 shadow-sm" onclick="window.triggerCamera()"><i class="bi bi-camera-fill me-1"></i> With Photo (Optional)</button></div>
             </div>
         </div>
         
@@ -238,15 +285,15 @@
 
         <h5 class="text-muted fs-6 text-uppercase fw-bold letter-spacing-1 ps-2">Haul History</h5>
         <div class="table-responsive"><table class="table-custom"><tbody id="fishLog"></tbody></table></div>
-        <div class="mt-4 pt-3"><button class="btn btn-danger w-100 py-3 shadow" onclick="window.endSession()">Finish Session</button></div>
+        <div class="mt-4 pt-3"><button class="btn btn-danger btn-lg w-100 py-3 shadow" onclick="window.endSession()">Finish Session</button></div>
     </div>
 
     <div id="tallyVerificationPage" class="app-page">
-        <div class="inner-card p-3 mb-3 text-center">
+        <div class="inner-card p-4 mb-4 text-center">
             <h2 class="text-primary fw-bold mb-0">Session Complete</h2>
-            <div id="session_angler" class="fw-bold text-dark mt-1 fs-5"></div>
-            <div class="text-muted small mt-1"><span id="session_date"></span> • <span id="session_venue"></span></div>
-            <div id="session_comp_details" style="display:none;" class="mt-2 badge bg-primary bg-opacity-10 text-primary">Zone: <span id="session_zone"></span> | Peg: <span id="session_peg"></span></div>
+            <div id="session_angler" class="fw-bold text-dark mt-2 fs-4"></div>
+            <div class="text-muted mt-1"><span id="session_date"></span> • <span id="session_venue"></span></div>
+            <div id="session_comp_details" style="display:none;" class="mt-3 badge bg-primary bg-opacity-10 text-primary fs-6">Zone: <span id="session_zone"></span> | Peg: <span id="session_peg"></span></div>
         </div>
         <div class="score-hero-container"><div class="score-hero-label">Total Score</div><div id="session_total_points" class="score-hero-val">0</div></div>
         <div class="stat-grid">
@@ -255,10 +302,10 @@
             <div class="stat-card"><small>Species</small><strong id="session_species_count">0</strong></div>
             <div class="stat-card"><small>Score</small><strong id="session_total_len">0</strong></div>
         </div>
-        <h6 class="text-muted fs-7 mb-2 text-uppercase fw-bold ps-2">Catch Breakdown</h6>
+        <h6 class="text-muted fs-6 mb-2 text-uppercase fw-bold ps-2">Catch Breakdown</h6>
         <div id="session_breakdown_area"></div>
-        <div class="inner-card p-3 mt-3"><label class="form-label text-muted small"><i class="bi bi-journal-text me-1"></i>Session Notes</label><textarea id="sessionNotesInput" class="form-control" rows="2" placeholder="Add notes..." oninput="window.saveActiveSession()"></textarea></div>
-        <div id="session_verification_box" class="verification-box"><h6 class="fw-bold text-primary mb-2"><i class="bi bi-pen-fill me-2"></i>Steward Sign-off</h6><div class="mb-2"><input type="text" id="witnessNameInput" class="form-control" placeholder="Witness Name"></div><div class="form-check"><input class="form-check-input" type="checkbox" id="witnessCheckbox"><label class="form-check-label small fw-bold text-dark" for="witnessCheckbox">Verified Correct</label></div></div>
+        <div class="inner-card p-3 mt-3"><label class="form-label text-muted small"><i class="bi bi-journal-text me-1"></i>Session Notes</label><textarea id="sessionNotesInput" class="form-control form-control-lg" rows="2" placeholder="Add notes..." oninput="window.saveActiveSession()"></textarea></div>
+        <div id="session_verification_box" class="verification-box"><h6 class="fw-bold text-primary mb-2"><i class="bi bi-pen-fill me-2"></i>Steward Sign-off</h6><div class="mb-3"><input type="text" id="witnessNameInput" class="form-control form-control-lg" placeholder="Witness Name"></div><div class="form-check"><input class="form-check-input" type="checkbox" id="witnessCheckbox"><label class="form-check-label small fw-bold text-dark" for="witnessCheckbox">Verified Correct</label></div></div>
         <div class="d-grid gap-3 mt-4"><button class="btn btn-primary btn-lg shadow" onclick="window.saveAndEndSession()"><i class="bi bi-save me-2"></i> Save & Exit</button><button class="btn btn-whatsapp" onclick="window.shareAsImage('live')"><i class="bi bi-share-fill me-2"></i> Share</button></div>
     </div>
 
@@ -271,7 +318,7 @@
                     <div id="recentList"></div>
                     
                     <div id="archiveSection" style="display:none; border-top:1px dashed #cbd5e1; margin-top:20px; padding-top:20px;">
-                        <button class="btn btn-outline-secondary w-100" onclick="document.getElementById('archiveList').style.display='block'; this.style.display='none';">
+                        <button class="btn btn-outline-secondary w-100 btn-lg" onclick="document.getElementById('archiveList').style.display='block'; this.style.display='none';">
                             <i class="bi bi-archive me-2"></i> View Archive (<span id="archiveCount">0</span>)
                         </button>
                         <div id="archiveList" style="display:none; margin-top:15px;"></div>
@@ -293,8 +340,8 @@
                         </div>
                         <h6 class="text-muted fs-7 mb-2 text-uppercase fw-bold ps-2">Catch Breakdown</h6>
                         <div id="saved_view_breakdown"></div>
-                        <div class="inner-card p-3 mt-3" style="background:#fffbeb; border-color:#fef3c7;"><label class="form-label text-muted small mb-1"><i class="bi bi-journal-text me-1"></i>Notes</label><textarea id="saved_view_notes_input" class="form-control" rows="2"></textarea><button class="btn btn-sm btn-warning w-100 mt-2 text-dark fw-bold" onclick="window.updateSavedNote()">Update Note</button></div>
-                        <div class="d-grid gap-2 mt-4"><button class="btn btn-whatsapp" onclick="window.shareAsImage('saved')"><i class="bi bi-share-fill me-2"></i> Share Image</button><button class="btn btn-danger" onclick="window.deleteCurrentSaved()"><i class="bi bi-trash me-2"></i> Delete Scorecard</button><button class="btn btn-secondary" onclick="window.backToScorecardList()">Back to List</button></div>
+                        <div class="inner-card p-3 mt-3" style="background:#fffbeb; border-color:#fef3c7;"><label class="form-label text-muted small mb-1"><i class="bi bi-journal-text me-1"></i>Notes</label><textarea id="saved_view_notes_input" class="form-control form-control-lg" rows="2"></textarea><button class="btn btn-sm btn-warning w-100 mt-2 text-dark fw-bold" onclick="window.updateSavedNote()">Update Note</button></div>
+                        <div class="d-grid gap-2 mt-4"><button class="btn btn-whatsapp btn-lg" onclick="window.shareAsImage('saved')"><i class="bi bi-share-fill me-2"></i> Share Image</button><button class="btn btn-danger btn-lg" onclick="window.deleteCurrentSaved()"><i class="bi bi-trash me-2"></i> Delete Scorecard</button><button class="btn btn-secondary btn-lg" onclick="window.backToScorecardList()">Back to List</button></div>
                     </div>
                 </div>
             </div>
@@ -316,10 +363,10 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-body p-4 text-center">
-                    <h4 class="fw-bold text-primary mb-3">Select Weight Unit</h4>
+                    <h4 class="fw-bold text-primary mb-4">Select Weight Unit</h4>
                     <div class="d-grid gap-3">
-                        <button class="btn btn-outline-primary btn-lg fw-bold" onclick="window.setWeightUnit('metric')">Metric (Kg)</button>
-                        <button class="btn btn-outline-primary btn-lg fw-bold" onclick="window.setWeightUnit('imperial')">Imperial (Lb/Oz)</button>
+                        <button class="btn btn-outline-primary btn-lg fw-bold py-3" onclick="window.setWeightUnit('metric')">Metric (Kg)</button>
+                        <button class="btn btn-outline-primary btn-lg fw-bold py-3" onclick="window.setWeightUnit('imperial')">Imperial (Lb/Oz)</button>
                     </div>
                 </div>
             </div>
@@ -333,7 +380,7 @@
                     <div class="mb-3 text-primary"><i class="bi bi-clock-history fs-1"></i></div>
                     <h4 class="mb-2 fw-bold">Resume Session?</h4>
                     <p class="text-muted mb-4">Unfinished session found for <strong id="restoreAnglerName"></strong>.</p>
-                    <div class="d-grid gap-2"><button class="btn btn-primary" onclick="window.confirmRestore()">Resume</button><button class="btn btn-outline-secondary" onclick="window.discardRestore()">Start New</button></div>
+                    <div class="d-grid gap-2"><button class="btn btn-primary btn-lg" onclick="window.confirmRestore()">Resume</button><button class="btn btn-outline-secondary btn-lg" onclick="window.discardRestore()">Start New</button></div>
                 </div>
             </div>
         </div>
@@ -609,8 +656,8 @@
                 
                 // Biggest Fish Weight
                 let maxRaw = 0, maxDisp = "-";
-                fishData.forEach(f => { if((f.raw||0) > maxRaw) { maxRaw = f.raw; maxDisp = `${f.species} (${f.display})`; }});
-                document.getElementById("session_biggest_fish").textContent = maxDisp;
+                fishArr.forEach(f => { if((f.raw||0) > maxRaw) { maxRaw = f.raw; maxDisp = `${f.species} (${f.display})`; }});
+                document.getElementById("saved_view_biggest_fish").textContent = maxDisp;
             } else {
                 const totalLen = fishData.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);
                 document.getElementById("session_total_len").textContent = totalLen;
