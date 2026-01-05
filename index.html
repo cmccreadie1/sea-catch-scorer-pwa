@@ -27,7 +27,15 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg-gradient); color: #1e293b; padding-bottom: 60px; min-height: 100vh; }
         h1, h2, h3, h4, .btn { font-family: 'Poppins', sans-serif; }
 
-        /* ANIMATED LOGO */
+        /* ANIMATION: SUCCESS FLASH */
+        @keyframes slideFlash {
+            0% { background-color: #dcfce7; transform: translateY(-10px); opacity: 0; }
+            30% { background-color: #86efac; opacity: 1; transform: translateY(0); }
+            100% { background-color: white; }
+        }
+        .new-catch-anim { animation: slideFlash 1.5s ease-out; }
+
+        /* LOGO */
         .logo-svg { width: 140px; height: 140px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); margin-bottom: 25px; }
         .radar-sweep { transform-origin: 100px 100px; animation: scan 4s linear infinite; }
         @keyframes scan { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -69,7 +77,7 @@
 
         /* LISTS */
         .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        .table-custom td { background: white; padding: 12px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .table-custom td { background: white; padding: 12px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; vertical-align: middle; transition: background-color 0.5s; }
         .table-custom tr td:first-child { border-left: 1px solid #f1f5f9; border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
         .table-custom tr td:last-child { border-right: 1px solid #f1f5f9; border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
 
@@ -104,7 +112,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-5 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 98.0</p>
+        <p class="version-tag">Version 99.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
             <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Scorecards</button>
@@ -318,6 +326,21 @@
 
         function finishAddAction() {
             window.updateFishLog();
+            // ANIMATION & FEEDBACK
+            const firstRow = document.querySelector('#fishLog tr:first-child');
+            if(firstRow) firstRow.classList.add('new-catch-anim');
+            if(navigator.vibrate) navigator.vibrate(50); // Haptic
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type='sine'; osc.frequency.value=800;
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.1);
+                osc.start(); osc.stop(ctx.currentTime+0.1);
+            } catch(e){}
+
             document.getElementById("speciesInput").value = "";
             document.getElementById("customSpeciesInput").value = "";
             document.getElementById("lengthInput").value = "";
@@ -325,7 +348,6 @@
             window.saveActiveSession();
         }
 
-        // --- RESILIENCE LOGIC FIXED ---
         window.saveActiveSession=function(){
             let p='setup';
             if(document.getElementById('anglerFishingPage').style.display==='block')p='fishing';
@@ -339,7 +361,6 @@
             if(s && (s.angler || s.fishData.length > 0)){
                 document.getElementById('restoreAnglerName').textContent = s.angler || "Unnamed Session";
                 pendingRestoreData = s;
-                // Store instance safely
                 restoreModalInstance = new bootstrap.Modal(document.getElementById('restoreSessionModal'));
                 restoreModalInstance.show();
             }
@@ -372,7 +393,6 @@
                 PageManager.show('anglerRegistration');
             }
             
-            // CORRECTLY CLOSE THE MODAL
             if(restoreModalInstance) restoreModalInstance.hide();
         };
 
@@ -426,7 +446,6 @@
         window.toggleCompetitionFields=function(){const e=document.getElementById("isCompetition").checked;document.getElementById("zoneInput").disabled=!e,document.getElementById("pegInput").disabled=!e};
         window.resetApp=function(){window.location.reload()};window.confirmQuit=function(){confirm("End session without saving?")&&(StorageHelper.remove('active_session'),window.resetApp())};
         window.shareAsImage=function(e){const t=document.getElementById("live"===e?"tallyVerificationPage":"fullScorecardView"),n=t.querySelectorAll("button, .btn");n.forEach(e=>e.style.display="none"),html2canvas(t,{backgroundColor:"#f0f4f8"}).then(e=>{n.forEach(e=>e.style.display=""),e.toBlob(e=>{const t=new File([e],"scorecard.png",{type:"image/png"});navigator.share?navigator.share({files:[t]}):((t=document.createElement("a")).download="score.png",t.href=e.toDataURL(),t.click())})})};
-        
         document.addEventListener("DOMContentLoaded",()=>{window.restoreActiveSession();});
         let deferredPrompt;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(),deferredPrompt=e;const t=document.getElementById("btnInstall");t.style.display="block",t.addEventListener("click",()=>{t.style.display="none",deferredPrompt.prompt(),deferredPrompt=null})});
     </script>
