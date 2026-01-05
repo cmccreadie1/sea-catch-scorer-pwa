@@ -27,7 +27,7 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg-gradient); color: #1e293b; padding-bottom: 60px; min-height: 100vh; }
         h1, h2, h3, h4, .btn { font-family: 'Poppins', sans-serif; }
 
-        /* ANIMATION: SUCCESS FLASH */
+        /* ANIMATION */
         @keyframes slideFlash {
             0% { background-color: #dcfce7; transform: translateY(-10px); opacity: 0; }
             30% { background-color: #86efac; opacity: 1; transform: translateY(0); }
@@ -57,7 +57,7 @@
         .form-control, .form-select { border-radius: 12px; padding: 12px 16px; font-weight: 500; background-color: #f8fafc; border: 1px solid #cbd5e1; }
         .btn { border-radius: 50px; padding: 12px 24px; font-weight: 600; text-transform: uppercase; border: none; }
         
-        /* HOME BUTTONS - BOTH WHITE NOW */
+        /* HOME BUTTONS */
         .btn-home { background: white; color: var(--primary-color); border: 2px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 100%; margin-bottom: 15px; transition: transform 0.1s; }
         .btn-home:active { transform: scale(0.98); }
         .btn-home-secondary { background: rgba(255,255,255,0.9); color: #334155; border: none; }
@@ -75,7 +75,7 @@
         .live-score-label { font-size: 0.85rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 1px; margin-bottom: 0px; }
         .live-score-value { font-size: 3rem; font-weight: 800; color: var(--primary-color); line-height: 1; font-family: 'Poppins', sans-serif; }
 
-        /* PHOTO THUMBNAILS */
+        /* THUMBNAILS */
         .fish-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; float: right; margin-left: 10px; }
 
         /* HEADER & HERO */
@@ -126,7 +126,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-5 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 102.0</p>
+        <p class="version-tag">Version 103.0</p>
         <div class="d-grid gap-2 col-10 col-md-6">
             <button class="btn btn-home btn-lg fw-bold" onclick="window.startFishing()">
                 <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -401,7 +401,6 @@
         window.confirmRestore=function(){
             const d=pendingRestoreData;
             fishData=d.fishData||[];currentAngler=d.angler;currentDate=d.date;currentVenue=d.venue;currentScoringMethod=d.method;isCompetitionMode=d.isComp;currentZone=d.zone;currentPeg=d.peg;
-            
             document.getElementById("anglerName").value=d.angler;
             document.getElementById("competitionDate").value=d.date;
             document.getElementById("venueInput").value=d.venue;
@@ -410,11 +409,9 @@
             document.getElementById("zoneInput").value=d.zone;
             document.getElementById("pegInput").value=d.peg;
             document.getElementById("sessionNotesInput").value=d.notes||"";
-            
             window.populateSpeciesDropdown();
             window.toggleCompetitionFields();
             window.checkRuleInfo();
-            
             if(d.phase==='fishing'){
                 window.setupFishingUI();
                 PageManager.show('anglerFishingPage');
@@ -424,7 +421,6 @@
             } else {
                 PageManager.show('anglerRegistration');
             }
-            
             if(restoreModalInstance) restoreModalInstance.hide();
         };
 
@@ -451,8 +447,6 @@
                 c.innerHTML=`<td class="align-middle"><div class="fw-bold text-dark">${n.species}</div><div class="d-flex align-items-center mt-1">${i}${photoHtml}</div></td><td class="text-end align-middle"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${o})"><i class="bi bi-trash"></i></button></td>`;
                 e.appendChild(c)
             });
-            
-            // UPDATE LIVE SCOREBOARD
             const currentScore = window.calculatePoints(fishData, currentScoringMethod);
             document.getElementById('liveScoreVal').textContent = currentScore;
         };
@@ -474,37 +468,102 @@
             } catch(err) { alert("Error: " + err.message); }
         };
 
-        window.loadSavedScorecards=function(){
-            const e=document.getElementById("recentList"); e.innerHTML="";
-            const archiveList = document.getElementById("archiveList"); archiveList.innerHTML="";
+        // --- FIXED SCORECARD LIST LOGIC ---
+        window.loadSavedScorecards = function() {
+            const recentContainer = document.getElementById("recentList");
+            const archiveContainer = document.getElementById("archiveList");
             const archiveSection = document.getElementById("archiveSection");
-            const allKeys=Object.keys(StorageHelper.getAll()).filter(k=>k.startsWith('scorecard_')).sort().reverse();
+            const countSpan = document.getElementById("archiveCount");
             
-            if(allKeys.length === 0) { e.innerHTML = '<div class="text-muted text-center small p-3">No saved history yet.</div>'; return; }
+            recentContainer.innerHTML = "";
+            archiveContainer.innerHTML = "";
+            
+            const allKeys = Object.keys(StorageHelper.getAll())
+                .filter(k => k.startsWith('scorecard_'))
+                .sort().reverse();
 
-            // Split Logic (Recent 4 vs Rest)
+            if (allKeys.length === 0) {
+                recentContainer.innerHTML = '<div class="text-muted text-center small p-3">No history found.</div>';
+                archiveSection.style.display = 'none';
+                return;
+            }
+
             const recents = allKeys.slice(0, 4);
             const older = allKeys.slice(4);
 
-            const renderCard = (k, container) => {
-                const a=JSON.parse(StorageHelper.get(k));
-                const o=window.calculatePoints(a.fishData,a.scoringMethod);
-                container.innerHTML+=`<div class="inner-card p-3 mb-2"><div class="d-flex justify-content-between align-items-center"><div onclick="window.viewSaved('${k}')" style="flex-grow:1; cursor:pointer;"><div class="fw-bold text-dark">${a.venue}</div><div class="small text-muted">${window.formatDate(a.date)} <span class="badge bg-primary bg-opacity-10 text-primary ms-2">${o} pts</span></div></div><div class="card-actions"><button class="btn-card-icon delete" onclick="window.deleteScorecard('${k}')"><i class="bi bi-trash"></i></button><button class="btn-card-icon view" onclick="window.viewSaved('${k}')"><i class="bi bi-chevron-right"></i></button></div></div></div>`;
+            const getCardHtml = (k) => {
+                let data;
+                try { data = JSON.parse(StorageHelper.get(k)); } catch(e) { return ''; }
+                if (!data) return '';
+                const pts = window.calculatePoints(data.fishData || [], data.scoringMethod);
+                const dateStr = window.formatDate(data.date);
+                // NOTE: Clicking the main wrapper triggers viewSaved. 
+                // The Delete button has event.stopPropagation() to prevent opening when deleting.
+                return `
+                <div class="inner-card p-3 mb-2" onclick="window.viewSaved('${k}')" style="cursor:pointer; position:relative;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div style="flex-grow:1;">
+                            <div class="fw-bold text-dark">${data.venue || 'Unknown Venue'}</div>
+                            <div class="small text-muted">
+                                ${dateStr} <span class="badge bg-primary bg-opacity-10 text-primary ms-2">${pts} pts</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-card-icon delete" onclick="event.stopPropagation(); window.deleteScorecard('${k}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button class="btn-card-icon view">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
             };
 
-            recents.forEach(k => renderCard(k, e));
-
-            if(older.length > 0) {
+            recentContainer.innerHTML = recents.map(k => getCardHtml(k)).join('');
+            if (older.length > 0) {
                 archiveSection.style.display = 'block';
-                document.getElementById('archiveCount').textContent = older.length;
-                older.forEach(k => renderCard(k, archiveList));
+                countSpan.textContent = older.length;
+                archiveContainer.innerHTML = older.map(k => getCardHtml(k)).join('');
             } else {
                 archiveSection.style.display = 'none';
             }
         };
 
         window.deleteScorecard=function(e){confirm("Delete scorecard?")&&(StorageHelper.remove(e),window.loadSavedScorecards())};window.deleteCurrentSaved=function(){currentSavedKey&&confirm("Delete scorecard?")&&(StorageHelper.remove(currentSavedKey),window.backToScorecardList())};window.updateSavedNote=function(){if(currentSavedKey){const e=document.getElementById("saved_view_notes_input").value,t=JSON.parse(StorageHelper.get(currentSavedKey));t.notes=e,StorageHelper.save(currentSavedKey,JSON.stringify(t)),alert("Note updated!")}};
-        window.viewSaved=function(e){const t=JSON.parse(StorageHelper.get(e));if(!t)return;currentSavedKey=e,document.getElementById("saved_view_angler").textContent=t.angler,document.getElementById("saved_view_date").textContent=window.formatDate(t.date),document.getElementById("saved_view_venue").textContent=t.venue,t.isComp?(document.getElementById("saved_view_comp_details").style.display="inline-block",document.getElementById("saved_view_zone").textContent=t.zone,document.getElementById("saved_view_peg").textContent=t.peg,document.getElementById("saved_view_comp_details").style.display="inline-block"):(document.getElementById("saved_view_comp_details").style.display="none");const n=window.calculatePoints(t.fishData,t.scoringMethod);document.getElementById("saved_view_points").textContent=n,document.getElementById("saved_view_total_fish").textContent=t.fishData.length,document.getElementById("saved_view_species_count").textContent=new Set(t.fishData.map(e=>e.species)).size,document.getElementById("saved_view_total_len").textContent=t.fishData.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);const a=document.getElementById("saved_view_biggest_fish_card");if("species_hunt"===t.scoringMethod)a.style.display="none";else{a.style.display="block";let e=0,n="-";t.fishData.forEach(t=>{t.length>e&&(e=t.length,n=`${t.species} (${t.length}cm)`)}),document.getElementById("saved_view_biggest_fish").textContent=n}const o=document.getElementById("saved_view_verif");t.isComp&&t.verified?(o.style.display="block",o.textContent=`Verified by: ${t.witness}`):o.style.display="none",document.getElementById("saved_view_notes_input").value=t.notes||"";const s=document.getElementById("saved_view_breakdown");s.innerHTML="";if("species_hunt"===t.scoringMethod){const e={};t.fishData.forEach(t=>{e[t.species]||(e[t.species]=0),e[t.species]++});for(const t in e){const n=e[t];let a=0,o="";for(let e=1;e<=3;e++){let t=n>=e?"active":"",s=3===e?"gold":1===e?"bronze":"silver",c=1===e||2===e?30:40;n>=e&&(a+=c),o+=`<span class="pip ${s} ${t}">${c}</span>`}let s="";n>3&&(a+=n-3,s=`<span class="pip-extra">+${n-3} extra</span>`),c.innerHTML+=`<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${t}</span><span class="sq-points">${a} pts</span></div><div class="sq-pips">${o}${s}</div></div>`}}else{let e='<table class="table-custom"><tbody>';t.fishData.forEach(t=>{const ph=t.photo?`<img src="${t.photo}" class="fish-thumb" onclick="window.viewImage('${t.photo}')">`:'';e+=`<tr><td>${t.species}</td><td class="text-end fw-bold">${t.length} cm ${ph}</td></tr>`}),e+="</tbody></table>",s.innerHTML=e}document.getElementById("savedScorecardsList").style.display="none",document.getElementById("fullScorecardView").style.display="block"};
+        
+        window.viewSaved=function(e){
+            const t=JSON.parse(StorageHelper.get(e));
+            if(!t)return;
+            currentSavedKey=e;
+            document.getElementById("saved_view_angler").textContent=t.angler;
+            document.getElementById("saved_view_date").textContent=window.formatDate(t.date);
+            document.getElementById("saved_view_venue").textContent=t.venue;
+            t.isComp?(document.getElementById("saved_view_comp_details").style.display="inline-block",document.getElementById("saved_view_zone").textContent=t.zone,document.getElementById("saved_view_peg").textContent=t.peg,document.getElementById("saved_view_comp_details").style.display="inline-block"):(document.getElementById("saved_view_comp_details").style.display="none");
+            const fishArr = t.fishData || [];
+            const n=window.calculatePoints(fishArr,t.scoringMethod);
+            document.getElementById("saved_view_points").textContent=n;
+            document.getElementById("saved_view_total_fish").textContent=fishArr.length;
+            document.getElementById("saved_view_species_count").textContent=new Set(fishArr.map(e=>e.species)).size;
+            document.getElementById("saved_view_total_len").textContent=fishArr.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);
+            const a=document.getElementById("saved_view_biggest_fish_card");
+            if("species_hunt"===t.scoringMethod)a.style.display="none";
+            else{
+                a.style.display="block";
+                let e=0,n="-";
+                fishArr.forEach(t=>{t.length>e&&(e=t.length,n=`${t.species} (${t.length}cm)`)});
+                document.getElementById("saved_view_biggest_fish").textContent=n;
+            }
+            const o=document.getElementById("saved_view_verif");
+            t.isComp&&t.verified?(o.style.display="block",o.textContent=`Verified by: ${t.witness}`):o.style.display="none";
+            document.getElementById("saved_view_notes_input").value=t.notes||"";
+            const s=document.getElementById("saved_view_breakdown");
+            s.innerHTML="";
+            if("species_hunt"===t.scoringMethod){const e={};fishArr.forEach(t=>{e[t.species]||(e[t.species]=0),e[t.species]++});for(const t in e){const n=e[t];let a=0,o="";for(let e=1;e<=3;e++){let t=n>=e?"active":"",s=3===e?"gold":1===e?"bronze":"silver",c=1===e||2===e?30:40;n>=e&&(a+=c),o+=`<span class="pip ${s} ${t}">${c}</span>`}let s="";n>3&&(a+=n-3,s=`<span class="pip-extra">+${n-3} extra</span>`),c.innerHTML+=`<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${t}</span><span class="sq-points">${a} pts</span></div><div class="sq-pips">${o}${s}</div></div>`}}else{let e='<table class="table-custom"><tbody>';fishArr.forEach(t=>{const ph=t.photo?`<img src="${t.photo}" class="fish-thumb" onclick="window.viewImage('${t.photo}')">`:'';e+=`<tr><td>${t.species}</td><td class="text-end fw-bold">${t.length} cm ${ph}</td></tr>`}),e+="</tbody></table>",s.innerHTML=e}
+            document.getElementById("savedScorecardsList").style.display="none";
+            document.getElementById("fullScorecardView").style.display="block";
+        };
+        
         window.backToScorecardList=function(){document.getElementById("fullScorecardView").style.display="none",document.getElementById("savedScorecardsList").style.display="block"};
         window.toggleCustomSpeciesInput=function(){const e=document.getElementById("speciesInput").value;document.getElementById("customSpeciesInput").style.display="Other"===e?"block":"none"};
         window.toggleCompetitionFields=function(){const e=document.getElementById("isCompetition").checked;document.getElementById("zoneInput").disabled=!e,document.getElementById("pegInput").disabled=!e};
