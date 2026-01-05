@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>Sea Score</title>
     <link rel="manifest" href="manifest.json">
     
@@ -24,14 +24,17 @@
             --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
-        /* --- BIGGER BASE SIZING --- */
+        /* --- GLOBAL SCALING FIX --- */
+        /* Increasing the ROOT size scales up all Bootstrap elements (buttons/inputs) automatically */
+        html { font-size: 20px; } 
+
         body { 
             font-family: 'Inter', sans-serif; 
             background: var(--bg-gradient); 
             color: #1e293b; 
-            padding-bottom: 80px; /* More padding for scroll */
+            padding-bottom: 90px;
             min-height: 100vh; 
-            font-size: 18px; /* BASE TEXT INCREASED */
+            /* Font size is now handled by html root */
         }
         h1, h2, h3, h4, .btn { font-family: 'Poppins', sans-serif; }
 
@@ -60,23 +63,23 @@
         .app-page { display: none; max-width: 600px; margin: 20px auto; padding: 0 15px 40px 15px; }
         .inner-card { background: var(--card-bg); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-md); margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.8); }
 
-        /* CONTROLS - MADE CHUNKY */
-        .form-label { font-weight: 700; color: var(--primary-color); font-size: 0.95rem; text-transform: uppercase; margin-bottom: 10px; display:block; }
+        /* CONTROLS - NOW INHERITING LARGER SIZE */
+        .form-label { font-weight: 700; color: var(--primary-color); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 10px; display:block; }
+        
         .form-control, .form-select { 
             border-radius: 14px; 
-            padding: 15px 18px; /* Taller inputs */
+            padding: 0.7rem 1rem; 
             font-weight: 500; 
             background-color: #f8fafc; 
             border: 1px solid #cbd5e1; 
-            font-size: 1.1rem; /* Larger typing text */
         }
+        
         .btn { 
             border-radius: 50px; 
-            padding: 16px 24px; /* Taller buttons */
+            padding: 0.8rem 1.2rem;
             font-weight: 700; 
             text-transform: uppercase; 
             border: none; 
-            font-size: 1.1rem; 
         }
         
         /* HOME BUTTONS */
@@ -89,54 +92,54 @@
         .btn-camera { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
         .btn-whatsapp { background-color: #25D366; color: white; }
         
-        /* LIVE SCOREBOARD - PROMINENT */
+        /* LIVE SCOREBOARD */
         .live-score-box {
             border: 4px solid var(--accent-color); background-color: white; border-radius: 18px;
             padding: 20px; text-align: center; margin-bottom: 25px; box-shadow: var(--shadow-md);
         }
-        .live-score-label { font-size: 1rem; text-transform: uppercase; font-weight: 800; color: #64748b; letter-spacing: 1px; margin-bottom: 5px; }
-        .live-score-value { font-size: 4rem; font-weight: 800; color: var(--primary-color); line-height: 1; font-family: 'Poppins', sans-serif; }
+        .live-score-label { font-size: 0.9rem; text-transform: uppercase; font-weight: 800; color: #64748b; letter-spacing: 1px; margin-bottom: 5px; }
+        .live-score-value { font-size: 3.5rem; font-weight: 800; color: var(--primary-color); line-height: 1; font-family: 'Poppins', sans-serif; }
 
         /* THUMBNAILS */
         .fish-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; float: right; margin-left: 10px; }
 
         /* HEADER & HERO */
         .app-header { text-align: center; margin-bottom: 30px; margin-top: 15px; }
-        .app-header h2 { font-size: 2.2rem; }
+        .app-header h2 { font-size: 2rem; font-weight: 800; }
         .score-hero-container { background: white; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 25px; border: 1px solid #e2e8f0; }
-        .score-hero-val { font-size: 4.5rem; font-weight: 800; color: var(--primary-color); line-height: 1; }
-        .score-hero-label { font-size: 1rem; font-weight: 700; color:#64748b; text-transform: uppercase; margin-bottom: 5px; }
+        .score-hero-val { font-size: 4rem; font-weight: 800; color: var(--primary-color); line-height: 1; }
+        .score-hero-label { font-size: 0.9rem; font-weight: 700; color:#64748b; text-transform: uppercase; margin-bottom: 5px; }
         
-        /* STATS GRID - INCREASED TEXT SIZE */
+        /* STATS GRID */
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 25px; }
         .stat-card { background: #ffffff; padding: 15px 5px; border-radius: 16px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
-        .stat-card small { display: block; color: #64748b; font-size: 0.85rem; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;}
-        .stat-card strong { font-size: 1.35rem; color: #1e293b; font-weight: 800; }
+        .stat-card small { display: block; color: #64748b; font-size: 0.7rem; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;}
+        .stat-card strong { font-size: 1.2rem; color: #1e293b; font-weight: 800; }
 
         /* LISTS */
         .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-        .table-custom td { background: white; padding: 18px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; vertical-align: middle; transition: background-color 0.5s; font-size: 1.1rem; }
+        .table-custom td { background: white; padding: 15px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; vertical-align: middle; transition: background-color 0.5s; font-size: 1rem; }
         .table-custom tr td:first-child { border-left: 1px solid #f1f5f9; border-top-left-radius: 14px; border-bottom-left-radius: 14px; }
         .table-custom tr td:last-child { border-right: 1px solid #f1f5f9; border-top-right-radius: 14px; border-bottom-right-radius: 14px; }
 
         /* MISC */
         .big-switch { display: flex; align-items: center; padding: 15px; background: #ffffff; border-radius: 14px; border: 2px solid #cbd5e1; box-shadow: 0 3px 5px rgba(0,0,0,0.06); }
         .big-switch .form-check-input { width: 3.5em; height: 1.8em; margin-right: 15px; }
-        .big-switch .form-check-label { font-size: 1.1rem; font-weight: 700; }
+        .big-switch .form-check-label { font-size: 1rem; font-weight: 700; }
         .verification-box { display: none; background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 14px; margin-top: 25px; }
         
         /* STYLED POPUP INFO */
-        .rule-info-box { background-color: #eff6ff; border-left: 6px solid #3b82f6; color: #1e40af; padding: 20px; border-radius: 10px; font-size: 1rem; margin-top: 20px; display: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .rule-info-box { background-color: #eff6ff; border-left: 6px solid #3b82f6; color: #1e40af; padding: 20px; border-radius: 10px; font-size: 0.9rem; margin-top: 20px; display: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
         .species-quota-card { background: white; border-radius: 16px; padding: 15px 18px; margin-bottom: 12px; box-shadow: var(--shadow-md); border: 1px solid #f1f5f9; }
         .sq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .sq-name { font-weight: 700; color: var(--primary-color); font-size: 1.1rem; }
+        .sq-name { font-weight: 700; color: var(--primary-color); font-size: 1rem; }
         .sq-pips { display: flex; align-items: center; gap: 8px; }
-        .pip { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; }
+        .pip { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; }
         .pip.bronze.active { background: #d97706; color: white; }
         .pip.silver.active { background: #94a3b8; color: white; }
         .pip.gold.active { background: #eab308; color: white; }
-        .pip-extra { font-size: 0.85rem; color: #64748b; margin-left: auto; font-weight: 500; }
+        .pip-extra { font-size: 0.75rem; color: #64748b; margin-left: auto; font-weight: 500; }
         .card-actions { display: flex; gap: 12px; }
         .btn-card-icon { width: 45px; height: 45px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
         .btn-card-icon.view { background: #eff6ff; color: var(--primary-color); }
@@ -154,7 +157,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-4 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 105.0</p>
+        <p class="version-tag">Version 106.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-home btn-lg fw-bold" onclick="window.startFishing()">
                 <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -167,7 +170,7 @@
     </div>
 
     <div id="anglerRegistration" class="app-page">
-        <div class="app-header"><h2>New Session</h2><p class="fs-5">Setup match details</p></div>
+        <div class="app-header"><h2>New Session</h2><p class="fs-6">Setup match details</p></div>
         <div class="inner-card">
             <div class="mb-4"><label class="form-label">Angler Name</label><input type="text" id="anglerName" class="form-control" placeholder="Your Name" oninput="window.saveActiveSession()"></div>
             <div class="row g-3">
