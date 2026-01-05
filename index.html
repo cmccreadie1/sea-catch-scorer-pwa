@@ -104,7 +104,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-5 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 97.0</p>
+        <p class="version-tag">Version 98.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
             <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Scorecards</button>
@@ -254,7 +254,7 @@
 
     <script>
         const speciesList=[{category:"Common Species",items:["Cod","Pollack","Coalfish","Whiting","Dab","Flounder","Plaice","Turbot","Dogfish (LSD)","Bull Huss"]},{category:"Round Fish",items:["Bass","Bream (Black)","Bream (Gilthead)","Bream (Red)","Garfish","Gurnard (Grey)","Gurnard (Red)","Gurnard (Tub)","Mackerel","Mullet (Golden)","Mullet (Grey/Thick)","Mullet (Red)","Scad","Weever (Lesser)"]},{category:"Flatfish",items:["Brill","Megrim","Sole (Dover)","Sole (Lemon)","Topknot"]},{category:"Wrasse",items:["Wrasse (Ballan)","Wrasse (Corkwing)","Wrasse (Cuckoo)","Wrasse (Goldsinny)","Wrasse (Rock Cook)"]},{category:"Rockling",items:["Rockling (3-Bearded)","Rockling (5-Bearded)","Rockling (4-Bearded)","Rockling (Shore)"]},{category:"Sharks",items:["Dogfish (Blackmouth)","Smoothhound (Common)","Smoothhound (Starry)","Spurdog","Tope"]},{category:"Rays & Skates",items:["Ray (Blonde)","Ray (Small-eyed)","Ray (Spotted)","Ray (Thornback)","Ray (Undulate)","Stingray"]},{category:"Eels",items:["Eel (Common)","Eel (Conger)","Eel (Silver)"]},{category:"Mini / Rare",items:["Blenny (Common)","Blenny (Tompot)","Dragonet","Goby (Common)","Goby (Rock)","Poor Cod","Pouting (Bib)","Scorpion Fish","Squid","Trigger Fish"]}];
-        let fishData=[],currentAngler=null,currentDate=null,currentVenue=null,currentZone=null,currentPeg=null,currentScoringMethod=null,isCompetitionMode=!1,currentSavedKey=null,pendingRestoreData=null;
+        let fishData=[],currentAngler=null,currentDate=null,currentVenue=null,currentZone=null,currentPeg=null,currentScoringMethod=null,isCompetitionMode=!1,currentSavedKey=null,pendingRestoreData=null, restoreModalInstance=null;
 
         const PageManager={show:function(e){["splashScreen","anglerRegistration","anglerFishingPage","tallyVerificationPage"].forEach(e=>{document.getElementById(e).style.display="none"});document.getElementById(e).style.display="block";window.scrollTo(0,0)}};
         const StorageHelper={save:function(e,t){try{localStorage.setItem(e,t)}catch(e){}},get:function(e){try{return localStorage.getItem(e)}catch(e){return null}},remove:function(e){try{localStorage.removeItem(e)}catch(e){}},getAll:function(){const e={};try{for(let t=0;t<localStorage.length;t++){const n=localStorage.key(t);(n.startsWith("scorecard_")||"active_session"===n)&&(e[n]=localStorage.getItem(n))}}catch(e){}return e}};
@@ -322,10 +322,10 @@
             document.getElementById("customSpeciesInput").value = "";
             document.getElementById("lengthInput").value = "";
             window.toggleCustomSpeciesInput();
-            window.saveActiveSession(); // AUTO-SAVE TRIGGER
+            window.saveActiveSession();
         }
 
-        // --- RESILIENCE LOGIC ---
+        // --- RESILIENCE LOGIC FIXED ---
         window.saveActiveSession=function(){
             let p='setup';
             if(document.getElementById('anglerFishingPage').style.display==='block')p='fishing';
@@ -333,9 +333,54 @@
             const d={phase:p,angler:document.getElementById("anglerName").value,date:document.getElementById("competitionDate").value,venue:document.getElementById("venueInput").value,method:document.getElementById("scoringMethod").value,isComp:document.getElementById("isCompetition").checked,zone:document.getElementById("zoneInput").value,peg:document.getElementById("pegInput").value,fishData:fishData,notes:document.getElementById("sessionNotesInput").value};
             StorageHelper.save('active_session',JSON.stringify(d));
         };
-        window.restoreActiveSession=function(){const s=JSON.parse(StorageHelper.get('active_session'));if(s&&(s.angler||s.fishData.length>0)){document.getElementById('restoreAnglerName').textContent=s.angler||"Unnamed Session";pendingRestoreData=s;new bootstrap.Modal(document.getElementById('restoreSessionModal')).show()}};
-        window.confirmRestore=function(){const d=pendingRestoreData;fishData=d.fishData||[];currentAngler=d.angler;currentDate=d.date;currentVenue=d.venue;currentScoringMethod=d.method;isCompetitionMode=d.isComp;currentZone=d.zone;currentPeg=d.peg;document.getElementById("anglerName").value=d.angler;document.getElementById("competitionDate").value=d.date;document.getElementById("venueInput").value=d.venue;document.getElementById("scoringMethod").value=d.method;document.getElementById("isCompetition").checked=d.isComp;document.getElementById("zoneInput").value=d.zone;document.getElementById("pegInput").value=d.peg;document.getElementById("sessionNotesInput").value=d.notes||"";window.populateSpeciesDropdown();window.toggleCompetitionFields();window.checkRuleInfo();if(d.phase==='fishing'){window.setupFishingUI();PageManager.show('anglerFishingPage');window.updateFishLog()}else if(d.phase==='tally'){window.endSession()}else{PageManager.show('anglerRegistration')}document.querySelector('.btn-close').click()};
-        window.discardRestore=function(){StorageHelper.remove('active_session');window.startFishing();document.querySelector('.btn-close').click()};
+        
+        window.restoreActiveSession=function(){
+            const s=JSON.parse(StorageHelper.get('active_session'));
+            if(s && (s.angler || s.fishData.length > 0)){
+                document.getElementById('restoreAnglerName').textContent = s.angler || "Unnamed Session";
+                pendingRestoreData = s;
+                // Store instance safely
+                restoreModalInstance = new bootstrap.Modal(document.getElementById('restoreSessionModal'));
+                restoreModalInstance.show();
+            }
+        };
+
+        window.confirmRestore=function(){
+            const d=pendingRestoreData;
+            fishData=d.fishData||[];currentAngler=d.angler;currentDate=d.date;currentVenue=d.venue;currentScoringMethod=d.method;isCompetitionMode=d.isComp;currentZone=d.zone;currentPeg=d.peg;
+            
+            document.getElementById("anglerName").value=d.angler;
+            document.getElementById("competitionDate").value=d.date;
+            document.getElementById("venueInput").value=d.venue;
+            document.getElementById("scoringMethod").value=d.method;
+            document.getElementById("isCompetition").checked=d.isComp;
+            document.getElementById("zoneInput").value=d.zone;
+            document.getElementById("pegInput").value=d.peg;
+            document.getElementById("sessionNotesInput").value=d.notes||"";
+            
+            window.populateSpeciesDropdown();
+            window.toggleCompetitionFields();
+            window.checkRuleInfo();
+            
+            if(d.phase==='fishing'){
+                window.setupFishingUI();
+                PageManager.show('anglerFishingPage');
+                window.updateFishLog();
+            } else if(d.phase==='tally'){
+                window.endSession();
+            } else {
+                PageManager.show('anglerRegistration');
+            }
+            
+            // CORRECTLY CLOSE THE MODAL
+            if(restoreModalInstance) restoreModalInstance.hide();
+        };
+
+        window.discardRestore=function(){
+            StorageHelper.remove('active_session');
+            window.startFishing();
+            if(restoreModalInstance) restoreModalInstance.hide();
+        };
 
         window.checkRuleInfo=function(){const e=document.getElementById("scoringMethod").value,t=["speciesHuntInfo","measurePointsInfo"];t.forEach(e=>document.getElementById(e).style.display="none"),"species_hunt"===e?document.getElementById("speciesHuntInfo").style.display="block":"measure_points"===e&&(document.getElementById("measurePointsInfo").style.display="block")};
         window.populateSpeciesDropdown=function(){const e=document.getElementById("speciesInput");e.innerHTML='<option value="" selected>Select Fish...</option><option value="Other">Other (specify)</option>',speciesList.forEach(t=>{const n=document.createElement("optgroup");n.label=t.category,t.items.sort().forEach(t=>{const a=document.createElement("option");a.value=t,a.textContent=t,n.appendChild(a)}),e.appendChild(n)})};
@@ -381,6 +426,7 @@
         window.toggleCompetitionFields=function(){const e=document.getElementById("isCompetition").checked;document.getElementById("zoneInput").disabled=!e,document.getElementById("pegInput").disabled=!e};
         window.resetApp=function(){window.location.reload()};window.confirmQuit=function(){confirm("End session without saving?")&&(StorageHelper.remove('active_session'),window.resetApp())};
         window.shareAsImage=function(e){const t=document.getElementById("live"===e?"tallyVerificationPage":"fullScorecardView"),n=t.querySelectorAll("button, .btn");n.forEach(e=>e.style.display="none"),html2canvas(t,{backgroundColor:"#f0f4f8"}).then(e=>{n.forEach(e=>e.style.display=""),e.toBlob(e=>{const t=new File([e],"scorecard.png",{type:"image/png"});navigator.share?navigator.share({files:[t]}):((t=document.createElement("a")).download="score.png",t.href=e.toDataURL(),t.click())})})};
+        
         document.addEventListener("DOMContentLoaded",()=>{window.restoreActiveSession();});
         let deferredPrompt;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(),deferredPrompt=e;const t=document.getElementById("btnInstall");t.style.display="block",t.addEventListener("click",()=>{t.style.display="none",deferredPrompt.prompt(),deferredPrompt=null})});
     </script>
