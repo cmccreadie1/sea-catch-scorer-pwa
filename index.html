@@ -19,25 +19,15 @@
         :root {
             --primary-color: #0f172a; 
             --accent-color: #0ea5e9; 
-            --highlight-color: #10b981;
-            --text-dark: #1e293b;
             --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
             --card-bg: #ffffff;
             --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-gradient);
-            color: var(--text-dark);
-            padding-bottom: 60px;
-            min-height: 100vh;
-        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gradient); color: #1e293b; padding-bottom: 60px; min-height: 100vh; }
+        h1, h2, h3, h4, .btn { font-family: 'Poppins', sans-serif; }
 
-        h1, h2, h3, h4, h5, .btn { font-family: 'Poppins', sans-serif; }
-
-        /* LOGO & ANIMATION */
+        /* ANIMATED LOGO */
         .logo-svg { width: 140px; height: 140px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); margin-bottom: 25px; }
         .radar-sweep { transform-origin: 100px 100px; animation: scan 4s linear infinite; }
         @keyframes scan { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -50,7 +40,7 @@
         }
         .version-tag { font-size: 0.75rem; color: #94a3b8; margin-bottom: 30px; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* APP PAGES */
+        /* LAYOUT */
         .app-page { display: none; max-width: 600px; margin: 20px auto; padding: 0 15px 30px 15px; }
         .inner-card { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.8); }
 
@@ -62,47 +52,43 @@
         .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
         .btn-camera { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
         .btn-whatsapp { background-color: #25D366; color: white; }
-        .btn-warning { background-color: #fbbf24; color: #451a03; }
         
-        /* PHOTO PREVIEWS */
-        .fish-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; margin-left: 10px; float: right; }
+        /* PHOTO THUMBNAILS */
+        .fish-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; float: right; margin-left: 10px; }
 
         /* HEADER & HERO */
         .app-header { text-align: center; margin-bottom: 25px; margin-top: 10px; }
-        .app-header h2 { font-weight: 800; color: var(--primary-color); letter-spacing: -1px;}
-        .score-hero-container { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: var(--shadow-lg); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .score-hero-container { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #e2e8f0; }
         .score-hero-val { font-size: 3.5rem; font-weight: 800; color: var(--primary-color); line-height: 1; }
-        .score-hero-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: #94a3b8; font-weight: 700; }
-
-        /* STATS & LISTS */
+        
+        /* STATS GRID */
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-card { background: #ffffff; padding: 10px 5px; border-radius: 14px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
         .stat-card small { display: block; color: #64748b; font-size: 0.65rem; text-transform: uppercase; font-weight: 700; }
-        .stat-card strong { font-size: 1.1rem; color: var(--text-dark); font-weight: 700; }
+        .stat-card strong { font-size: 1.1rem; color: #1e293b; font-weight: 700; }
+
+        /* LISTS */
         .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
         .table-custom td { background: white; padding: 12px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         .table-custom tr td:first-child { border-left: 1px solid #f1f5f9; border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
         .table-custom tr td:last-child { border-right: 1px solid #f1f5f9; border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
 
-        /* VISUALIZERS */
+        /* MISC */
+        .big-switch { display: flex; align-items: center; padding: 10px; background: #ffffff; border-radius: 12px; border: 2px solid #cbd5e1; box-shadow: 0 3px 5px rgba(0,0,0,0.06); }
+        .big-switch .form-check-input { width: 3.2em; height: 1.6em; margin-right: 12px; }
+        .verification-box { display: none; background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 12px; margin-top: 20px; }
+        .rule-info-box { background-color: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; padding: 12px 15px; border-radius: 8px; font-size: 0.85rem; margin-top: 15px; display: none; }
         .species-quota-card { background: white; border-radius: 16px; padding: 12px 15px; margin-bottom: 10px; box-shadow: var(--shadow-md); border: 1px solid #f1f5f9; }
         .sq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .sq-name { font-weight: 700; color: var(--primary-color); font-size: 1rem; }
         .sq-pips { display: flex; align-items: center; gap: 6px; }
-        .pip { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; }
-        .pip.bronze.active { background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; }
-        .pip.silver.active { background: linear-gradient(135deg, #94a3b8, #64748b); color: white; border: none; }
-        .pip.gold.active { background: linear-gradient(135deg, #eab308, #ca8a04); color: white; border: none; }
+        .pip { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; }
+        .pip.bronze.active { background: #d97706; color: white; }
+        .pip.silver.active { background: #94a3b8; color: white; }
+        .pip.gold.active { background: #eab308; color: white; }
         .pip-extra { font-size: 0.75rem; color: #64748b; margin-left: auto; font-weight: 500; }
-
-        /* MISC */
-        .big-switch { display: flex; align-items: center; padding: 10px; background: #ffffff; border-radius: 12px; border: 2px solid #cbd5e1; box-shadow: 0 3px 5px rgba(0,0,0,0.06); }
-        .big-switch .form-check-input { width: 3.2em; height: 1.6em; margin-right: 12px; }
-        .big-switch .form-check-label { font-size: 1rem; font-weight: 700; color: var(--primary-color); }
-        .verification-box { display: none; background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 12px; margin-top: 20px; }
-        .rule-info-box { background-color: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; padding: 12px 15px; border-radius: 8px; font-size: 0.85rem; margin-top: 15px; display: none; }
         .card-actions { display: flex; gap: 10px; }
-        .btn-card-icon { width: 36px; height: 36px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: background 0.2s; }
+        .btn-card-icon { width: 36px; height: 36px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
         .btn-card-icon.view { background: #eff6ff; color: var(--primary-color); }
         .btn-card-icon.delete { background: #fef2f2; color: #ef4444; }
     </style>
@@ -169,29 +155,18 @@
         </div>
         <div class="inner-card mb-4" style="background: #f8fafc;">
             <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="window.handleCameraInput()">
-
             <div class="mb-3">
                 <label class="form-label text-primary">Species</label>
                 <select id="speciesInput" class="form-select form-select-lg" onchange="window.toggleCustomSpeciesInput()"><option value="" selected>Select Fish...</option></select>
                 <input type="text" id="customSpeciesInput" class="form-control mt-2" placeholder="Enter Name" style="display:none;">
             </div>
-            
             <div class="mb-3" id="lengthInputContainer">
                 <label class="form-label text-primary">Length (cm)</label>
                 <input type="number" id="lengthInput" class="form-control form-control-lg" placeholder="0">
             </div>
-            
             <div class="row g-2 pt-2 border-top">
-                <div class="col-6">
-                    <button class="btn btn-success w-100 py-3 shadow-sm" onclick="window.addFishTextOnly()">
-                        <i class="bi bi-check-lg me-1"></i> Record Fish
-                    </button>
-                </div>
-                <div class="col-6">
-                    <button class="btn btn-camera w-100 py-3 shadow-sm" onclick="window.triggerCamera()">
-                        <i class="bi bi-camera-fill me-1"></i> With Photo
-                    </button>
-                </div>
+                <div class="col-6"><button class="btn btn-success w-100 py-3 shadow-sm" onclick="window.addFishTextOnly()"><i class="bi bi-check-lg me-1"></i> Record Fish</button></div>
+                <div class="col-6"><button class="btn btn-camera w-100 py-3 shadow-sm" onclick="window.triggerCamera()"><i class="bi bi-camera-fill me-1"></i> With Photo</button></div>
             </div>
         </div>
         <h5 class="text-muted fs-6 text-uppercase fw-bold letter-spacing-1 ps-2">Haul History</h5>
@@ -267,7 +242,7 @@
                 <div class="modal-body text-center p-4">
                     <div class="mb-3 text-primary"><i class="bi bi-clock-history fs-1"></i></div>
                     <h4 class="mb-2 fw-bold">Resume Session?</h4>
-                    <p class="text-muted mb-4">Unfinished session found for <strong id="restoreAnglerName"></strong>.</p>
+                    <p class="text-muted mb-4">Unfinished session found.</p>
                     <div class="d-grid gap-2"><button class="btn btn-primary" onclick="window.confirmRestore()">Resume</button><button class="btn btn-outline-secondary" onclick="window.discardRestore()">Start New</button></div>
                 </div>
             </div>
@@ -284,7 +259,6 @@
         window.formatDate=function(e){try{return e?new Date(e).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"N/A"}catch(e){return"N/A"}};
         window.startFishing=function(){document.getElementById("anglerName").value="";try{const e=new Date,t=e.getFullYear(),n=String(e.getMonth()+1).padStart(2,"0"),a=String(e.getDate()).padStart(2,"0");document.getElementById("competitionDate").value=`${t}-${n}-${a}`}catch(e){}document.getElementById("venueInput").value="";PageManager.show("anglerRegistration");};
 
-        // --- INPUT HANDLING ---
         window.validateInputs = function() {
             const e = document.getElementById("speciesInput"), t = document.getElementById("customSpeciesInput"), n = document.getElementById("lengthInput");
             let a = e.value; if ("Other" === a) a = t.value.trim();
@@ -318,7 +292,6 @@
                         ctx.drawImage(img, 0, 0, w, h);
                         const photoData = canvas.toDataURL('image/jpeg', 0.6);
                         
-                        // AUTO ADD FISH WITH PHOTO
                         const data = window.validateInputs();
                         if(data) {
                             fishData.push({ species: data.species, length: data.length, photo: photoData });
@@ -329,7 +302,7 @@
                 };
                 reader.readAsDataURL(input.files[0]);
             }
-            input.value = ''; // Reset input
+            input.value = '';
         };
 
         window.addFishTextOnly = function() {
@@ -349,7 +322,6 @@
             window.saveActiveSession();
         }
 
-        // --- CORE LOGIC ---
         window.saveActiveSession=function(){
             let p='setup';
             if(document.getElementById('anglerFishingPage').style.display==='block')p='fishing';
@@ -383,33 +355,23 @@
         window.deleteFish=function(e){confirm("Delete catch?")&&(fishData.splice(e,1),window.updateFishLog(),window.saveActiveSession())};
         window.endSession=function(){PageManager.show("tallyVerificationPage"),document.getElementById("session_angler").textContent=currentAngler,document.getElementById("session_date").textContent=window.formatDate(currentDate),document.getElementById("session_venue").textContent=currentVenue;const e=document.getElementById("session_comp_details"),t=document.getElementById("session_verification_box");isCompetitionMode?(e.style.display="inline-block",document.getElementById("session_zone").textContent=currentZone,document.getElementById("session_peg").textContent=currentPeg,t.style.display="block"):(e.style.display="none",t.style.display="none");const n=document.getElementById("session_biggest_fish_card");"species_hunt"===currentScoringMethod?n.style.display="none":n.style.display="block";const a=window.calculatePoints(fishData,currentScoringMethod);document.getElementById("session_total_points").textContent=a,document.getElementById("session_total_fish").textContent=fishData.length,document.getElementById("session_species_count").textContent=new Set(fishData.map(e=>e.species)).size,document.getElementById("session_total_len").textContent=fishData.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);let o=0,s="-";fishData.forEach(e=>{e.length>o&&(o=e.length,s=`${e.species} (${e.length}cm)`)}),document.getElementById("session_biggest_fish").textContent=s;const c=document.getElementById("session_breakdown_area");c.innerHTML="";if("species_hunt"===currentScoringMethod){const e={};fishData.forEach(t=>{e[t.species]||(e[t.species]=0),e[t.species]++});for(const t in e){const n=e[t];let a=0,o="";for(let e=1;e<=3;e++){let t=n>=e?"active":"",s=3===e?"gold":1===e?"bronze":"silver",c=1===e||2===e?30:40;n>=e&&(a+=c),o+=`<span class="pip ${s} ${t}">${c}</span>`}let s="";n>3&&(a+=n-3,s=`<span class="pip-extra">+${n-3} extra</span>`),c.innerHTML+=`<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${t}</span><span class="sq-points">${a} pts</span></div><div class="sq-pips">${o}${s}</div></div>`}}else{let e='<table class="table-custom"><tbody>';fishData.forEach(t=>{const ph=t.photo?`<img src="${t.photo}" class="fish-thumb" onclick="window.viewImage('${t.photo}')">`:'';e+=`<tr><td>${t.species}</td><td class="text-end fw-bold">${t.length} cm ${ph}</td></tr>`}),e+="</tbody></table>",c.innerHTML=e}window.saveActiveSession();};
         
-        // --- FIXED SAVE FUNCTION WITH SAFETY CHECK ---
         window.saveAndEndSession=function(){
-            // Safety Check: Empty session?
-            if(fishData.length === 0) {
-                if(!confirm("No fish recorded. Save empty scorecard?")) return;
-            }
-
+            if(fishData.length === 0 && !confirm("No fish recorded. Save empty scorecard?")) return;
             try {
                 const e=document.getElementById("witnessNameInput").value;
                 const t=document.getElementById("witnessCheckbox").checked;
                 const n=document.getElementById("sessionNotesInput").value;
                 const a={angler:currentAngler,date:currentDate,venue:currentVenue,scoringMethod:currentScoringMethod,isComp:isCompetitionMode,zone:currentZone,peg:currentPeg,fishData:fishData,witness:e,verified:t,notes:n};
-                
                 StorageHelper.save(`scorecard_${Date.now()}`,JSON.stringify(a));
                 StorageHelper.remove('active_session');
-                
-                // Explicit feedback before reset
                 alert("Scorecard Saved Successfully!");
                 window.resetApp();
-            } catch(err) {
-                alert("Error saving: " + err.message);
-            }
+            } catch(err) { alert("Error: " + err.message); }
         };
 
         window.loadSavedScorecards=function(){const e=document.getElementById("recentList");e.innerHTML="";const t=StorageHelper.getAll();Object.keys(t).sort().reverse().forEach(n=>{if(n.startsWith("scorecard_")){const a=JSON.parse(t[n]),o=window.calculatePoints(a.fishData,a.scoringMethod);e.innerHTML+=`<div class="inner-card p-3 mb-2"><div class="d-flex justify-content-between align-items-center"><div onclick="window.viewSaved('${n}')" style="flex-grow:1; cursor:pointer;"><div class="fw-bold text-dark">${a.venue}</div><div class="small text-muted">${window.formatDate(a.date)} <span class="badge bg-primary bg-opacity-10 text-primary ms-2">${o} pts</span></div></div><div class="card-actions"><button class="btn-card-icon delete" onclick="window.deleteScorecard('${n}')"><i class="bi bi-trash"></i></button><button class="btn-card-icon view" onclick="window.viewSaved('${n}')"><i class="bi bi-chevron-right"></i></button></div></div></div>`}})};
         window.deleteScorecard=function(e){confirm("Delete scorecard?")&&(StorageHelper.remove(e),window.loadSavedScorecards())};window.deleteCurrentSaved=function(){currentSavedKey&&confirm("Delete scorecard?")&&(StorageHelper.remove(currentSavedKey),window.backToScorecardList())};window.updateSavedNote=function(){if(currentSavedKey){const e=document.getElementById("saved_view_notes_input").value,t=JSON.parse(StorageHelper.get(currentSavedKey));t.notes=e,StorageHelper.save(currentSavedKey,JSON.stringify(t)),alert("Note updated!")}};
-        window.viewSaved=function(e){const t=JSON.parse(StorageHelper.get(e));if(!t)return;currentSavedKey=e,document.getElementById("saved_view_angler").textContent=t.angler,document.getElementById("saved_view_date").textContent=window.formatDate(t.date),document.getElementById("saved_view_venue").textContent=t.venue,t.isComp?(document.getElementById("saved_view_comp_details").style.display="inline-block",document.getElementById("saved_view_zone").textContent=t.zone,document.getElementById("saved_view_peg").textContent=t.peg,document.getElementById("saved_view_comp_details").style.display="inline-block"):(document.getElementById("saved_view_comp_details").style.display="none");const n=window.calculatePoints(t.fishData,t.scoringMethod);document.getElementById("saved_view_points").textContent=n,document.getElementById("saved_view_total_fish").textContent=t.fishData.length,document.getElementById("saved_view_species_count").textContent=new Set(t.fishData.map(e=>e.species)).size,document.getElementById("saved_view_total_len").textContent=t.fishData.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);const a=document.getElementById("saved_view_biggest_fish_card");if("species_hunt"===t.scoringMethod)a.style.display="none";else{a.style.display="block";let e=0,n="-";t.fishData.forEach(t=>{t.length>e&&(e=t.length,n=`${t.species} (${t.length}cm)`)}),document.getElementById("saved_view_biggest_fish").textContent=n}const o=document.getElementById("saved_view_verif");t.isComp&&t.verified?(o.style.display="block",o.textContent=`Verified by: ${t.witness}`):o.style.display="none",document.getElementById("saved_view_notes_input").value=t.notes||"";const s=document.getElementById("saved_view_breakdown");s.innerHTML="";if("species_hunt"===t.scoringMethod){const e={};t.fishData.forEach(t=>{e[t.species]||(e[t.species]=0),e[t.species]++});for(const t in e){const n=e[t];let a=0,o="";for(let e=1;e<=3;e++){let t=n>=e?"active":"",s=3===e?"gold":1===e?"bronze":"silver",c=1===e||2===e?30:40;n>=e&&(a+=c),o+=`<span class="pip ${s} ${t}">${c}</span>`}let c="";n>3&&(a+=n-3,c=`<span class="pip-extra">+${n-3} extra</span>`),s.innerHTML+=`<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${t}</span><span class="sq-points">${a} pts</span></div><div class="sq-pips">${o}${c}</div></div>`}}else{let e='<table class="table-custom"><tbody>';t.fishData.forEach(t=>{const ph=t.photo?`<img src="${t.photo}" class="fish-thumb" onclick="window.viewImage('${t.photo}')">`:'';e+=`<tr><td>${t.species}</td><td class="text-end fw-bold">${t.length} cm ${ph}</td></tr>`}),e+="</tbody></table>",s.innerHTML=e}document.getElementById("savedScorecardsList").style.display="none",document.getElementById("fullScorecardView").style.display="block"};
+        window.viewSaved=function(e){const t=JSON.parse(StorageHelper.get(e));if(!t)return;currentSavedKey=e,document.getElementById("saved_view_angler").textContent=t.angler,document.getElementById("saved_view_date").textContent=window.formatDate(t.date),document.getElementById("saved_view_venue").textContent=t.venue,t.isComp?(document.getElementById("saved_view_comp_details").style.display="inline-block",document.getElementById("saved_view_zone").textContent=t.zone,document.getElementById("saved_view_peg").textContent=t.peg,document.getElementById("saved_view_comp_details").style.display="inline-block"):(document.getElementById("saved_view_comp_details").style.display="none");const n=window.calculatePoints(t.fishData,t.scoringMethod);document.getElementById("saved_view_points").textContent=n,document.getElementById("saved_view_total_fish").textContent=t.fishData.length,document.getElementById("saved_view_species_count").textContent=new Set(t.fishData.map(e=>e.species)).size,document.getElementById("saved_view_total_len").textContent=t.fishData.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);const a=document.getElementById("saved_view_biggest_fish_card");if("species_hunt"===t.scoringMethod)a.style.display="none";else{a.style.display="block";let e=0,n="-";t.fishData.forEach(t=>{t.length>e&&(e=t.length,n=`${t.species} (${t.length}cm)`)}),document.getElementById("saved_view_biggest_fish").textContent=n}const o=document.getElementById("saved_view_verif");t.isComp&&t.verified?(o.style.display="block",o.textContent=`Verified by: ${t.witness}`):o.style.display="none",document.getElementById("saved_view_notes_input").value=t.notes||"";const s=document.getElementById("saved_view_breakdown");s.innerHTML="";if("species_hunt"===t.scoringMethod){const e={};t.fishData.forEach(t=>{e[t.species]||(e[t.species]=0),e[t.species]++});for(const t in e){const n=e[t];let a=0,o="";for(let e=1;e<=3;e++){let t=n>=e?"active":"",s=3===e?"gold":1===e?"bronze":"silver",c=1===e||2===e?30:40;n>=e&&(a+=c),o+=`<span class="pip ${s} ${t}">${c}</span>`}let s="";n>3&&(a+=n-3,s=`<span class="pip-extra">+${n-3} extra</span>`),c.innerHTML+=`<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${t}</span><span class="sq-points">${a} pts</span></div><div class="sq-pips">${o}${s}</div></div>`}}else{let e='<table class="table-custom"><tbody>';t.fishData.forEach(t=>{const ph=t.photo?`<img src="${t.photo}" class="fish-thumb" onclick="window.viewImage('${t.photo}')">`:'';e+=`<tr><td>${t.species}</td><td class="text-end fw-bold">${t.length} cm ${ph}</td></tr>`}),e+="</tbody></table>",s.innerHTML=e}document.getElementById("savedScorecardsList").style.display="none",document.getElementById("fullScorecardView").style.display="block"};
         window.backToScorecardList=function(){document.getElementById("fullScorecardView").style.display="none",document.getElementById("savedScorecardsList").style.display="block"};
         window.toggleCustomSpeciesInput=function(){const e=document.getElementById("speciesInput").value;document.getElementById("customSpeciesInput").style.display="Other"===e?"block":"none"};
         window.toggleCompetitionFields=function(){const e=document.getElementById("isCompetition").checked;document.getElementById("zoneInput").disabled=!e,document.getElementById("pegInput").disabled=!e};
