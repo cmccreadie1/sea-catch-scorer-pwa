@@ -35,7 +35,7 @@
         
         h1, h2, h3, h4, .btn { font-family: 'Poppins', sans-serif; }
 
-        /* ANIMATION */
+        /* CATCH ANIMATION */
         @keyframes slideFlash {
             0% { background-color: #dcfce7; transform: translateY(-10px); opacity: 0; }
             30% { background-color: #86efac; opacity: 1; transform: translateY(0); }
@@ -43,13 +43,17 @@
         }
         .new-catch-anim { animation: slideFlash 1.5s ease-out; }
 
+        /* LOGO & SONAR ANIMATION (RESTORED) */
+        .logo-svg { width: 140px; height: 140px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); margin-bottom: 30px; }
+        .radar-sweep { transform-origin: 100px 100px; animation: scan 4s linear infinite; }
+        @keyframes scan { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
         /* SPLASH */
         .splash-screen {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white;
             text-align: center; padding: 20px;
         }
-        .logo-svg { width: 140px; height: 140px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); margin-bottom: 30px; }
         .version-tag { font-size: 0.8rem; color: #94a3b8; margin-bottom: 40px; letter-spacing: 2px; text-transform: uppercase; }
 
         /* MAIN LAYOUT CONTAINER */
@@ -163,7 +167,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-4 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 110.0</p>
+        <p class="version-tag">Version 111.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-home btn-lg fw-bold py-3" onclick="window.startFishing()">
                 <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -654,7 +658,7 @@
                 // Biggest Fish Weight
                 let maxRaw = 0, maxDisp = "-";
                 fishData.forEach(f => { if((f.raw||0) > maxRaw) { maxRaw = f.raw; maxDisp = `${f.species} (${f.display})`; }});
-                document.getElementById("session_biggest_fish").textContent = maxDisp;
+                document.getElementById("saved_view_biggest_fish").textContent = maxDisp;
             } else {
                 const totalLen = fishData.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);
                 document.getElementById("session_total_len").textContent = totalLen;
