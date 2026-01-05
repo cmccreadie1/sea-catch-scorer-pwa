@@ -18,7 +18,7 @@
     <style>
         :root {
             --primary-dark: #0f172a; 
-            --app-blue: #0ea5e9; /* The Main "Sea Score" Blue */
+            --app-blue: #0ea5e9; 
             --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
             --card-bg: #ffffff;
             --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
@@ -44,8 +44,19 @@
         }
         .new-catch-anim { animation: slideFlash 1.5s ease-out; }
 
-        /* LOGO */
-        .logo-svg { width: 140px; height: 140px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); margin-bottom: 30px; }
+        /* SPLASH & LOGO */
+        .splash-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white;
+            text-align: center; padding: 20px;
+        }
+        .logo-svg { 
+            width: 140px; 
+            height: 140px; 
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); 
+            margin: 0 auto 30px auto; 
+            display: block; 
+        }
         .radar-sweep { transform-origin: 100px 100px; animation: scan 4s linear infinite; }
         @keyframes scan { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .version-tag { font-size: 0.8rem; color: #94a3b8; margin-bottom: 40px; letter-spacing: 2px; text-transform: uppercase; }
@@ -73,12 +84,11 @@
             letter-spacing: 0.5px;
         }
         
-        /* FORCE WHITE BACKGROUND ON INPUTS TO FIX DARK MODE ISSUES */
         .form-control, .form-select { 
             border-radius: 12px; 
             font-weight: 500; 
-            background-color: #ffffff !important; /* Force White */
-            color: #1e293b !important; /* Force Dark Text */
+            background-color: #ffffff !important; 
+            color: #1e293b !important; 
             border: 1px solid #cbd5e1;
         }
         
@@ -92,7 +102,7 @@
         
         /* UNIFIED BLUE BUTTON THEME */
         .btn-primary, .btn-success, .btn-camera { 
-            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); /* Sea Blue Gradient */
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); 
             color: white; 
             box-shadow: 0 4px 6px rgba(14, 165, 233, 0.25);
         }
@@ -172,7 +182,7 @@
 </head>
 <body>
     <div id="splashScreen" class="splash-screen">
-        <svg class="logo-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <svg class="logo-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
             <circle cx="100" cy="100" r="90" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="10,5"/>
             <circle cx="100" cy="100" r="65" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
             <circle cx="100" cy="100" r="40" fill="#0ea5e9"/>
@@ -181,7 +191,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-4 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 113.0</p>
+        <p class="version-tag">Version 115.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-home btn-lg fw-bold py-3" onclick="window.startFishing()">
                 <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -287,7 +297,7 @@
             
             <div class="row g-3 pt-3 border-top">
                 <div class="col-6"><button class="btn btn-primary btn-lg w-100 py-3 shadow-sm" onclick="window.addFishTextOnly()"><i class="bi bi-check-lg me-1"></i> Record Fish</button></div>
-                <div class="col-6"><button class="btn btn-primary btn-lg w-100 py-3 shadow-sm" onclick="window.triggerCamera()"><i class="bi bi-camera-fill me-1"></i> With Photo</button></div>
+                <div class="col-6"><button class="btn btn-primary btn-lg w-100 py-3 shadow-sm" onclick="window.triggerCamera()"><i class="bi bi-camera-fill me-1"></i> Record With Photo (Optional)</button></div>
             </div>
         </div>
         
@@ -673,8 +683,8 @@
                 
                 // Biggest Fish Weight
                 let maxRaw = 0, maxDisp = "-";
-                fishData.forEach(f => { if((f.raw||0) > maxRaw) { maxRaw = f.raw; maxDisp = `${f.species} (${f.display})`; }});
-                document.getElementById("session_biggest_fish").textContent = maxDisp;
+                fishArr.forEach(f => { if((f.raw||0) > maxRaw) { maxRaw = f.raw; maxDisp = `${f.species} (${f.display})`; }});
+                document.getElementById("saved_view_biggest_fish").textContent = maxDisp;
             } else {
                 const totalLen = fishData.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);
                 document.getElementById("session_total_len").textContent = totalLen;
