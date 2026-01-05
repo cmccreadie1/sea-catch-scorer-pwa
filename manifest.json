@@ -1,11 +1,11 @@
 {
-  "name": "Sea Catch Scorer",
-  "short_name": "CatchScorer",
+  "name": "Sea Score",
+  "short_name": "SeaScore",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0e2a47",
-  "theme_color": "#0e2a47",
-  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icon.png",
