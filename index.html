@@ -56,36 +56,24 @@
         .form-label { font-weight: 700; color: var(--primary-color); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px; }
         .form-control, .form-select { border-radius: 12px; padding: 12px 16px; font-weight: 500; background-color: #f8fafc; border: 1px solid #cbd5e1; }
         .btn { border-radius: 50px; padding: 12px 24px; font-weight: 600; text-transform: uppercase; border: none; }
-        .btn-primary { background: linear-gradient(to right, #0f172a, #334155); }
-        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        
+        /* HOME BUTTONS - BOTH WHITE NOW */
+        .btn-home { background: white; color: var(--primary-color); border: 2px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 100%; margin-bottom: 15px; transition: transform 0.1s; }
+        .btn-home:active { transform: scale(0.98); }
+        .btn-home-secondary { background: rgba(255,255,255,0.9); color: #334155; border: none; }
+
+        .btn-primary { background: linear-gradient(to right, #0f172a, #334155); color: white; }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
         .btn-camera { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
         .btn-whatsapp { background-color: #25D366; color: white; }
         
         /* LIVE SCOREBOARD */
         .live-score-box {
-            border: 3px solid var(--accent-color);
-            background-color: white;
-            border-radius: 16px;
-            padding: 10px;
-            text-align: center;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-md);
+            border: 3px solid var(--accent-color); background-color: white; border-radius: 16px;
+            padding: 10px; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md);
         }
-        .live-score-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: #64748b;
-            letter-spacing: 1px;
-            margin-bottom: 0px;
-        }
-        .live-score-value {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--primary-color);
-            line-height: 1;
-            font-family: 'Poppins', sans-serif;
-        }
+        .live-score-label { font-size: 0.85rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 1px; margin-bottom: 0px; }
+        .live-score-value { font-size: 3rem; font-weight: 800; color: var(--primary-color); line-height: 1; font-family: 'Poppins', sans-serif; }
 
         /* PHOTO THUMBNAILS */
         .fish-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; float: right; margin-left: 10px; }
@@ -138,10 +126,14 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-5 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 101.0</p>
-        <div class="d-grid gap-3 col-10 col-md-6">
-            <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
-            <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Scorecards</button>
+        <p class="version-tag">Version 102.0</p>
+        <div class="d-grid gap-2 col-10 col-md-6">
+            <button class="btn btn-home btn-lg fw-bold" onclick="window.startFishing()">
+                <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
+            </button>
+            <button class="btn btn-home btn-home-secondary btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">
+                <i class="bi bi-journal-album me-2"></i> View History
+            </button>
             <button id="btnInstall" class="btn btn-info btn-sm rounded-pill mt-2 text-white fw-bold" style="display:none;">Install App</button>
         </div>
     </div>
@@ -243,7 +235,16 @@
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold text-primary">Scorecards</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
-                    <div id="savedScorecardsList"><div id="recentList"></div></div>
+                    <h6 class="text-muted small text-uppercase fw-bold mb-3">Recent (Last 4)</h6>
+                    <div id="recentList"></div>
+                    
+                    <div id="archiveSection" style="display:none; border-top:1px dashed #cbd5e1; margin-top:20px; padding-top:20px;">
+                        <button class="btn btn-outline-secondary w-100" onclick="document.getElementById('archiveList').style.display='block'; this.style.display='none';">
+                            <i class="bi bi-archive me-2"></i> View Archive (<span id="archiveCount">0</span>)
+                        </button>
+                        <div id="archiveList" style="display:none; margin-top:15px;"></div>
+                    </div>
+
                     <div id="fullScorecardView" style="display:none;">
                         <div class="inner-card p-3 mb-3 text-center">
                             <h4 id="saved_view_angler" class="fw-bold text-primary m-0"></h4>
@@ -473,7 +474,35 @@
             } catch(err) { alert("Error: " + err.message); }
         };
 
-        window.loadSavedScorecards=function(){const e=document.getElementById("recentList");e.innerHTML="";const t=StorageHelper.getAll();Object.keys(t).sort().reverse().forEach(n=>{if(n.startsWith("scorecard_")){const a=JSON.parse(t[n]),o=window.calculatePoints(a.fishData,a.scoringMethod);e.innerHTML+=`<div class="inner-card p-3 mb-2"><div class="d-flex justify-content-between align-items-center"><div onclick="window.viewSaved('${n}')" style="flex-grow:1; cursor:pointer;"><div class="fw-bold text-dark">${a.venue}</div><div class="small text-muted">${window.formatDate(a.date)} <span class="badge bg-primary bg-opacity-10 text-primary ms-2">${o} pts</span></div></div><div class="card-actions"><button class="btn-card-icon delete" onclick="window.deleteScorecard('${n}')"><i class="bi bi-trash"></i></button><button class="btn-card-icon view" onclick="window.viewSaved('${n}')"><i class="bi bi-chevron-right"></i></button></div></div></div>`}})};
+        window.loadSavedScorecards=function(){
+            const e=document.getElementById("recentList"); e.innerHTML="";
+            const archiveList = document.getElementById("archiveList"); archiveList.innerHTML="";
+            const archiveSection = document.getElementById("archiveSection");
+            const allKeys=Object.keys(StorageHelper.getAll()).filter(k=>k.startsWith('scorecard_')).sort().reverse();
+            
+            if(allKeys.length === 0) { e.innerHTML = '<div class="text-muted text-center small p-3">No saved history yet.</div>'; return; }
+
+            // Split Logic (Recent 4 vs Rest)
+            const recents = allKeys.slice(0, 4);
+            const older = allKeys.slice(4);
+
+            const renderCard = (k, container) => {
+                const a=JSON.parse(StorageHelper.get(k));
+                const o=window.calculatePoints(a.fishData,a.scoringMethod);
+                container.innerHTML+=`<div class="inner-card p-3 mb-2"><div class="d-flex justify-content-between align-items-center"><div onclick="window.viewSaved('${k}')" style="flex-grow:1; cursor:pointer;"><div class="fw-bold text-dark">${a.venue}</div><div class="small text-muted">${window.formatDate(a.date)} <span class="badge bg-primary bg-opacity-10 text-primary ms-2">${o} pts</span></div></div><div class="card-actions"><button class="btn-card-icon delete" onclick="window.deleteScorecard('${k}')"><i class="bi bi-trash"></i></button><button class="btn-card-icon view" onclick="window.viewSaved('${k}')"><i class="bi bi-chevron-right"></i></button></div></div></div>`;
+            };
+
+            recents.forEach(k => renderCard(k, e));
+
+            if(older.length > 0) {
+                archiveSection.style.display = 'block';
+                document.getElementById('archiveCount').textContent = older.length;
+                older.forEach(k => renderCard(k, archiveList));
+            } else {
+                archiveSection.style.display = 'none';
+            }
+        };
+
         window.deleteScorecard=function(e){confirm("Delete scorecard?")&&(StorageHelper.remove(e),window.loadSavedScorecards())};window.deleteCurrentSaved=function(){currentSavedKey&&confirm("Delete scorecard?")&&(StorageHelper.remove(currentSavedKey),window.backToScorecardList())};window.updateSavedNote=function(){if(currentSavedKey){const e=document.getElementById("saved_view_notes_input").value,t=JSON.parse(StorageHelper.get(currentSavedKey));t.notes=e,StorageHelper.save(currentSavedKey,JSON.stringify(t)),alert("Note updated!")}};
         window.viewSaved=function(e){const t=JSON.parse(StorageHelper.get(e));if(!t)return;currentSavedKey=e,document.getElementById("saved_view_angler").textContent=t.angler,document.getElementById("saved_view_date").textContent=window.formatDate(t.date),document.getElementById("saved_view_venue").textContent=t.venue,t.isComp?(document.getElementById("saved_view_comp_details").style.display="inline-block",document.getElementById("saved_view_zone").textContent=t.zone,document.getElementById("saved_view_peg").textContent=t.peg,document.getElementById("saved_view_comp_details").style.display="inline-block"):(document.getElementById("saved_view_comp_details").style.display="none");const n=window.calculatePoints(t.fishData,t.scoringMethod);document.getElementById("saved_view_points").textContent=n,document.getElementById("saved_view_total_fish").textContent=t.fishData.length,document.getElementById("saved_view_species_count").textContent=new Set(t.fishData.map(e=>e.species)).size,document.getElementById("saved_view_total_len").textContent=t.fishData.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);const a=document.getElementById("saved_view_biggest_fish_card");if("species_hunt"===t.scoringMethod)a.style.display="none";else{a.style.display="block";let e=0,n="-";t.fishData.forEach(t=>{t.length>e&&(e=t.length,n=`${t.species} (${t.length}cm)`)}),document.getElementById("saved_view_biggest_fish").textContent=n}const o=document.getElementById("saved_view_verif");t.isComp&&t.verified?(o.style.display="block",o.textContent=`Verified by: ${t.witness}`):o.style.display="none",document.getElementById("saved_view_notes_input").value=t.notes||"";const s=document.getElementById("saved_view_breakdown");s.innerHTML="";if("species_hunt"===t.scoringMethod){const e={};t.fishData.forEach(t=>{e[t.species]||(e[t.species]=0),e[t.species]++});for(const t in e){const n=e[t];let a=0,o="";for(let e=1;e<=3;e++){let t=n>=e?"active":"",s=3===e?"gold":1===e?"bronze":"silver",c=1===e||2===e?30:40;n>=e&&(a+=c),o+=`<span class="pip ${s} ${t}">${c}</span>`}let s="";n>3&&(a+=n-3,s=`<span class="pip-extra">+${n-3} extra</span>`),c.innerHTML+=`<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${t}</span><span class="sq-points">${a} pts</span></div><div class="sq-pips">${o}${s}</div></div>`}}else{let e='<table class="table-custom"><tbody>';t.fishData.forEach(t=>{const ph=t.photo?`<img src="${t.photo}" class="fish-thumb" onclick="window.viewImage('${t.photo}')">`:'';e+=`<tr><td>${t.species}</td><td class="text-end fw-bold">${t.length} cm ${ph}</td></tr>`}),e+="</tbody></table>",s.innerHTML=e}document.getElementById("savedScorecardsList").style.display="none",document.getElementById("fullScorecardView").style.display="block"};
         window.backToScorecardList=function(){document.getElementById("fullScorecardView").style.display="none",document.getElementById("savedScorecardsList").style.display="block"};
