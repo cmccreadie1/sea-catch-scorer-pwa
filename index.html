@@ -104,7 +104,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-5 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 94.0</p>
+        <p class="version-tag">Version 97.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
             <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Scorecards</button>
@@ -155,18 +155,21 @@
         </div>
         <div class="inner-card mb-4" style="background: #f8fafc;">
             <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="window.handleCameraInput()">
+
             <div class="mb-3">
                 <label class="form-label text-primary">Species</label>
                 <select id="speciesInput" class="form-select form-select-lg" onchange="window.toggleCustomSpeciesInput()"><option value="" selected>Select Fish...</option></select>
                 <input type="text" id="customSpeciesInput" class="form-control mt-2" placeholder="Enter Name" style="display:none;">
             </div>
+            
             <div class="mb-3" id="lengthInputContainer">
                 <label class="form-label text-primary">Length (cm)</label>
                 <input type="number" id="lengthInput" class="form-control form-control-lg" placeholder="0">
             </div>
-            <div class="row g-2 pt-2 border-top">
+            
+            <div class="row g-3 pt-3 border-top">
                 <div class="col-6"><button class="btn btn-success w-100 py-3 shadow-sm" onclick="window.addFishTextOnly()"><i class="bi bi-check-lg me-1"></i> Record Fish</button></div>
-                <div class="col-6"><button class="btn btn-camera w-100 py-3 shadow-sm" onclick="window.triggerCamera()"><i class="bi bi-camera-fill me-1"></i> With Photo</button></div>
+                <div class="col-6"><button class="btn btn-camera w-100 py-3 shadow-sm" onclick="window.triggerCamera()"><i class="bi bi-camera-fill me-1"></i> With Photo (Optional)</button></div>
             </div>
         </div>
         <h5 class="text-muted fs-6 text-uppercase fw-bold letter-spacing-1 ps-2">Haul History</h5>
@@ -242,7 +245,7 @@
                 <div class="modal-body text-center p-4">
                     <div class="mb-3 text-primary"><i class="bi bi-clock-history fs-1"></i></div>
                     <h4 class="mb-2 fw-bold">Resume Session?</h4>
-                    <p class="text-muted mb-4">Unfinished session found.</p>
+                    <p class="text-muted mb-4">Unfinished session found for <strong id="restoreAnglerName"></strong>.</p>
                     <div class="d-grid gap-2"><button class="btn btn-primary" onclick="window.confirmRestore()">Resume</button><button class="btn btn-outline-secondary" onclick="window.discardRestore()">Start New</button></div>
                 </div>
             </div>
@@ -319,9 +322,10 @@
             document.getElementById("customSpeciesInput").value = "";
             document.getElementById("lengthInput").value = "";
             window.toggleCustomSpeciesInput();
-            window.saveActiveSession();
+            window.saveActiveSession(); // AUTO-SAVE TRIGGER
         }
 
+        // --- RESILIENCE LOGIC ---
         window.saveActiveSession=function(){
             let p='setup';
             if(document.getElementById('anglerFishingPage').style.display==='block')p='fishing';
