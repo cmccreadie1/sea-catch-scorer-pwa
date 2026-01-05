@@ -61,6 +61,32 @@
         .btn-camera { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
         .btn-whatsapp { background-color: #25D366; color: white; }
         
+        /* LIVE SCOREBOARD */
+        .live-score-box {
+            border: 3px solid var(--accent-color);
+            background-color: white;
+            border-radius: 16px;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+        }
+        .live-score-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 1px;
+            margin-bottom: 0px;
+        }
+        .live-score-value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            line-height: 1;
+            font-family: 'Poppins', sans-serif;
+        }
+
         /* PHOTO THUMBNAILS */
         .fish-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; float: right; margin-left: 10px; }
 
@@ -112,7 +138,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-5 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 100.0</p>
+        <p class="version-tag">Version 101.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
             <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Scorecards</button>
@@ -181,11 +207,12 @@
             </div>
         </div>
         
-        <div class="d-flex justify-content-between align-items-end px-2 mb-1">
-            <h5 class="text-muted fs-6 text-uppercase fw-bold letter-spacing-1 m-0">Haul History</h5>
-            <div class="fw-bold text-primary" style="font-size: 0.9rem;">Score: <span id="liveScoreVal">0</span></div>
+        <div class="live-score-box">
+            <div class="live-score-label">Running Score</div>
+            <div class="live-score-value" id="liveScoreVal">0</div>
         </div>
 
+        <h5 class="text-muted fs-6 text-uppercase fw-bold letter-spacing-1 ps-2">Haul History</h5>
         <div class="table-responsive"><table class="table-custom"><tbody id="fishLog"></tbody></table></div>
         <div class="mt-4 pt-3"><button class="btn btn-danger w-100 py-3 shadow" onclick="window.endSession()">Finish Session</button></div>
     </div>
@@ -331,7 +358,6 @@
 
         function finishAddAction() {
             window.updateFishLog();
-            // ANIMATION & FEEDBACK
             const firstRow = document.querySelector('#fishLog tr:first-child');
             if(firstRow) firstRow.classList.add('new-catch-anim');
             if(navigator.vibrate) navigator.vibrate(50); 
@@ -425,7 +451,7 @@
                 e.appendChild(c)
             });
             
-            // UPDATE LIVE SCORE
+            // UPDATE LIVE SCOREBOARD
             const currentScore = window.calculatePoints(fishData, currentScoringMethod);
             document.getElementById('liveScoreVal').textContent = currentScore;
         };
