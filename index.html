@@ -1,33 +1,832 @@
-const CACHE_NAME = 'sea-score-v107';
-const FILES_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon.png',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
-];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Sea Score</title>
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-self.addEventListener('install', (e) => {
-  self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(FILES_TO_CACHE);
-    })
-  );
-});
+    <style>
+        :root {
+            --primary-color: #0f172a; 
+            --accent-color: #0ea5e9; 
+            --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+            --card-bg: #ffffff;
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
-});
+        /* --- SIZING FIX: Reverted to standard, handling "Big" via classes instead of Zoom --- */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-gradient); 
+            color: #1e293b; 
+            padding-bottom: 90px;
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevents horizontal scroll */
+        }
+        
+        h1, h2, h3, h4, .btn { font-family: 'Poppins', sans-serif; }
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
-    })
-  );
-});
+        /* ANIMATION */
+        @keyframes slideFlash {
+            0% { background-color: #dcfce7; transform: translateY(-10px); opacity: 0; }
+            30% { background-color: #86efac; opacity: 1; transform: translateY(0); }
+            100% { background-color: white; }
+        }
+        .new-catch-anim { animation: slideFlash 1.5s ease-out; }
+
+        /* SPLASH */
+        .splash-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white;
+            text-align: center; padding: 20px;
+        }
+        .logo-svg { width: 140px; height: 140px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); margin-bottom: 30px; }
+        .version-tag { font-size: 0.8rem; color: #94a3b8; margin-bottom: 40px; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* MAIN LAYOUT CONTAINER */
+        .app-page { display: none; width: 100%; max-width: 600px; margin: 0 auto; padding: 15px 15px 40px 15px; }
+        
+        /* CARDS */
+        .inner-card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 20px; 
+            box-shadow: var(--shadow-md); 
+            margin-bottom: 20px; 
+            border: 1px solid rgba(255,255,255,0.8); 
+        }
+
+        /* INPUTS & BUTTONS - MOBILE OPTIMIZED */
+        .form-label { 
+            font-weight: 700; 
+            color: var(--primary-color); 
+            font-size: 0.85rem; 
+            text-transform: uppercase; 
+            margin-bottom: 8px; 
+            letter-spacing: 0.5px;
+        }
+        
+        .form-control, .form-select { 
+            border-radius: 12px; 
+            font-weight: 500; 
+            background-color: #f8fafc; 
+            border: 1px solid #cbd5e1;
+        }
+        
+        .btn { 
+            border-radius: 50px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            border: none; 
+            letter-spacing: 0.5px;
+        }
+        
+        /* SPECIFIC BUTTON COLORS */
+        .btn-home { background: white; color: var(--primary-color); border: 2px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 100%; margin-bottom: 15px; }
+        .btn-home-secondary { background: rgba(255,255,255,0.9); color: #334155; border: none; }
+        .btn-primary { background: linear-gradient(to right, #0f172a, #334155); color: white; }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .btn-camera { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
+        .btn-whatsapp { background-color: #25D366; color: white; }
+        
+        /* LIVE SCOREBOARD */
+        .live-score-box {
+            border: 3px solid var(--accent-color); background-color: white; border-radius: 16px;
+            padding: 15px; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-md);
+        }
+        .live-score-label { font-size: 0.85rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 1px; margin-bottom: 0px; }
+        .live-score-value { font-size: 3.5rem; font-weight: 800; color: var(--primary-color); line-height: 1; font-family: 'Poppins', sans-serif; }
+
+        /* THUMBNAILS */
+        .fish-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; float: right; margin-left: 10px; }
+
+        /* HEADERS */
+        .app-header { text-align: center; margin-bottom: 20px; margin-top: 10px; }
+        .score-hero-container { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .score-hero-val { font-size: 3.5rem; font-weight: 800; color: var(--primary-color); line-height: 1; }
+        .score-hero-label { font-size: 0.9rem; font-weight: 700; color:#64748b; text-transform: uppercase; margin-bottom: 5px; }
+        
+        /* STATS GRID */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: #ffffff; padding: 12px 5px; border-radius: 14px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
+        .stat-card small { display: block; color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+        .stat-card strong { font-size: 1.2rem; color: #1e293b; font-weight: 700; }
+
+        /* TABLES */
+        .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .table-custom td { background: white; padding: 15px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; vertical-align: middle; transition: background-color 0.5s; font-size: 1.05rem; }
+        .table-custom tr td:first-child { border-left: 1px solid #f1f5f9; border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        .table-custom tr td:last-child { border-right: 1px solid #f1f5f9; border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+        /* BIG SWITCH */
+        .big-switch { display: flex; align-items: center; padding: 12px; background: #ffffff; border-radius: 12px; border: 2px solid #cbd5e1; box-shadow: 0 3px 5px rgba(0,0,0,0.06); }
+        .big-switch .form-check-input { width: 3.2em; height: 1.6em; margin-right: 12px; }
+        .big-switch .form-check-label { font-size: 1rem; font-weight: 600; }
+        
+        /* RULES POPUP */
+        .rule-info-box { background-color: #eff6ff; border-left: 5px solid #3b82f6; color: #1e40af; padding: 15px; border-radius: 8px; font-size: 0.95rem; margin-top: 15px; display: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        .species-quota-card { background: white; border-radius: 16px; padding: 12px 15px; margin-bottom: 10px; box-shadow: var(--shadow-md); border: 1px solid #f1f5f9; }
+        .sq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .sq-name { font-weight: 700; color: var(--primary-color); font-size: 1rem; }
+        .sq-pips { display: flex; align-items: center; gap: 6px; }
+        .pip { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; }
+        .pip.bronze.active { background: #d97706; color: white; }
+        .pip.silver.active { background: #94a3b8; color: white; }
+        .pip.gold.active { background: #eab308; color: white; }
+        .pip-extra { font-size: 0.75rem; color: #64748b; margin-left: auto; font-weight: 500; }
+        
+        /* CARD ACTIONS - FIXED CLICK TARGETS */
+        .card-actions { display: flex; gap: 10px; z-index: 5; position: relative; }
+        .btn-card-icon { width: 40px; height: 40px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .btn-card-icon.view { background: #eff6ff; color: var(--primary-color); }
+        .btn-card-icon.delete { background: #fef2f2; color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div id="splashScreen" class="splash-screen">
+        <svg class="logo-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="90" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="10,5"/>
+            <circle cx="100" cy="100" r="65" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+            <circle cx="100" cy="100" r="40" fill="#0ea5e9"/>
+            <path d="M75,100 Q90,80 115,85 Q130,90 135,100 Q130,110 115,115 Q90,120 75,100" fill="white"/>
+            <path d="M75,100 L65,90 L65,110 Z" fill="white"/>
+            <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
+        </svg>
+        <h1 class="mb-1 display-4 fw-bold">Sea Score</h1>
+        <p class="version-tag">Version 109.0</p>
+        <div class="d-grid gap-3 col-10 col-md-6">
+            <button class="btn btn-home btn-lg fw-bold py-3" onclick="window.startFishing()">
+                <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
+            </button>
+            <button class="btn btn-home btn-home-secondary btn-lg fw-bold py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">
+                <i class="bi bi-journal-album me-2"></i> View History
+            </button>
+            <button id="btnInstall" class="btn btn-info btn-sm rounded-pill mt-2 text-white fw-bold" style="display:none;">Install App</button>
+        </div>
+    </div>
+
+    <div id="anglerRegistration" class="app-page">
+        <div class="app-header"><h2>New Session</h2><p class="text-muted">Setup match details</p></div>
+        <div class="inner-card">
+            <div class="mb-4">
+                <label class="form-label">Angler Name</label>
+                <input type="text" id="anglerName" class="form-control form-control-lg" placeholder="Your Name" oninput="window.saveActiveSession()">
+            </div>
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label">Date</label>
+                    <input type="date" id="competitionDate" class="form-control form-control-lg" onchange="window.saveActiveSession()">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Venue</label>
+                    <input type="text" id="venueInput" class="form-control form-control-lg" placeholder="Location" oninput="window.saveActiveSession()">
+                </div>
+            </div>
+        </div>
+        <div class="inner-card">
+            <div class="section-title mb-2 fw-bold text-primary"><i class="bi bi-calculator"></i> Scoring Rules</div>
+            <select id="scoringMethod" class="form-select form-select-lg" onchange="window.handleMethodChange()">
+                <option value="" disabled selected>Select Scoring Method...</option>
+                <option value="measure_points">Length + 10 Pts (Per Fish)</option>
+                <option value="length_only">Total Length Only</option>
+                <option value="species_hunt">Species Hunt (3=100pts)</option>
+                <option value="weight">Total Weight</option>
+            </select>
+            <div id="speciesHuntInfo" class="rule-info-box"><div class="fw-bold"><i class="bi bi-trophy me-2"></i>Target 3 Fish:</div><ul class="small mb-0 mt-1 ps-3"><li>1st: <strong>30</strong> (Bronze)</li><li>2nd: <strong>30</strong> (Silver)</li><li>3rd: <strong>40</strong> (Gold)</li><li>4th+: <strong>1</strong> pt</li></ul></div>
+            <div id="measurePointsInfo" class="rule-info-box"><div class="fw-bold"><i class="bi bi-ruler me-2"></i>Measure + 10:</div><div class="small mt-1">Score = Total Cm + (Count x 10)</div></div>
+            <div id="weightInfo" class="rule-info-box">
+                <div class="fw-bold"><i class="bi bi-speedometer2 me-2"></i>Total Weight</div>
+                <div class="small mt-1" id="weightUnitDisplay">Select unit...</div>
+            </div>
+        </div>
+        <div class="inner-card">
+            <div class="form-check form-switch big-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="isCompetition" onchange="window.toggleCompetitionFields(); window.saveActiveSession();">
+                <label class="form-check-label" for="isCompetition">Competition Mode</label>
+            </div>
+            <div class="row g-3">
+                <div class="col-6"><select id="zoneInput" class="form-select form-select-lg" disabled onchange="window.saveActiveSession()"><option selected>Zone</option><option>1</option><option>2</option><option>3</option><option>4</option><option>Red</option><option>Yellow</option><option>Green</option><option>Blue</option></select></div>
+                <div class="col-6"><select id="pegInput" class="form-select form-select-lg" disabled onchange="window.saveActiveSession()"><option selected>Peg</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select></div>
+            </div>
+        </div>
+        <div class="d-flex gap-3 mt-4">
+            <button class="btn btn-secondary btn-lg flex-grow-1" onclick="window.resetApp()">Cancel</button>
+            <button class="btn btn-primary btn-lg flex-grow-1 shadow" onclick="window.registerAngler()">Let's Fish <i class="bi bi-arrow-right ms-2"></i></button>
+        </div>
+    </div>
+
+    <div id="anglerFishingPage" class="app-page">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0 fw-bold text-primary">Live Catch</h4>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4" onclick="window.confirmQuit()">Quit</button>
+        </div>
+        <div class="inner-card mb-4" style="background: #f8fafc;">
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="window.handleCameraInput()">
+
+            <div class="mb-4">
+                <label class="form-label text-primary">Species</label>
+                <select id="speciesInput" class="form-select form-select-lg" onchange="window.toggleCustomSpeciesInput()"><option value="" selected>Select Fish...</option></select>
+                <input type="text" id="customSpeciesInput" class="form-control form-control-lg mt-2" placeholder="Enter Name" style="display:none;">
+            </div>
+            
+            <div class="mb-4" id="lengthInputContainer">
+                <label class="form-label text-primary">Length (cm)</label>
+                <input type="number" id="lengthInput" class="form-control form-control-lg" placeholder="0">
+            </div>
+
+            <div class="mb-4" id="weightMetricContainer" style="display:none;">
+                <label class="form-label text-primary">Weight (Kg)</label>
+                <input type="number" id="weightInputKg" class="form-control form-control-lg" placeholder="0.00" step="0.01">
+            </div>
+
+            <div class="mb-4" id="weightImperialContainer" style="display:none;">
+                <label class="form-label text-primary">Weight</label>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="input-group input-group-lg">
+                            <input type="number" id="weightInputLb" class="form-control form-control-lg" placeholder="0">
+                            <span class="input-group-text">lb</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group input-group-lg">
+                            <input type="number" id="weightInputOz" class="form-control form-control-lg" placeholder="0">
+                            <span class="input-group-text">oz</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-3 pt-3 border-top">
+                <div class="col-6"><button class="btn btn-success btn-lg w-100 py-3 shadow-sm" onclick="window.addFishTextOnly()"><i class="bi bi-check-lg me-1"></i> Record Fish</button></div>
+                <div class="col-6"><button class="btn btn-camera btn-lg w-100 py-3 shadow-sm" onclick="window.triggerCamera()"><i class="bi bi-camera-fill me-1"></i> With Photo (Optional)</button></div>
+            </div>
+        </div>
+        
+        <div class="live-score-box">
+            <div class="live-score-label">Running Total</div>
+            <div class="live-score-value" id="liveScoreVal">0</div>
+        </div>
+
+        <h5 class="text-muted fs-6 text-uppercase fw-bold letter-spacing-1 ps-2">Haul History</h5>
+        <div class="table-responsive"><table class="table-custom"><tbody id="fishLog"></tbody></table></div>
+        <div class="mt-4 pt-3"><button class="btn btn-danger btn-lg w-100 py-3 shadow" onclick="window.endSession()">Finish Session</button></div>
+    </div>
+
+    <div id="tallyVerificationPage" class="app-page">
+        <div class="inner-card p-4 mb-4 text-center">
+            <h2 class="text-primary fw-bold mb-0">Session Complete</h2>
+            <div id="session_angler" class="fw-bold text-dark mt-2 fs-4"></div>
+            <div class="text-muted mt-1"><span id="session_date"></span> • <span id="session_venue"></span></div>
+            <div id="session_comp_details" style="display:none;" class="mt-3 badge bg-primary bg-opacity-10 text-primary fs-6">Zone: <span id="session_zone"></span> | Peg: <span id="session_peg"></span></div>
+        </div>
+        <div class="score-hero-container"><div class="score-hero-label">Total Score</div><div id="session_total_points" class="score-hero-val">0</div></div>
+        <div class="stat-grid">
+            <div id="session_biggest_fish_card" class="stat-card border-success" style="grid-column: span 3; border-color: #86efac; background:#f0fdf4;"><small class="text-success">Biggest Fish</small><strong id="session_biggest_fish" class="text-success">-</strong></div>
+            <div class="stat-card"><small>Fish</small><strong id="session_total_fish">0</strong></div>
+            <div class="stat-card"><small>Species</small><strong id="session_species_count">0</strong></div>
+            <div class="stat-card"><small>Score</small><strong id="session_total_len">0</strong></div>
+        </div>
+        <h6 class="text-muted fs-6 mb-2 text-uppercase fw-bold ps-2">Catch Breakdown</h6>
+        <div id="session_breakdown_area"></div>
+        <div class="inner-card p-3 mt-3"><label class="form-label text-muted small"><i class="bi bi-journal-text me-1"></i>Session Notes</label><textarea id="sessionNotesInput" class="form-control form-control-lg" rows="2" placeholder="Add notes..." oninput="window.saveActiveSession()"></textarea></div>
+        <div id="session_verification_box" class="verification-box"><h6 class="fw-bold text-primary mb-2"><i class="bi bi-pen-fill me-2"></i>Steward Sign-off</h6><div class="mb-3"><input type="text" id="witnessNameInput" class="form-control form-control-lg" placeholder="Witness Name"></div><div class="form-check"><input class="form-check-input" type="checkbox" id="witnessCheckbox"><label class="form-check-label small fw-bold text-dark" for="witnessCheckbox">Verified Correct</label></div></div>
+        <div class="d-grid gap-3 mt-4"><button class="btn btn-primary btn-lg shadow" onclick="window.saveAndEndSession()"><i class="bi bi-save me-2"></i> Save & Exit</button><button class="btn btn-whatsapp" onclick="window.shareAsImage('live')"><i class="bi bi-share-fill me-2"></i> Share</button></div>
+    </div>
+
+    <div class="modal fade" id="savedModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold text-primary">Scorecards</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <h6 class="text-muted small text-uppercase fw-bold mb-3">Recent (Last 4)</h6>
+                    <div id="recentList"></div>
+                    
+                    <div id="archiveSection" style="display:none; border-top:1px dashed #cbd5e1; margin-top:20px; padding-top:20px;">
+                        <button class="btn btn-outline-secondary w-100 btn-lg" onclick="document.getElementById('archiveList').style.display='block'; this.style.display='none';">
+                            <i class="bi bi-archive me-2"></i> View Archive (<span id="archiveCount">0</span>)
+                        </button>
+                        <div id="archiveList" style="display:none; margin-top:15px;"></div>
+                    </div>
+
+                    <div id="fullScorecardView" style="display:none;">
+                        <div class="inner-card p-3 mb-3 text-center">
+                            <h4 id="saved_view_angler" class="fw-bold text-primary m-0"></h4>
+                            <div class="text-muted small"><span id="saved_view_date"></span> • <span id="saved_view_venue"></span></div>
+                            <div id="saved_view_comp_details" style="display:none;" class="mt-2 badge bg-primary bg-opacity-10 text-primary">Zone: <span id="saved_view_zone"></span> | Peg: <span id="saved_view_peg"></span></div>
+                            <div id="saved_view_verif" class="mt-2 text-success fw-bold small" style="display:none;"></div>
+                        </div>
+                        <div class="score-hero-container"><div class="score-hero-label">Total Score</div><div id="saved_view_points" class="score-hero-val">0</div></div>
+                        <div class="stat-grid">
+                            <div id="saved_view_biggest_fish_card" class="stat-card border-success" style="grid-column: span 3; border-color: #86efac; background:#f0fdf4;"><small class="text-success">Biggest Fish</small><strong id="saved_view_biggest_fish" class="text-success">-</strong></div>
+                            <div class="stat-card"><small>Fish</small><strong id="saved_view_total_fish">0</strong></div>
+                            <div class="stat-card"><small>Species</small><strong id="saved_view_species_count">0</strong></div>
+                            <div class="stat-card"><small>Score</small><strong id="saved_view_total_len">0</strong></div>
+                        </div>
+                        <h6 class="text-muted fs-7 mb-2 text-uppercase fw-bold ps-2">Catch Breakdown</h6>
+                        <div id="saved_view_breakdown"></div>
+                        <div class="inner-card p-3 mt-3" style="background:#fffbeb; border-color:#fef3c7;"><label class="form-label text-muted small mb-1"><i class="bi bi-journal-text me-1"></i>Notes</label><textarea id="saved_view_notes_input" class="form-control form-control-lg" rows="2"></textarea><button class="btn btn-sm btn-warning w-100 mt-2 text-dark fw-bold" onclick="window.updateSavedNote()">Update Note</button></div>
+                        <div class="d-grid gap-2 mt-4"><button class="btn btn-whatsapp btn-lg" onclick="window.shareAsImage('saved')"><i class="bi bi-share-fill me-2"></i> Share Image</button><button class="btn btn-danger btn-lg" onclick="window.deleteCurrentSaved()"><i class="bi bi-trash me-2"></i> Delete Scorecard</button><button class="btn btn-secondary btn-lg" onclick="window.backToScorecardList()">Back to List</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background:transparent; border:none;">
+                <div class="modal-body p-0 text-center">
+                    <img id="fullSizeImage" src="" style="max-width:100%; border-radius:12px; border:2px solid white;">
+                    <button class="btn btn-sm btn-light mt-3 rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="weightUnitModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-body p-4 text-center">
+                    <h4 class="fw-bold text-primary mb-4">Select Weight Unit</h4>
+                    <div class="d-grid gap-3">
+                        <button class="btn btn-outline-primary btn-lg fw-bold py-3" onclick="window.setWeightUnit('metric')">Metric (Kg)</button>
+                        <button class="btn btn-outline-primary btn-lg fw-bold py-3" onclick="window.setWeightUnit('imperial')">Imperial (Lb/Oz)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="restoreSessionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3 text-primary"><i class="bi bi-clock-history fs-1"></i></div>
+                    <h4 class="mb-2 fw-bold">Resume Session?</h4>
+                    <p class="text-muted mb-4">Unfinished session found for <strong id="restoreAnglerName"></strong>.</p>
+                    <div class="d-grid gap-2"><button class="btn btn-primary btn-lg" onclick="window.confirmRestore()">Resume</button><button class="btn btn-outline-secondary btn-lg" onclick="window.discardRestore()">Start New</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const speciesList=[{category:"Common Species",items:["Cod","Pollack","Coalfish","Whiting","Dab","Flounder","Plaice","Turbot","Dogfish (LSD)","Bull Huss"]},{category:"Round Fish",items:["Bass","Bream (Black)","Bream (Gilthead)","Bream (Red)","Garfish","Gurnard (Grey)","Gurnard (Red)","Gurnard (Tub)","Mackerel","Mullet (Golden)","Mullet (Grey/Thick)","Mullet (Red)","Scad","Weever (Lesser)"]},{category:"Flatfish",items:["Brill","Megrim","Sole (Dover)","Sole (Lemon)","Topknot"]},{category:"Wrasse",items:["Wrasse (Ballan)","Wrasse (Corkwing)","Wrasse (Cuckoo)","Wrasse (Goldsinny)","Wrasse (Rock Cook)"]},{category:"Rockling",items:["Rockling (3-Bearded)","Rockling (5-Bearded)","Rockling (4-Bearded)","Rockling (Shore)"]},{category:"Sharks",items:["Dogfish (Blackmouth)","Smoothhound (Common)","Smoothhound (Starry)","Spurdog","Tope"]},{category:"Rays & Skates",items:["Ray (Blonde)","Ray (Small-eyed)","Ray (Spotted)","Ray (Thornback)","Ray (Undulate)","Stingray"]},{category:"Eels",items:["Eel (Common)","Eel (Conger)","Eel (Silver)"]},{category:"Mini / Rare",items:["Blenny (Common)","Blenny (Tompot)","Dragonet","Goby (Common)","Goby (Rock)","Poor Cod","Pouting (Bib)","Scorpion Fish","Squid","Trigger Fish"]}];
+        let fishData=[],currentAngler=null,currentDate=null,currentVenue=null,currentZone=null,currentPeg=null,currentScoringMethod=null,isCompetitionMode=!1,currentSavedKey=null,pendingRestoreData=null, restoreModalInstance=null, weightModalInstance=null;
+        let selectedWeightUnit = 'metric'; // default
+
+        const PageManager={show:function(e){["splashScreen","anglerRegistration","anglerFishingPage","tallyVerificationPage"].forEach(e=>{document.getElementById(e).style.display="none"});document.getElementById(e).style.display="block";window.scrollTo(0,0)}};
+        const StorageHelper={save:function(e,t){try{localStorage.setItem(e,t)}catch(e){}},get:function(e){try{return localStorage.getItem(e)}catch(e){return null}},remove:function(e){try{localStorage.removeItem(e)}catch(e){}},getAll:function(){const e={};try{for(let t=0;t<localStorage.length;t++){const n=localStorage.key(t);(n.startsWith("scorecard_")||"active_session"===n)&&(e[n]=localStorage.getItem(n))}}catch(e){}return e}};
+
+        window.formatDate=function(e){try{return e?new Date(e).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"N/A"}catch(e){return"N/A"}};
+        window.startFishing=function(){document.getElementById("anglerName").value="";try{const e=new Date,t=e.getFullYear(),n=String(e.getMonth()+1).padStart(2,"0"),a=String(e.getDate()).padStart(2,"0");document.getElementById("competitionDate").value=`${t}-${n}-${a}`}catch(e){}document.getElementById("venueInput").value="";PageManager.show("anglerRegistration");};
+
+        // NEW METHOD HANDLER FOR WEIGHT
+        window.handleMethodChange = function() {
+            const method = document.getElementById("scoringMethod").value;
+            window.checkRuleInfo();
+            if(method === 'weight') {
+                weightModalInstance = new bootstrap.Modal(document.getElementById('weightUnitModal'));
+                weightModalInstance.show();
+            }
+            window.saveActiveSession();
+        };
+
+        window.setWeightUnit = function(unit) {
+            selectedWeightUnit = unit;
+            document.getElementById('weightUnitDisplay').textContent = "Unit: " + (unit==='metric' ? "Metric (Kg)" : "Imperial (Lb/Oz)");
+            if(weightModalInstance) weightModalInstance.hide();
+            window.saveActiveSession();
+        };
+
+        window.validateInputs = function() {
+            const e = document.getElementById("speciesInput"), t = document.getElementById("customSpeciesInput");
+            let a = e.value; if ("Other" === a) a = t.value.trim();
+            if (!a) { alert("Please select a species first."); return null; }
+            
+            let valObj = {};
+            if(currentScoringMethod === 'weight') {
+                if(selectedWeightUnit === 'metric') {
+                    const kg = parseFloat(document.getElementById("weightInputKg").value);
+                    if(isNaN(kg) || kg <= 0) { alert("Enter valid Kg"); return null; }
+                    valObj = { display: `${kg.toFixed(3)} kg`, raw: kg, unit: 'kg' };
+                } else {
+                    const lb = parseFloat(document.getElementById("weightInputLb").value) || 0;
+                    const oz = parseFloat(document.getElementById("weightInputOz").value) || 0;
+                    if(lb===0 && oz===0) { alert("Enter weight"); return null; }
+                    valObj = { display: `${lb}lb ${oz}oz`, raw: (lb*16)+oz, unit: 'oz' };
+                }
+            } else if ("species_hunt" !== currentScoringMethod) {
+                const cm = parseFloat(document.getElementById("lengthInput").value);
+                if (isNaN(cm) || cm <= 0) { alert("Enter length"); return null; }
+                valObj = { length: cm };
+            } else {
+                valObj = { length: 0 }; // Hunt
+            }
+            return { species: a, ...valObj };
+        };
+
+        window.triggerCamera = function() {
+            if(window.validateInputs()) {
+                document.getElementById('cameraInput').click();
+            }
+        };
+
+        window.handleCameraInput = function() {
+            const input = document.getElementById('cameraInput');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const MAX = 600; 
+                        let w = img.width, h = img.height;
+                        if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } } else { if (h > MAX) { w *= MAX/h; h = MAX; } }
+                        canvas.width = w; canvas.height = h;
+                        ctx.drawImage(img, 0, 0, w, h);
+                        const photoData = canvas.toDataURL('image/jpeg', 0.6);
+                        
+                        const data = window.validateInputs();
+                        if(data) {
+                            fishData.push({ ...data, photo: photoData });
+                            finishAddAction();
+                        }
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+            input.value = '';
+        };
+
+        window.addFishTextOnly = function() {
+            const data = window.validateInputs();
+            if(data) {
+                fishData.push({ ...data, photo: null });
+                finishAddAction();
+            }
+        };
+
+        function finishAddAction() {
+            window.updateFishLog();
+            const firstRow = document.querySelector('#fishLog tr:first-child');
+            if(firstRow) firstRow.classList.add('new-catch-anim');
+            if(navigator.vibrate) navigator.vibrate(50); 
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type='sine'; osc.frequency.value=800;
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.1);
+                osc.start(); osc.stop(ctx.currentTime+0.1);
+            } catch(e){}
+
+            // Clear inputs
+            document.getElementById("speciesInput").value = "";
+            document.getElementById("customSpeciesInput").value = "";
+            document.getElementById("lengthInput").value = "";
+            document.getElementById("weightInputKg").value = "";
+            document.getElementById("weightInputLb").value = "";
+            document.getElementById("weightInputOz").value = "";
+            
+            window.toggleCustomSpeciesInput();
+            window.saveActiveSession();
+        }
+
+        window.saveActiveSession=function(){
+            let p='setup';
+            if(document.getElementById('anglerFishingPage').style.display==='block')p='fishing';
+            if(document.getElementById('tallyVerificationPage').style.display==='block')p='tally';
+            const d={phase:p,angler:document.getElementById("anglerName").value,date:document.getElementById("competitionDate").value,venue:document.getElementById("venueInput").value,method:document.getElementById("scoringMethod").value, weightUnit:selectedWeightUnit, isComp:document.getElementById("isCompetition").checked,zone:document.getElementById("zoneInput").value,peg:document.getElementById("pegInput").value,fishData:fishData,notes:document.getElementById("sessionNotesInput").value};
+            StorageHelper.save('active_session',JSON.stringify(d));
+        };
+        
+        window.restoreActiveSession=function(){
+            const s=JSON.parse(StorageHelper.get('active_session'));
+            if(s && (s.angler || s.fishData.length > 0)){
+                document.getElementById('restoreAnglerName').textContent = s.angler || "Unnamed Session";
+                pendingRestoreData = s;
+                restoreModalInstance = new bootstrap.Modal(document.getElementById('restoreSessionModal'));
+                restoreModalInstance.show();
+            }
+        };
+
+        window.confirmRestore=function(){
+            const d=pendingRestoreData;
+            fishData=d.fishData||[];currentAngler=d.angler;currentDate=d.date;currentVenue=d.venue;currentScoringMethod=d.method;selectedWeightUnit=d.weightUnit||'metric';isCompetitionMode=d.isComp;currentZone=d.zone;currentPeg=d.peg;
+            document.getElementById("anglerName").value=d.angler;
+            document.getElementById("competitionDate").value=d.date;
+            document.getElementById("venueInput").value=d.venue;
+            document.getElementById("scoringMethod").value=d.method;
+            document.getElementById("isCompetition").checked=d.isComp;
+            document.getElementById("zoneInput").value=d.zone;
+            document.getElementById("pegInput").value=d.peg;
+            document.getElementById("sessionNotesInput").value=d.notes||"";
+            document.getElementById('weightUnitDisplay').textContent = "Unit: " + (selectedWeightUnit==='metric' ? "Metric (Kg)" : "Imperial (Lb/Oz)");
+            
+            window.populateSpeciesDropdown();
+            window.toggleCompetitionFields();
+            window.checkRuleInfo();
+            if(d.phase==='fishing'){
+                window.setupFishingUI();
+                PageManager.show('anglerFishingPage');
+                window.updateFishLog();
+            } else if(d.phase==='tally'){
+                window.endSession();
+            } else {
+                PageManager.show('anglerRegistration');
+            }
+            if(restoreModalInstance) restoreModalInstance.hide();
+        };
+
+        window.discardRestore=function(){
+            StorageHelper.remove('active_session');
+            window.startFishing();
+            if(restoreModalInstance) restoreModalInstance.hide();
+        };
+
+        window.checkRuleInfo=function(){const e=document.getElementById("scoringMethod").value,t=["speciesHuntInfo","measurePointsInfo","weightInfo"];t.forEach(e=>document.getElementById(e).style.display="none"),"species_hunt"===e?document.getElementById("speciesHuntInfo").style.display="block":"measure_points"===e?document.getElementById("measurePointsInfo").style.display="block":"weight"===e&&(document.getElementById("weightInfo").style.display="block")};
+        window.populateSpeciesDropdown=function(){const e=document.getElementById("speciesInput");e.innerHTML='<option value="" selected>Select Fish...</option><option value="Other">Other (specify)</option>',speciesList.forEach(t=>{const n=document.createElement("optgroup");n.label=t.category,t.items.sort().forEach(t=>{const a=document.createElement("option");a.value=t,a.textContent=t,n.appendChild(a)}),e.appendChild(n)})};
+        
+        // --- SCORING CALCULATION UPDATED FOR WEIGHT ---
+        window.calculatePoints=function(e,t,unit){
+            if("species_hunt"===t){
+                const n={};let a=0;return e.forEach(e=>{n[e.species]||(n[e.species]=0),n[e.species]++;const t=n[e.species];1===t?a+=30:2===t?a+=30:3===t?a+=40:a+=1}),a
+            }
+            if("weight"===t){
+                // SUM WEIGHTS
+                let total = e.reduce((sum, item) => sum + (item.raw || 0), 0);
+                if(unit === 'metric') return total.toFixed(3) + " kg";
+                else {
+                    let lbs = Math.floor(total/16);
+                    let oz = total % 16;
+                    return `${lbs}lb ${oz}oz`;
+                }
+            }
+            if("length_only"===t) return Math.round(e.reduce((e,t)=>e+parseFloat(t.length||0),0));
+            {const n=e.reduce((e,t)=>e+parseFloat(t.length||0),0);return Math.round(10*e.length+n)}
+        };
+        
+        window.registerAngler=function(){const e=document.getElementById("anglerName").value.trim(),t=document.getElementById("competitionDate").value,n=document.getElementById("venueInput").value.trim(),a=document.getElementById("scoringMethod").value,o=document.getElementById("isCompetition").checked;if(!a)return alert("Select Scoring Method");if(!e||!t||!n)return alert("Fill in Name, Date and Venue");currentAngler=e,currentDate=t,currentVenue=n,currentScoringMethod=a,isCompetitionMode=o,o?(currentZone=document.getElementById("zoneInput").value,currentPeg=document.getElementById("pegInput").value):(currentZone="-",currentPeg="-"),fishData=[],window.populateSpeciesDropdown();window.setupFishingUI();PageManager.show("anglerFishingPage"),window.updateFishLog();window.saveActiveSession()};
+        
+        window.setupFishingUI=function(){
+            document.getElementById("lengthInputContainer").style.display="none";
+            document.getElementById("weightMetricContainer").style.display="none";
+            document.getElementById("weightImperialContainer").style.display="none";
+            
+            if(currentScoringMethod === 'weight') {
+                if(selectedWeightUnit === 'metric') document.getElementById("weightMetricContainer").style.display="block";
+                else document.getElementById("weightImperialContainer").style.display="block";
+            } else if(currentScoringMethod !== 'species_hunt') {
+                document.getElementById("lengthInputContainer").style.display="block";
+            }
+        };
+        
+        window.updateFishLog=function(){
+            const e=document.getElementById("fishLog");e.innerHTML="";const t=[],n={};
+            fishData.forEach(e=>{
+                if(!n[e.species])n[e.species]=0;n[e.species]++;const a=n[e.species];
+                if("species_hunt"===currentScoringMethod) {
+                    1===a?t.push({lbl:"1st: Starter (+30)",cls:"bg-success"}):2===a?t.push({lbl:"2nd: Builder (+30)",cls:"bg-info text-dark"}):3===a?t.push({lbl:"3rd: Full House (+40)",cls:"bg-warning text-dark"}):t.push({lbl:"Extra (+1)",cls:"bg-secondary"});
+                } else if("weight"===currentScoringMethod) {
+                    t.push({lbl: e.display, cls: "bg-transparent text-primary fs-5"});
+                } else {
+                    t.push({lbl:`${e.length} cm`,cls:"bg-transparent text-primary fs-5"});
+                }
+            });
+            [...fishData].reverse().forEach((n,a)=>{
+                const o=fishData.length-1-a,s=t[o],c=document.createElement("tr");
+                const photoHtml = n.photo ? `<img src="${n.photo}" class="fish-thumb" onclick="window.viewImage('${n.photo}')">` : '';
+                const i="species_hunt"===currentScoringMethod?`<span class="badge ${s.cls}" style="font-size:0.75rem;">${s.lbl}</span>`:`<span class="fw-bold fs-5 text-primary">${s.lbl}</span>`;
+                c.innerHTML=`<td class="align-middle"><div class="fw-bold text-dark">${n.species}</div><div class="d-flex align-items-center mt-1">${i}${photoHtml}</div></td><td class="text-end align-middle"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${o})"><i class="bi bi-trash"></i></button></td>`;
+                e.appendChild(c)
+            });
+            const currentScore = window.calculatePoints(fishData, currentScoringMethod, selectedWeightUnit);
+            document.getElementById('liveScoreVal').textContent = currentScore;
+        };
+        window.viewImage=function(src){document.getElementById('fullSizeImage').src=src; new bootstrap.Modal(document.getElementById('imageModal')).show()};
+        window.deleteFish=function(e){confirm("Delete catch?")&&(fishData.splice(e,1),window.updateFishLog(),window.saveActiveSession())};
+        
+        window.endSession=function(){
+            PageManager.show("tallyVerificationPage");
+            document.getElementById("session_angler").textContent=currentAngler;
+            document.getElementById("session_date").textContent=window.formatDate(currentDate);
+            document.getElementById("session_venue").textContent=currentVenue;
+            
+            const e=document.getElementById("session_comp_details"),t=document.getElementById("session_verification_box");
+            isCompetitionMode?(e.style.display="inline-block",document.getElementById("session_zone").textContent=currentZone,document.getElementById("session_peg").textContent=currentPeg,t.style.display="block"):(e.style.display="none",t.style.display="none");
+            
+            const n=document.getElementById("session_biggest_fish_card");
+            "species_hunt"===currentScoringMethod?n.style.display="none":n.style.display="block";
+            
+            const score = window.calculatePoints(fishData, currentScoringMethod, selectedWeightUnit);
+            document.getElementById("session_total_points").textContent=score;
+            document.getElementById("session_total_fish").textContent=fishData.length;
+            document.getElementById("session_species_count").textContent=new Set(fishData.map(e=>e.species)).size;
+            
+            // Handle Total CM/Weight Card Label
+            let totalLabel = "Score";
+            if(currentScoringMethod === 'measure_points' || currentScoringMethod === 'length_only') totalLabel = "Total Cm";
+            if(currentScoringMethod === 'weight') totalLabel = "Weight";
+            const lenCard = document.querySelector("#session_total_len").parentNode;
+            lenCard.querySelector("small").textContent = totalLabel;
+            
+            if(currentScoringMethod === 'weight') {
+                document.getElementById("session_total_len").textContent = score; // Use the formatted string
+                
+                // Biggest Fish Weight
+                let maxRaw = 0, maxDisp = "-";
+                fishData.forEach(f => { if((f.raw||0) > maxRaw) { maxRaw = f.raw; maxDisp = `${f.species} (${f.display})`; }});
+                document.getElementById("session_biggest_fish").textContent = maxDisp;
+            } else {
+                const totalLen = fishData.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);
+                document.getElementById("session_total_len").textContent = totalLen;
+                
+                let o=0,s="-";
+                fishData.forEach(e=>{if(e.length>o){o=e.length;s=`${e.species} (${e.length}cm)`}});
+                document.getElementById("session_biggest_fish").textContent=s;
+            }
+
+            const c=document.getElementById("session_breakdown_area");
+            c.innerHTML="";
+            
+            if("species_hunt"===currentScoringMethod){
+                const e={};fishData.forEach(t=>{e[t.species]||(e[t.species]=0),e[t.species]++});for(const t in e){const n=e[t];let a=0,o="";for(let e=1;e<=3;e++){let t=n>=e?"active":"",s=3===e?"gold":1===e?"bronze":"silver",c=1===e||2===e?30:40;n>=e&&(a+=c),o+=`<span class="pip ${s} ${t}">${c}</span>`}let s="";n>3&&(a+=n-3,s=`<span class="pip-extra">+${n-3} extra</span>`),c.innerHTML+=`<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${t}</span><span class="sq-points">${a} pts</span></div><div class="sq-pips">${o}${s}</div></div>`}
+            } else {
+                let e='<table class="table-custom"><tbody>';
+                fishData.forEach(t=>{
+                    const val = currentScoringMethod==='weight' ? t.display : `${t.length} cm`;
+                    const ph=t.photo?`<img src="${t.photo}" class="fish-thumb" onclick="window.viewImage('${t.photo}')">`:'';
+                    e+=`<tr><td>${t.species}</td><td class="text-end fw-bold">${val} ${ph}</td></tr>`
+                });
+                e+="</tbody></table>",c.innerHTML=e;
+            }
+            window.saveActiveSession();
+        };
+        
+        window.saveAndEndSession=function(){
+            if(fishData.length === 0 && !confirm("No fish recorded. Save empty scorecard?")) return;
+            try {
+                const e=document.getElementById("witnessNameInput").value;
+                const t=document.getElementById("witnessCheckbox").checked;
+                const n=document.getElementById("sessionNotesInput").value;
+                const a={angler:currentAngler,date:currentDate,venue:currentVenue,scoringMethod:currentScoringMethod, weightUnit:selectedWeightUnit, isComp:isCompetitionMode,zone:currentZone,peg:currentPeg,fishData:fishData,witness:e,verified:t,notes:n};
+                StorageHelper.save(`scorecard_${Date.now()}`,JSON.stringify(a));
+                StorageHelper.remove('active_session');
+                alert("Scorecard Saved Successfully!");
+                window.resetApp();
+            } catch(err) { alert("Error: " + err.message); }
+        };
+
+        window.loadSavedScorecards = function() {
+            const recentContainer = document.getElementById("recentList");
+            const archiveContainer = document.getElementById("archiveList");
+            const archiveSection = document.getElementById("archiveSection");
+            const countSpan = document.getElementById("archiveCount");
+            
+            recentContainer.innerHTML = "";
+            archiveContainer.innerHTML = "";
+            
+            const allKeys = Object.keys(StorageHelper.getAll())
+                .filter(k => k.startsWith('scorecard_'))
+                .sort().reverse();
+
+            if (allKeys.length === 0) {
+                recentContainer.innerHTML = '<div class="text-muted text-center small p-3">No history found.</div>';
+                archiveSection.style.display = 'none';
+                return;
+            }
+
+            const recents = allKeys.slice(0, 4);
+            const older = allKeys.slice(4);
+
+            const getCardHtml = (k) => {
+                let data;
+                try { data = JSON.parse(StorageHelper.get(k)); } catch(e) { return ''; }
+                if (!data) return '';
+                const pts = window.calculatePoints(data.fishData || [], data.scoringMethod, data.weightUnit);
+                const dateStr = window.formatDate(data.date);
+                
+                // CLICK LOGIC: Wrapper opens card, buttons act separately.
+                return `
+                <div class="inner-card p-3 mb-2" onclick="window.viewSaved('${k}')" style="cursor:pointer; position:relative;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div style="flex-grow:1;">
+                            <div class="fw-bold text-dark">${data.venue || 'Unknown Venue'}</div>
+                            <div class="small text-muted">
+                                ${dateStr} <span class="badge bg-primary bg-opacity-10 text-primary ms-2">${pts}</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-card-icon delete" onclick="event.stopPropagation(); window.deleteScorecard('${k}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button class="btn-card-icon view" onclick="event.stopPropagation(); window.viewSaved('${k}')">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            };
+
+            recentContainer.innerHTML = recents.map(k => getCardHtml(k)).join('');
+            if (older.length > 0) {
+                archiveSection.style.display = 'block';
+                countSpan.textContent = older.length;
+                archiveContainer.innerHTML = older.map(k => getCardHtml(k)).join('');
+            } else {
+                archiveSection.style.display = 'none';
+            }
+        };
+
+        window.deleteScorecard=function(e){confirm("Delete scorecard?")&&(StorageHelper.remove(e),window.loadSavedScorecards())};window.deleteCurrentSaved=function(){currentSavedKey&&confirm("Delete scorecard?")&&(StorageHelper.remove(currentSavedKey),window.backToScorecardList())};window.updateSavedNote=function(){if(currentSavedKey){const e=document.getElementById("saved_view_notes_input").value,t=JSON.parse(StorageHelper.get(currentSavedKey));t.notes=e,StorageHelper.save(currentSavedKey,JSON.stringify(t)),alert("Note updated!")}};
+        
+        window.viewSaved=function(e){
+            const t=JSON.parse(StorageHelper.get(e));
+            if(!t)return;
+            currentSavedKey=e;
+            document.getElementById("saved_view_angler").textContent=t.angler;
+            document.getElementById("saved_view_date").textContent=window.formatDate(t.date);
+            document.getElementById("saved_view_venue").textContent=t.venue;
+            t.isComp?(document.getElementById("saved_view_comp_details").style.display="inline-block",document.getElementById("saved_view_zone").textContent=t.zone,document.getElementById("saved_view_peg").textContent=t.peg,document.getElementById("saved_view_comp_details").style.display="inline-block"):(document.getElementById("saved_view_comp_details").style.display="none");
+            
+            const fishArr = t.fishData || [];
+            const score = window.calculatePoints(fishArr, t.scoringMethod, t.weightUnit);
+            
+            document.getElementById("saved_view_points").textContent=score;
+            document.getElementById("saved_view_total_fish").textContent=fishArr.length;
+            document.getElementById("saved_view_species_count").textContent=new Set(fishArr.map(e=>e.species)).size;
+            
+            // Handle Labels
+            let totalLabel = "Score";
+            if(t.scoringMethod === 'weight') totalLabel = "Weight";
+            else if(t.scoringMethod !== 'species_hunt') totalLabel = "Total Cm";
+            const lenCard = document.querySelector("#saved_view_total_len").parentNode;
+            lenCard.querySelector("small").textContent = totalLabel;
+
+            if(t.scoringMethod === 'weight') {
+                document.getElementById("saved_view_total_len").textContent = score;
+                // Biggest Fish Weight
+                let maxRaw = 0, maxDisp = "-";
+                fishArr.forEach(f => { if((f.raw||0) > maxRaw) { maxRaw = f.raw; maxDisp = `${f.species} (${f.display})`; }});
+                document.getElementById("saved_view_biggest_fish").textContent = maxDisp;
+            } else {
+                document.getElementById("saved_view_total_len").textContent=fishArr.reduce((e,t)=>e+parseFloat(t.length||0),0).toFixed(1);
+                let e=0,n="-";
+                fishArr.forEach(t=>{if(t.length>e){e=t.length;n=`${t.species} (${t.length}cm)`}});
+                document.getElementById("saved_view_biggest_fish").textContent=n;
+            }
+
+            const a=document.getElementById("saved_view_biggest_fish_card");
+            if("species_hunt"===t.scoringMethod)a.style.display="none"; else a.style.display="block";
+            
+            const o=document.getElementById("saved_view_verif");
+            t.isComp&&t.verified?(o.style.display="block",o.textContent=`Verified by: ${t.witness}`):o.style.display="none";
+            document.getElementById("saved_view_notes_input").value=t.notes||"";
+            
+            const s=document.getElementById("saved_view_breakdown");
+            s.innerHTML="";
+            
+            if("species_hunt"===t.scoringMethod){
+                const e={};fishArr.forEach(t=>{e[t.species]||(e[t.species]=0),e[t.species]++});for(const t in e){const n=e[t];let a=0,o="";for(let e=1;e<=3;e++){let t=n>=e?"active":"",s=3===e?"gold":1===e?"bronze":"silver",c=1===e||2===e?30:40;n>=e&&(a+=c),o+=`<span class="pip ${s} ${t}">${c}</span>`}let s="";n>3&&(a+=n-3,s=`<span class="pip-extra">+${n-3} extra</span>`),c.innerHTML+=`<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${t}</span><span class="sq-points">${a} pts</span></div><div class="sq-pips">${o}${s}</div></div>`}
+            } else {
+                let e='<table class="table-custom"><tbody>';
+                fishArr.forEach(item=>{
+                    const val = t.scoringMethod==='weight' ? item.display : `${item.length} cm`;
+                    const ph=item.photo?`<img src="${item.photo}" class="fish-thumb" onclick="window.viewImage('${item.photo}')">`:'';
+                    e+=`<tr><td>${item.species}</td><td class="text-end fw-bold">${val} ${ph}</td></tr>`
+                });
+                e+="</tbody></table>",s.innerHTML=e;
+            }
+            
+            document.getElementById("savedScorecardsList").style.display="none";
+            document.getElementById("fullScorecardView").style.display="block";
+        };
+        
+        window.backToScorecardList=function(){document.getElementById("fullScorecardView").style.display="none",document.getElementById("savedScorecardsList").style.display="block"};
+        window.toggleCustomSpeciesInput=function(){const e=document.getElementById("speciesInput").value;document.getElementById("customSpeciesInput").style.display="Other"===e?"block":"none"};
+        window.toggleCompetitionFields=function(){const e=document.getElementById("isCompetition").checked;document.getElementById("zoneInput").disabled=!e,document.getElementById("pegInput").disabled=!e};
+        window.resetApp=function(){window.location.reload()};window.confirmQuit=function(){confirm("End session without saving?")&&(StorageHelper.remove('active_session'),window.resetApp())};
+        window.shareAsImage=function(e){const t=document.getElementById("live"===e?"tallyVerificationPage":"fullScorecardView"),n=t.querySelectorAll("button, .btn");n.forEach(e=>e.style.display="none"),html2canvas(t,{backgroundColor:"#f0f4f8"}).then(e=>{n.forEach(e=>e.style.display=""),e.toBlob(e=>{const t=new File([e],"scorecard.png",{type:"image/png"});navigator.share?navigator.share({files:[t]}):((t=document.createElement("a")).download="score.png",t.href=e.toDataURL(),t.click())})})};
+        document.addEventListener("DOMContentLoaded",()=>{window.restoreActiveSession();});
+        let deferredPrompt;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(),deferredPrompt=e;const t=document.getElementById("btnInstall");t.style.display="block",t.addEventListener("click",()=>{t.style.display="none",deferredPrompt.prompt(),deferredPrompt=null})});
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
