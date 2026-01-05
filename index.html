@@ -112,7 +112,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-5 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 99.0</p>
+        <p class="version-tag">Version 100.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg text-primary fw-bold shadow-lg" onclick="window.startFishing()">Start Fishing</button>
             <button class="btn btn-outline-light btn-lg fw-bold" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">Scorecards</button>
@@ -180,7 +180,12 @@
                 <div class="col-6"><button class="btn btn-camera w-100 py-3 shadow-sm" onclick="window.triggerCamera()"><i class="bi bi-camera-fill me-1"></i> With Photo (Optional)</button></div>
             </div>
         </div>
-        <h5 class="text-muted fs-6 text-uppercase fw-bold letter-spacing-1 ps-2">Haul History</h5>
+        
+        <div class="d-flex justify-content-between align-items-end px-2 mb-1">
+            <h5 class="text-muted fs-6 text-uppercase fw-bold letter-spacing-1 m-0">Haul History</h5>
+            <div class="fw-bold text-primary" style="font-size: 0.9rem;">Score: <span id="liveScoreVal">0</span></div>
+        </div>
+
         <div class="table-responsive"><table class="table-custom"><tbody id="fishLog"></tbody></table></div>
         <div class="mt-4 pt-3"><button class="btn btn-danger w-100 py-3 shadow" onclick="window.endSession()">Finish Session</button></div>
     </div>
@@ -329,7 +334,7 @@
             // ANIMATION & FEEDBACK
             const firstRow = document.querySelector('#fishLog tr:first-child');
             if(firstRow) firstRow.classList.add('new-catch-anim');
-            if(navigator.vibrate) navigator.vibrate(50); // Haptic
+            if(navigator.vibrate) navigator.vibrate(50); 
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
@@ -418,7 +423,11 @@
                 const i="species_hunt"===currentScoringMethod?`<span class="badge ${s.cls}" style="font-size:0.75rem;">${s.lbl}</span>`:`<span class="fw-bold fs-5 text-primary">${n.length} cm</span>`;
                 c.innerHTML=`<td class="align-middle"><div class="fw-bold text-dark">${n.species}</div><div class="d-flex align-items-center mt-1">${i}${photoHtml}</div></td><td class="text-end align-middle"><button class="btn btn-sm btn-outline-danger border-0" onclick="window.deleteFish(${o})"><i class="bi bi-trash"></i></button></td>`;
                 e.appendChild(c)
-            })
+            });
+            
+            // UPDATE LIVE SCORE
+            const currentScore = window.calculatePoints(fishData, currentScoringMethod);
+            document.getElementById('liveScoreVal').textContent = currentScore;
         };
         window.viewImage=function(src){document.getElementById('fullSizeImage').src=src; new bootstrap.Modal(document.getElementById('imageModal')).show()};
         window.deleteFish=function(e){confirm("Delete catch?")&&(fishData.splice(e,1),window.updateFishLog(),window.saveActiveSession())};
