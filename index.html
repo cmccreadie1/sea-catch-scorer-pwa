@@ -148,10 +148,9 @@
         .live-score-box { border: 4px solid var(--app-blue); background-color: white; border-radius: 24px; padding: 20px; text-align: center; margin-bottom: 25px; box-shadow: var(--shadow-lg); }
         .live-score-value { font-size: 4.5rem; font-weight: 800; color: var(--primary-dark); line-height: 1; }
 
-        /* --- REDESIGNED TABLE & THUMBNAILS --- */
-        .fish-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); flex-shrink: 0; }
+        .fish-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; flex-shrink: 0; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
         .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
-        .table-custom td { background: white; padding: 15px 18px; border-radius: 18px; vertical-align: middle; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
+        .table-custom td { background: white; padding: 18px; border-radius: 18px; vertical-align: middle; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
 
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .stat-card { background: #ffffff; padding: 15px 5px; border-radius: 16px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
@@ -179,13 +178,10 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="5" stroke-linecap="round"/><circle cx="160" cy="40" r="6" fill="#10b981"/></g>
         </svg>
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-4">Version 127.0 - Pro</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 128.0 - Pro</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
-            <button class="btn btn-link text-white text-decoration-none opacity-50 small mt-2" onclick="window.forceUpdateApp()">
-                <i class="bi bi-arrow-clockwise"></i> Force Update / Clear Cache
-            </button>
         </div>
     </div>
 
@@ -288,16 +284,16 @@
 
         <div class="inner-card">
             <label class="form-label small">Session Notes</label>
-            <textarea id="sessionNotesInput" class="form-control" rows="2" placeholder="Notes..." oninput="window.saveActiveSession()"></textarea>
+            <textarea id="sessionNotesInput" class="form-control" rows="2" oninput="window.saveActiveSession()"></textarea>
         </div>
 
         <div class="d-grid gap-3 mt-4">
-            <button class="btn btn-primary btn-lg shadow py-3" onclick="window.saveAndEndSession()"><i class="bi bi-save me-2"></i>Save Record</button>
-            <button class="btn btn-whatsapp py-3 shadow-sm" onclick="window.shareAsImage('live')"><i class="bi bi-share me-2"></i>Share Summary</button>
+            <button class="btn btn-primary btn-lg shadow py-3" onclick="window.saveAndEndSession()">Save Record</button>
+            <button class="btn btn-whatsapp py-3 shadow-sm" onclick="window.shareAsImage('live')">Share Summary</button>
         </div>
     </div>
 
-    <div class="modal fade" id="savedModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content border-0"><div class="modal-header border-0"><h5 class="modal-title fw-bold">History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div id="savedScorecardsList"><div id="recentList"></div></div><div id="fullScorecardView" style="display:none;"><h4 id="saved_view_angler" class="text-primary fw-bold text-center"></h4><div id="saved_view_points" class="live-score-value text-center my-4"></div><div id="saved_view_breakdown"></div><div class="d-grid gap-2 mt-4"><button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete</button><button class="btn btn-secondary py-3" onclick="window.backToScorecardList()">Back</button></div></div></div></div></div></div>
+    <div class="modal fade" id="savedModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content border-0"><div class="modal-header border-0"><h5 class="modal-title fw-bold">History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div id="savedScorecardsList"><div id="recentList"></div></div><div id="fullScorecardView" style="display:none;"><h4 id="saved_view_angler" class="text-primary fw-bold text-center"></h4><div id="saved_view_points" class="live-score-value text-center my-4"></div><div id="saved_view_breakdown"></div><div class="d-grid gap-2 mt-4"><button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete Record</button><button class="btn btn-secondary py-3" onclick="window.closeHistoryModal()">Close History</button></div></div></div></div></div></div>
     
     <div class="modal fade" id="weightUnitModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -306,8 +302,8 @@
                     <h4>Scoring Unit</h4>
                     <p class="text-muted small mb-4">Choose format for this session</p>
                     <div class="d-grid gap-3">
-                        <button type="button" class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.handleUnitChoice('metric')">Kilograms (KG)</button>
-                        <button type="button" class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.handleUnitChoice('imperial')">Pounds & Ounces</button>
+                        <button type="button" class="btn btn-primary btn-lg py-3" onclick="window.handleUnitChoice('metric')">Kilograms (KG)</button>
+                        <button type="button" class="btn btn-primary btn-lg py-3" onclick="window.handleUnitChoice('imperial')">Pounds & Ounces</button>
                     </div>
                 </div>
             </div>
@@ -328,25 +324,15 @@
         ];
         let fishData=[], currentScoringMethod='', selectedWeightUnit='metric', currentSavedKey='', currentAngler='', currentVenue='', currentDate='';
 
-        const PageManager={show:function(id){document.querySelectorAll('.app-page').forEach(p=>p.style.display='none');document.getElementById('splashScreen').style.display='none';document.getElementById(id).style.display='block';window.scrollTo(0,0)}};
-        const StorageHelper={save:(k,v)=>localStorage.setItem(k,v),get:(k)=>localStorage.getItem(k),remove:(k)=>localStorage.removeItem(k),getAll:()=>({...localStorage})};
-
-        /* --- PROGRAMMATIC UPDATER --- */
-        window.forceUpdateApp = function() {
-            if (confirm("This will clear the app cache and reload to the newest version. Proceed?")) {
-                if ('caches' in window) {
-                    caches.keys().then(function(names) {
-                        for (let name of names) caches.delete(name);
-                    });
-                }
-                if (window.navigator && navigator.serviceWorker) {
-                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                        for(let registration of registrations) registration.unregister();
-                    });
-                }
-                window.location.reload(true);
+        const PageManager={
+            show:function(id){
+                document.querySelectorAll('.app-page').forEach(p=>p.style.display='none');
+                document.getElementById('splashScreen').style.display='none';
+                document.getElementById(id).style.display='block';
+                window.scrollTo(0,0);
             }
         };
+        const StorageHelper={save:(k,v)=>localStorage.setItem(k,v),get:(k)=>localStorage.getItem(k),remove:(k)=>localStorage.removeItem(k),getAll:()=>({...localStorage})};
 
         /* --- PICKER ENGINE --- */
         window.initWeightPicker = function() {
@@ -397,18 +383,12 @@
 
         window.handleUnitChoice = function(unit) {
             selectedWeightUnit = unit;
-            
             const infoDisplay = document.getElementById('weightInfoDisplay');
             if (infoDisplay) {
                 infoDisplay.style.display = 'block';
-                infoDisplay.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Format: ${unit==='metric' ? 'Kilograms (KG/G)' : 'Pounds (LB/OZ)'}`;
+                infoDisplay.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Format: ${unit==='metric' ? 'Kilograms' : 'Pounds/Ounces'}`;
             }
-
-            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-
+            bootstrap.Modal.getInstance(document.getElementById('weightUnitModal')).hide();
             window.saveActiveSession();
         };
 
@@ -439,13 +419,9 @@
             return { species, length: len };
         };
 
-        // FIX FOR DOUBLE ENTRY BUG
         window.addFishTextOnly = function() {
             const d = window.validateInputs();
-            if(d) { 
-                fishData.push(d); 
-                finishAddAction(); // Correctly resets inputs now
-            }
+            if(d) { fishData.push(d); finishAddAction(); }
         };
 
         window.triggerCamera = function() { if(window.validateInputs()) document.getElementById('cameraInput').click(); };
@@ -477,11 +453,20 @@
             const firstRow = document.querySelector('#fishLog tr:first-child');
             if(firstRow) firstRow.classList.add('new-catch-anim');
             
-            // RESET DROPDOWN TO PREVENT ACCIDENTAL SPAMMING
+            // RESET INPUTS & WHEEL AFTER RECORDING
             document.getElementById("speciesInput").selectedIndex = 0; 
             document.getElementById("customSpeciesInput").value = ""; 
             document.getElementById("lengthInput").value = "";
             window.toggleCustomSpeciesInput(); 
+            
+            if(currentScoringMethod === 'weight') {
+                const c1 = document.getElementById('pickerCol1');
+                const c2 = document.getElementById('pickerCol2');
+                if(c1) c1.scrollTop = 0;
+                if(c2) c2.scrollTop = 0;
+                setTimeout(()=>{ window.updatePickerDisplay('pickerCol1'); window.updatePickerDisplay('pickerCol2'); }, 50);
+            }
+            
             window.saveActiveSession();
         }
 
@@ -500,7 +485,6 @@
             return method==='length_only' ? Math.round(lenSum) : Math.round(lenSum + (data.length*10));
         };
 
-        // FIX FOR EMPTY PHOTO BOXES
         window.updateFishLog = function(){
             const log = document.getElementById('fishLog'); log.innerHTML='';
             [...fishData].reverse().forEach(f=>{
@@ -557,6 +541,9 @@
         };
 
         window.loadSavedScorecards = function(){
+            document.getElementById('fullScorecardView').style.display='none';
+            document.getElementById('savedScorecardsList').style.display='block';
+            
             const list = document.getElementById('recentList'); list.innerHTML='';
             const keys = Object.keys(StorageHelper.getAll()).filter(k=>k.startsWith('scorecard_')).sort().reverse();
             keys.forEach(k=>{
@@ -570,6 +557,7 @@
             document.getElementById('saved_view_angler').textContent = d.angler;
             document.getElementById('saved_view_points').textContent = window.calculatePoints(d.fishData, d.method);
             const area = document.getElementById('saved_view_breakdown'); area.innerHTML='';
+            
             if(d.method==='species_hunt'){
                 const counts={}; d.fishData.forEach(f=>counts[f.species]=(counts[f.species]||0)+1);
                 for(let s in counts){
@@ -577,7 +565,15 @@
                     area.innerHTML+=`<div class="species-quota-card"><strong>${s}</strong><br>${pips}</div>`;
                 }
             } else {
-                d.fishData.forEach(f=>area.innerHTML+=`<div class="p-2 border-bottom">${f.species}: ${f.display||f.length+'cm'}</div>`);
+                // RENDER PHOTOS IN HISTORY
+                let eTable = '<table class="table-custom"><tbody>';
+                d.fishData.forEach(f=>{
+                    const val = d.method==='weight' ? f.display : `${f.length}cm`;
+                    const ph = f.photo ? `<img src="${f.photo}" class="fish-thumb ms-3" onclick="window.viewImg('${f.photo}')">` : '';
+                    eTable += `<tr><td><div class="d-flex align-items-center justify-content-between"><div><div class="fw-bold text-dark">${f.species}</div><div class="text-primary fw-bold small">${val}</div></div>${ph}</div></td></tr>`;
+                });
+                eTable += '</tbody></table>';
+                area.innerHTML = eTable;
             }
             document.getElementById('savedScorecardsList').style.display='none';
             document.getElementById('fullScorecardView').style.display='block';
@@ -606,16 +602,21 @@
         };
 
         window.populateSpeciesDropdown = function() {
-            const e = document.getElementById('speciesInput');
-            e.innerHTML='<option value="" selected disabled>Select Fish...</option><option value="Other">Other (Manual Entry)</option>';
+            const e = document.getElementById('speciesInput'); e.innerHTML='<option value="" selected disabled>Select Fish...</option><option value="Other">Other (Manual Entry)</option>';
             speciesList.forEach(g => {
                 const grp = document.createElement('optgroup'); grp.label = g.category;
                 g.items.sort().forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; grp.appendChild(o); }); e.appendChild(grp);
             });
         };
 
+        // CLOSE HISTORY DIRECT TO SPLASH
+        window.closeHistoryModal = function() {
+            bootstrap.Modal.getInstance(document.getElementById('savedModal')).hide();
+            setTimeout(() => { location.reload(); }, 300);
+        };
+
         window.toggleCustomSpeciesInput=function(){document.getElementById("customSpeciesInput").style.display=document.getElementById("speciesInput").value==="Other"?"block":"none";};
-        window.confirmQuit=function(){if(confirm("Discard session?")){StorageHelper.remove('active_session');location.reload();}};
+        window.confirmQuit=function(){if(confirm("Discard active session?")){StorageHelper.remove('active_session');location.reload();}};
         window.discardRestore=function(){StorageHelper.remove('active_session');location.reload();};
         window.backToScorecardList=function(){document.getElementById("fullScorecardView").style.display="none";document.getElementById("savedScorecardsList").style.display="block";};
         window.deleteCurrentSaved=function(){if(confirm("Delete record?")){StorageHelper.remove(currentSavedKey); location.reload();}};
