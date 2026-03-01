@@ -159,6 +159,8 @@
             0% { opacity: 0.3; transform: scale(0.96); } 
             100% { opacity: 1; transform: scale(1.02); } 
         }
+        @keyframes subtleSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .icon-spin { animation: subtleSpin 1s linear infinite; }
 
         .live-score-box { border: 4px solid var(--app-blue); background-color: white; border-radius: 24px; padding: 20px; text-align: center; margin-bottom: 25px; box-shadow: var(--shadow-lg); }
         .live-score-value { font-size: 4.5rem; font-weight: 800; color: var(--primary-dark); line-height: 1; }
@@ -222,14 +224,18 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 148.0 - Editable Notes</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 149.0 - Update System</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
         </div>
         
-        <div class="mt-5 pt-3 small fw-bold text-uppercase" style="color: #64748b; letter-spacing: 1px;">
+        <button id="btnRefreshApp" class="btn btn-link text-white-50 text-decoration-none mt-4 small" onclick="window.forceAppUpdate()">
+            <i id="refreshIcon" class="bi bi-arrow-clockwise me-1"></i> Refresh App
+        </button>
+
+        <div class="mt-4 pt-3 small fw-bold text-uppercase" style="color: #64748b; letter-spacing: 1px;">
             Created by C.O.T.H. Enterprises 2026
         </div>
     </div>
@@ -490,7 +496,27 @@
             });
         }
 
-        /* --- THE NEW SPA RESET ENGINE (NO BROWSER RELOAD) --- */
+        // --- NEW: FORCE UPDATE ENGINE ---
+        window.forceAppUpdate = function() {
+            const icon = document.getElementById('refreshIcon');
+            const btn = document.getElementById('btnRefreshApp');
+            if(icon) icon.classList.add('icon-spin');
+            if(btn) btn.innerHTML = '<i class="bi bi-arrow-clockwise icon-spin me-1"></i> Checking...';
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for (let registration of registrations) {
+                        registration.update();
+                    }
+                });
+            }
+            
+            // Allow 1 second for the Service Worker to fetch files, then reload
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        };
+
         window.resetAppToHome = function() {
             fishData = [];
             currentScoringMethod = '';
@@ -531,7 +557,6 @@
             StorageHelper.remove('active_session');
         };
 
-        /* --- DRUM PICKER ENGINE --- */
         window.initWeightPicker = function() {
             const c1 = document.getElementById('pickerCol1'), c2 = document.getElementById('pickerCol2');
             const pad = '<div style="height: 65px;"></div>';
@@ -584,7 +609,6 @@
             return (m * 100) + cm;
         };
 
-        /* --- APP CORE --- */
         window.handleMethodChange = function() {
             const m = document.getElementById("scoringMethod").value;
             if(m === 'weight') {
@@ -959,7 +983,6 @@
                 area.innerHTML = eTable;
             }
 
-            // NEW: EDITABLE NOTES SECTION FOR HISTORY
             const notesContent = d.notes || '';
             const displayNotes = notesContent.trim() !== '' ? notesContent.replace(/\n/g, '<br>') : '<em>No notes added yet.</em>';
             
@@ -980,7 +1003,6 @@
                     </div>
                 </div>
             `;
-            // Safely set the textarea value to handle line breaks and quotes
             setTimeout(() => {
                 const ta = document.getElementById('savedNotesInputView');
                 if(ta) ta.value = notesContent;
@@ -990,7 +1012,6 @@
             document.getElementById('fullScorecardView').style.display='block';
         };
 
-        // NEW: FUNCTIONS TO HANDLE EDITING NOTES IN HISTORY
         window.toggleEditNotes = function() {
             const disp = document.getElementById('savedNotesDisplay');
             const edit = document.getElementById('savedNotesEditArea');
@@ -1012,7 +1033,7 @@
                 let d = JSON.parse(StorageHelper.get(currentSavedKey));
                 d.notes = newNotes;
                 StorageHelper.save(currentSavedKey, JSON.stringify(d));
-                window.viewSaved(currentSavedKey); // Refresh the view to show new notes
+                window.viewSaved(currentSavedKey); 
             } catch(e) {
                 alert("Failed to save updated notes.");
             }
@@ -1104,17 +1125,11 @@
         
         window.shareAsImage=function(id){
             const el = document.getElementById(id==='live'?'tallyVerificationPage':'fullScorecardView');
-            
-            // Hide all buttons before taking the screenshot
-            const btns = el.querySelectorAll('button'); 
-            btns.forEach(b=>b.style.display='none');
-            
-            // Temporarily hide the text input box so it doesn't look messy in the screenshot
+            const btns = el.querySelectorAll('button'); btns.forEach(b=>b.style.display='none');
             const notesInput = document.getElementById('sessionNotesInput');
             if (notesInput && id === 'live') notesInput.style.display = 'none';
 
             html2canvas(el, {backgroundColor:'#f1f5f9'}).then(canvas=>{
-                // Restore buttons after screenshot
                 btns.forEach(b=>b.style.display='inline-block');
                 if (notesInput && id === 'live') notesInput.style.display = 'block';
 
