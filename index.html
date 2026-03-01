@@ -217,7 +217,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 138.0 - Pro</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 139.0 - Pro Offline</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
@@ -439,6 +439,17 @@
         };
         const StorageHelper={save:(k,v)=>localStorage.setItem(k,v),get:(k)=>localStorage.getItem(k),remove:(k)=>localStorage.removeItem(k),getAll:()=>({...localStorage})};
 
+        // --- SERVICE WORKER REGISTRATION ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful');
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+
         /* --- DRUM PICKER ENGINE --- */
         window.initWeightPicker = function() {
             const c1 = document.getElementById('pickerCol1'), c2 = document.getElementById('pickerCol2');
@@ -544,7 +555,6 @@
             window.saveActiveSession();
         };
 
-        // NEW: CAPTURE TIMESTAMP FOR EACH FISH
         window.validateInputs = function() {
             const spIn = document.getElementById('speciesInput');
             let species = spIn.value === "Other" ? document.getElementById('customSpeciesInput').value.trim() : spIn.value;
@@ -628,7 +638,6 @@
             return method==='length_only' ? Math.round(lenSum) : Math.round(lenSum + (data.length*10));
         };
 
-        // NEW: SHARED FUNCTION TO RENDER SPECIES HUNT HTML WITH TIMES
         function generateSpeciesHuntHTML(fishArray) {
             const counts = {}; 
             const times = {};
@@ -656,7 +665,6 @@
                     extra = `<span class="pip-extra ms-2">+${n-3} extra</span>`;
                 }
                 
-                // Add timestamp list below the header
                 let timeStr = times[s] && times[s].length > 0 ? `<div class="text-muted mb-2" style="font-size: 0.7rem;"><i class="bi bi-clock me-1"></i>${times[s].reverse().join(', ')}</div>` : '';
                 
                 html += `<div class="species-quota-card"><div class="d-flex justify-content-between align-items-center mb-1"><strong class="fs-6">${s}</strong><span class="fw-bold text-primary">${p} pts</span></div>${timeStr}<div class="d-flex align-items-center">${pips}${extra}</div></div>`;
@@ -740,7 +748,6 @@
             if(currentScoringMethod==='species_hunt'){
                 area.innerHTML = generateSpeciesHuntHTML(fishData);
             } else {
-                // Ensure tally table has consistent styling
                 let eTable = '<table class="table-custom"><tbody>';
                 fishData.forEach(f=>{
                     const val = currentScoringMethod==='weight' ? f.display : `${f.length}cm`;
@@ -961,6 +968,5 @@
             window.restoreActiveSession();
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
