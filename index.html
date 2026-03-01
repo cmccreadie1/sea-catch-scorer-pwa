@@ -31,7 +31,6 @@
             --modal-bg: #f8f9fa;
         }
 
-        /* --- DARK MODE VARIABLES --- */
         body.dark-mode {
             --primary-dark: #cbd5e1; 
             --app-blue: #38bdf8; 
@@ -60,7 +59,6 @@
         
         h1, h2, h3, h4, .btn, .modal-title { font-family: 'Poppins', sans-serif; }
 
-        /* --- DARK MODE OVERRIDES FOR BOOTSTRAP --- */
         .dark-mode .text-dark { color: #f8fafc !important; }
         .dark-mode .text-primary { color: var(--app-blue) !important; }
         .dark-mode .bg-light { background-color: #0f172a !important; }
@@ -78,7 +76,6 @@
         .dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
         .dark-mode .table-custom td { background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-main); }
         
-        /* --- SCROLL DRUM PICKER UI --- */
         .picker-outer-wrapper {
             background: var(--card-bg);
             padding: 15px;
@@ -163,7 +160,6 @@
             text-transform: uppercase;
         }
 
-        /* --- BUTTONS & CARDS --- */
         .btn-record-action {
             white-space: normal !important;
             line-height: 1.1 !important;
@@ -180,7 +176,6 @@
         .app-page { display: none; width: 100%; max-width: 600px; margin: 0 auto; padding: 15px 15px 40px 15px; }
         .inner-card { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; border: 1px solid var(--border-color); transition: background 0.3s ease; }
 
-        /* --- SPLASH SCREEN --- */
         .splash-screen {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white;
@@ -205,7 +200,7 @@
         .fish-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; flex-shrink: 0; cursor: pointer; border: 2px solid var(--border-color); box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
         .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
         
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .stat-card { background: var(--card-bg); padding: 15px 10px; border-radius: 16px; text-align: center; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); transition: background 0.3s ease; }
         .stat-card small { display: block; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
         .stat-card strong { font-size: 1.2rem; color: var(--text-main); font-weight: 800; }
@@ -268,7 +263,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 151.0 - Live Weather</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 152.0 - Auto Tide</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -317,7 +312,7 @@
         <div class="inner-card p-3 mb-2">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <label class="form-label small mb-0 text-primary fw-bold">Conditions & Tide</label>
-                <button class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.fetchLiveWeather()"><i class="bi bi-geo-alt-fill me-1"></i>Auto-Fill</button>
+                <button class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold" onclick="window.fetchLiveWeather()"><i class="bi bi-geo-alt-fill me-1"></i>Auto-Fill</button>
             </div>
             <div class="row g-2">
                 <div class="col-4">
@@ -462,7 +457,7 @@
 
         <div class="inner-card mt-3">
             <label class="form-label small fw-bold text-muted"><i class="bi bi-journal-text me-1"></i>Session Notes</label>
-            <textarea id="sessionNotesInput" class="form-control" rows="2" placeholder="Add any details here..."></textarea>
+            <textarea id="sessionNotesInput" class="form-control" rows="5" placeholder="Add any details here..."></textarea>
         </div>
 
         <div class="d-grid gap-3 mt-4">
@@ -614,7 +609,7 @@
             });
         }
 
-        /* --- WEATHER API ENGINE --- */
+        /* --- WEATHER & MARINE API ENGINE --- */
         window.fetchLiveWeather = function() {
             const btn = document.querySelector('button[onclick="window.fetchLiveWeather()"]');
             const originalText = btn.innerHTML;
@@ -633,17 +628,61 @@
                     const lon = position.coords.longitude;
                     btn.innerHTML = '<i class="bi bi-cloud-arrow-down icon-spin"></i> Fetching...';
                     
-                    fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`)
+                    fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${lat},${lon}&tides=yes`)
                         .then(response => response.json())
                         .then(data => {
-                            document.getElementById('weatherInput').value = `${data.current.condition.text}, ${data.current.temp_c}°C`;
-                            document.getElementById('windInput').value = `${data.current.wind_dir} ${data.current.wind_mph}mph`;
+                            // 1. Get standard weather
+                            const weathStr = `${data.current.condition.text}, ${data.current.temp_c}°C`;
+                            const windStr = `${data.current.wind_dir} ${data.current.wind_mph}mph`;
+                            
+                            document.getElementById('weatherInput').value = weathStr;
+                            document.getElementById('windInput').value = windStr;
+
+                            // 2. Parse Tide Data
+                            let tideStateStr = '';
+                            let tideTableText = '';
+                            try {
+                                const tidesArray = data.forecast.forecastday[0].day.tides[0].tide;
+                                const now = new Date();
+                                let nextTide = null;
+                                
+                                tidesArray.forEach(t => {
+                                    const tTime = new Date(t.tide_time.replace(/-/g, '/')); // iOS Safari safe date formatting
+                                    const timeString = t.tide_time.split(' ')[1];
+                                    const typeString = t.tide_type.toUpperCase() === 'HIGH' ? 'High Water' : 'Low Water';
+                                    
+                                    tideTableText += `${typeString}: ${timeString} (${t.tide_height_mt}m)\n`;
+                                    
+                                    if(!nextTide && tTime > now) {
+                                        nextTide = t;
+                                    }
+                                });
+
+                                if(nextTide) {
+                                    if(nextTide.tide_type.toUpperCase() === 'HIGH') tideStateStr = 'Flood (Pushing)';
+                                    else tideStateStr = 'Ebb (Dropping)';
+                                    document.getElementById('tideInput').value = tideStateStr;
+                                }
+                            } catch(e) {
+                                tideTableText = "No tide data available for this location.";
+                            }
+
+                            // 3. Inject into Notes automatically
+                            const notesBox = document.getElementById('sessionNotesInput');
+                            const conditionSummary = `=== CONDITIONS ===\nWeather: ${weathStr}\nWind: ${windStr}\n\n=== TIDE TABLE ===\n${tideTableText}==================\n\n`;
+                            
+                            if(notesBox.value) {
+                                notesBox.value = conditionSummary + notesBox.value;
+                            } else {
+                                notesBox.value = conditionSummary;
+                            }
+
                             window.saveActiveSession();
                             btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
                             setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
                         })
                         .catch(err => {
-                            alert("Failed to fetch weather. You may be offline.");
+                            alert("Failed to fetch weather. You may be offline or inland.");
                             btn.innerHTML = originalText; btn.disabled = false;
                         });
                 },
@@ -955,7 +994,6 @@
             PageManager.show('tallyVerificationPage');
             document.getElementById('session_angler').textContent = currentAngler; document.getElementById('session_date').textContent = new Date(currentDate).toLocaleDateString('en-GB'); document.getElementById('session_venue').textContent = currentVenue;
             
-            // Populate Badges for live tally
             let condHTML = '';
             if(weatherInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-cloud me-1"></i>${weatherInfo}</span>`;
             if(windInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-wind me-1"></i>${windInfo}</span>`;
@@ -981,10 +1019,10 @@
             }
             currentSavedKey = 'scorecard_' + Date.now();
             try {
-                StorageHelper.save(currentSavedKey, JSON.stringify({ angler:currentAngler, venue:currentVenue, date:currentDate, isComp:isCompetitionMode, team:currentTeam, zone:currentZone, peg:currentPeg, weatherInfo, windInfo, tideInfo, fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, notes: '' }));
+                StorageHelper.save(currentSavedKey, JSON.stringify({ angler:currentAngler, venue:currentVenue, date:currentDate, isComp:isCompetitionMode, team:currentTeam, zone:currentZone, peg:currentPeg, weatherInfo, windInfo, tideInfo, fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, notes: document.getElementById('sessionNotesInput').value }));
                 StorageHelper.remove('active_session'); 
             } catch(e) { alert("Device storage full. Session shown but not saved. Please delete old history."); }
-            document.getElementById('sessionNotesInput').value = '';
+            
             document.getElementById('sessionNotesInput').oninput = function(e) {
                 try { let savedSession = JSON.parse(StorageHelper.get(currentSavedKey)); if (savedSession) { savedSession.notes = e.target.value; StorageHelper.save(currentSavedKey, JSON.stringify(savedSession)); } } catch(err) {}
             };
@@ -1011,7 +1049,6 @@
             currentSavedKey = k; const d = JSON.parse(StorageHelper.get(k));
             document.getElementById('saved_view_angler').textContent = d.angler; document.getElementById('saved_view_date').textContent = new Date(d.date).toLocaleDateString('en-GB'); document.getElementById('saved_view_venue').textContent = d.venue;
             
-            // Badges in History
             let condHTML = '';
             if(d.weatherInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-cloud me-1"></i>${d.weatherInfo}</span>`;
             if(d.windInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-wind me-1"></i>${d.windInfo}</span>`;
@@ -1032,7 +1069,7 @@
             }
             const notesContent = d.notes || ''; const displayNotes = notesContent.trim() !== '' ? notesContent.replace(/\n/g, '<br>') : '<em>No notes added yet.</em>';
             const notesContainer = document.getElementById('saved_view_notes_container');
-            notesContainer.innerHTML = `<div class="inner-card mt-3 p-3 border shadow-sm"><div class="d-flex justify-content-between align-items-center mb-2"><label class="form-label small fw-bold text-muted m-0"><i class="bi bi-journal-text me-1"></i>Session Notes</label><button id="btnEditNotes" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.toggleEditNotes()"><i class="bi bi-pencil me-1"></i>Edit</button></div><div id="savedNotesDisplay" class="small">${displayNotes}</div><div id="savedNotesEditArea" style="display:none;"><textarea id="savedNotesInputView" class="form-control small mb-2" rows="3"></textarea><div class="d-flex gap-2"><button class="btn btn-sm btn-secondary w-50" onclick="window.toggleEditNotes()">Cancel</button><button class="btn btn-sm btn-primary w-50" onclick="window.saveEditedNotes()">Save</button></div></div></div>`;
+            notesContainer.innerHTML = `<div class="inner-card mt-3 p-3 border shadow-sm"><div class="d-flex justify-content-between align-items-center mb-2"><label class="form-label small fw-bold text-muted m-0"><i class="bi bi-journal-text me-1"></i>Session Notes</label><button id="btnEditNotes" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.toggleEditNotes()"><i class="bi bi-pencil me-1"></i>Edit</button></div><div id="savedNotesDisplay" class="small">${displayNotes}</div><div id="savedNotesEditArea" style="display:none;"><textarea id="savedNotesInputView" class="form-control small mb-2" rows="6"></textarea><div class="d-flex gap-2"><button class="btn btn-sm btn-secondary w-50" onclick="window.toggleEditNotes()">Cancel</button><button class="btn btn-sm btn-primary w-50" onclick="window.saveEditedNotes()">Save</button></div></div></div>`;
             setTimeout(() => { const ta = document.getElementById('savedNotesInputView'); if(ta) ta.value = notesContent; }, 0);
             document.getElementById('savedScorecardsList').style.display='none'; document.getElementById('fullScorecardView').style.display='block';
         };
