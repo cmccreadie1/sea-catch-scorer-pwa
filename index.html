@@ -217,7 +217,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 140.0 - Local Storage</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 141.0 - Full Offline SPA</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
@@ -392,7 +392,7 @@
             <div class="d-grid gap-2 mt-4">
                 <button class="btn btn-whatsapp py-3 shadow-sm text-white" style="background:#25D366;" onclick="window.shareAsImage('saved')"><i class="bi bi-whatsapp me-2"></i>Share / Send Scorecard</button>
                 <button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete Record</button>
-                <button class="btn btn-secondary py-3" data-bs-dismiss="modal" onclick="window.closeHistoryModal()">Close History</button>
+                <button class="btn btn-secondary py-3" onclick="window.backToScorecardList()">Back to List</button>
             </div>
         </div>
 
@@ -438,7 +438,6 @@
             }
         };
 
-        // NEW: ROBUST STORAGE HELPER WITH ERROR HANDLING
         const StorageHelper={
             save: function(k,v) {
                 try {
@@ -453,7 +452,6 @@
             getAll: () => ({...localStorage})
         };
 
-        // SERVICE WORKER REGISTRATION
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('service-worker.js').then(function(registration) {
@@ -463,6 +461,46 @@
                 });
             });
         }
+
+        /* --- THE NEW SPA RESET ENGINE (NO BROWSER RELOAD) --- */
+        window.resetAppToHome = function() {
+            fishData = [];
+            currentScoringMethod = '';
+            isCompetitionMode = false;
+            currentZone = '';
+            currentPeg = '';
+            currentTeam = '';
+            currentVenue = '';
+            
+            document.getElementById('venueInput').value = '';
+            document.getElementById('scoringMethod').selectedIndex = 0;
+            document.getElementById('isCompetition').checked = false;
+            document.getElementById('teamInput').value = '';
+            document.getElementById('zoneInput').selectedIndex = 0;
+            document.getElementById('pegInput').selectedIndex = 0;
+            document.getElementById('sessionNotesInput').value = '';
+            
+            document.getElementById('speciesInput').selectedIndex = 0;
+            document.getElementById('customSpeciesInput').value = '';
+            if(document.getElementById('lengthInput')) document.getElementById('lengthInput').value = '';
+            
+            document.getElementById('fishLog').innerHTML = '';
+            document.getElementById('liveScoreVal').textContent = '0';
+            document.getElementById('weightInfoDisplay').style.display = 'none';
+            document.getElementById('speciesHuntInfo').style.display = 'none';
+            
+            window.toggleCompetitionFields();
+            window.toggleCustomSpeciesInput();
+            
+            const cols = ['pickerCol1','pickerCol2','pickerLenCol1','pickerLenCol2'];
+            cols.forEach(c => {
+                const el = document.getElementById(c);
+                if(el) { el.scrollTop = 0; window.updatePickerDisplay(c); }
+            });
+
+            PageManager.show('splashScreen');
+            StorageHelper.remove('active_session');
+        };
 
         /* --- DRUM PICKER ENGINE --- */
         window.initWeightPicker = function() {
@@ -591,7 +629,6 @@
 
         window.triggerCamera = function() { if(window.validateInputs()) document.getElementById('cameraInput').click(); };
 
-        // NEW: AGGRESSIVE PHOTO COMPRESSION TO PREVENT STORAGE CRASH
         window.handleCameraInput = function() {
             const input = document.getElementById('cameraInput');
             if (input.files && input.files[0]) {
@@ -601,11 +638,9 @@
                     img.onload = function() {
                         const canvas = document.createElement('canvas'); 
                         const ctx = canvas.getContext('2d');
-                        // Reduced MAX size from 600 to 400 for local storage efficiency
                         const MAX = 400; let w = img.width, h = img.height;
                         if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } } else { if (h > MAX) { w *= MAX/h; h = MAX; } }
                         canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
-                        // Quality lowered to 0.5 (perfect for thumbnails, saves huge space)
                         const photoData = canvas.toDataURL('image/jpeg', 0.5);
                         const d = window.validateInputs();
                         if(d) { fishData.push({ ...d, photo: photoData }); finishAddAction(); }
@@ -779,7 +814,7 @@
             window.saveActiveSession();
         };
 
-        // NEW: TRY/CATCH ERROR HANDLING ON FINAL SAVE
+        // NEW: SAVES AND SOFT-RESETS WITHOUT A BROWSER REFRESH
         window.saveAndEndSession = function(){
             try {
                 StorageHelper.save('scorecard_'+Date.now(), JSON.stringify({
@@ -788,8 +823,7 @@
                     fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, 
                     notes:document.getElementById('sessionNotesInput').value 
                 }));
-                StorageHelper.remove('active_session'); 
-                location.reload();
+                window.resetAppToHome();
             } catch(e) {
                 alert("Device storage full. Please delete some old scorecards from History to save new photos.");
             }
@@ -889,6 +923,11 @@
             document.getElementById('fullScorecardView').style.display='block';
         };
 
+        // NEW: SOFT-RESET ALL ABANDONED ACTIONS
+        window.confirmQuit=function(){if(confirm("Discard active session?")){window.resetAppToHome();}};
+        window.discardRestore=function(){window.resetAppToHome();};
+        window.closeHistoryModal=function(){ /* Modal handles closing itself */ };
+
         window.saveActiveSession = function(){
             try {
                 const p = document.getElementById('anglerFishingPage').style.display==='block'?'fishing':(document.getElementById('tallyVerificationPage').style.display==='block'?'tally':'setup');
@@ -903,9 +942,7 @@
                     peg:document.getElementById('pegInput').value, 
                     fishData 
                 }));
-            } catch(e) {
-                console.warn("Could not auto-save active session. Storage may be full.");
-            }
+            } catch(e) {}
         };
 
         window.restoreActiveSession = function(){
@@ -946,10 +983,6 @@
             });
         };
 
-        window.closeHistoryModal = function() {
-            setTimeout(() => { location.reload(); }, 200);
-        };
-
         window.toggleCompetitionFields = function(){
             const isC = document.getElementById('isCompetition').checked; 
             document.getElementById('teamInput').disabled=!isC;
@@ -958,10 +991,15 @@
         };
 
         window.toggleCustomSpeciesInput=function(){document.getElementById("customSpeciesInput").style.display=document.getElementById("speciesInput").value==="Other"?"block":"none";};
-        window.confirmQuit=function(){if(confirm("Discard active session?")){StorageHelper.remove('active_session');location.reload();}};
-        window.discardRestore=function(){StorageHelper.remove('active_session');location.reload();};
         window.backToScorecardList=function(){document.getElementById("fullScorecardView").style.display="none";document.getElementById("savedScorecardsList").style.display="block";};
-        window.deleteCurrentSaved=function(){if(confirm("Delete record?")){StorageHelper.remove(currentSavedKey); location.reload();}};
+        
+        window.deleteCurrentSaved=function(){
+            if(confirm("Delete record?")){
+                StorageHelper.remove(currentSavedKey); 
+                window.loadSavedScorecards();
+            }
+        };
+
         window.delFish=function(i){if(confirm("Delete catch?")){fishData.splice(i,1); window.updateFishLog(); window.saveActiveSession();}};
         window.viewImg=function(s){document.getElementById('fullSizeImage').src=s; bootstrap.Modal.getOrCreateInstance(document.getElementById('imageModal')).show();};
         
