@@ -94,6 +94,20 @@
             border: none; 
             letter-spacing: 0.5px;
         }
+
+        /* FIX FOR BUTTON TEXT OVERFLOW */
+        .btn-record-action {
+            white-space: normal !important;
+            line-height: 1.2 !important;
+            font-size: 0.8rem !important;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-left: 5px !important;
+            padding-right: 5px !important;
+            min-height: 70px;
+        }
         
         .btn-primary, .btn-success, .btn-camera { 
             background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); 
@@ -109,10 +123,7 @@
         .btn-home-secondary { background: rgba(255,255,255,0.9); color: #334155; border: none; }
 
         .modal-content {
-            border-radius: 20px;
-            border: none;
-            box-shadow: var(--shadow-lg);
-            background: #ffffff;
+            border-radius: 20px; border: none; box-shadow: var(--shadow-lg); background: #ffffff;
         }
         .modal-header { border-bottom: 1px solid #f1f5f9; padding: 20px 20px 10px 20px; }
         .modal-body { padding: 20px; }
@@ -279,9 +290,17 @@
                 </div>
             </div>
             
-            <div class="row g-3 pt-3 border-top">
-                <div class="col-6"><button class="btn btn-primary btn-lg w-100 py-3 shadow-sm" onclick="window.addFishTextOnly()"><i class="bi bi-check-lg me-1"></i> Record Fish</button></div>
-                <div class="col-6"><button class="btn btn-primary btn-lg w-100 py-3 shadow-sm" onclick="window.triggerCamera()"><i class="bi bi-camera-fill me-1"></i> Photo (Optional)</button></div>
+            <div class="row g-2 pt-3 border-top">
+                <div class="col-6">
+                    <button class="btn btn-primary btn-record-action w-100 shadow-sm" onclick="window.addFishTextOnly()">
+                        <span><i class="bi bi-check-lg d-block mb-1"></i>Record Fish</span>
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-primary btn-record-action w-100 shadow-sm" onclick="window.triggerCamera()">
+                        <span><i class="bi bi-camera-fill d-block mb-1"></i>Photo (Optional)</span>
+                    </button>
+                </div>
             </div>
         </div>
         
