@@ -17,16 +17,31 @@
 
     <style>
         :root {
-            --primary-dark: #0f172a; --app-blue: #0ea5e9; --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
-            --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --border-color: rgba(255,255,255,0.8);
-            --input-bg: #ffffff; --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1); --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-            --picker-bg: #f8fafc; --modal-bg: #f8f9fa;
+            --primary-dark: #0f172a; 
+            --app-blue: #0ea5e9; 
+            --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: rgba(255,255,255,0.8);
+            --input-bg: #ffffff;
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --picker-bg: #f8fafc;
+            --modal-bg: #f8f9fa;
         }
 
         body.dark-mode {
-            --primary-dark: #cbd5e1; --app-blue: #38bdf8; --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            --card-bg: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --border-color: #334155;
-            --input-bg: #0f172a; --picker-bg: #0f172a; --modal-bg: #0f172a;
+            --primary-dark: #cbd5e1; 
+            --app-blue: #38bdf8; 
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+            --picker-bg: #0f172a;
+            --modal-bg: #0f172a;
         }
 
         html { overscroll-behavior: none; }
@@ -113,7 +128,6 @@
             <circle cx="100" cy="100" r="30" fill="none" stroke="#0ea5e9" stroke-width="1" opacity="0.3"/>
             <line x1="5" y1="100" x2="195" y2="100" stroke="#0ea5e9" stroke-width="1" opacity="0.3"/>
             <line x1="100" y1="5" x2="100" y2="195" stroke="#0ea5e9" stroke-width="1" opacity="0.3"/>
-            
             <path d="M 30,135 L 30,150 L 170,150 L 170,135" fill="none" stroke="#38bdf8" stroke-width="3" opacity="0.9"/>
             <line x1="65" y1="150" x2="65" y2="142" stroke="#38bdf8" stroke-width="2" opacity="0.9"/>
             <line x1="100" y1="150" x2="100" y2="138" stroke="#38bdf8" stroke-width="2" opacity="0.9"/>
@@ -129,7 +143,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 153.0 - Marine Tides</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 154.0 - Smart Fetch</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -180,6 +194,7 @@
                         <option>High Water</option>
                         <option>Ebb (Dropping)</option>
                         <option>Low Water</option>
+                        <option value="N/A (Inland)">N/A (Inland)</option>
                     </select>
                 </div>
             </div>
@@ -396,13 +411,12 @@
             new bootstrap.Toast(t).show();
         };
 
-        /* --- ADVANCED WEATHER & TIDE FETCH --- */
+        /* --- SMART WEATHER & TIDE FETCH ENGINE --- */
         window.fetchLiveWeather = function() {
             const btn = document.querySelector('button[onclick="window.fetchLiveWeather()"]');
             
-            // Check true offline status first
             if (!navigator.onLine) {
-                window.showAppToast("You are offline. Please enter conditions manually.", true);
+                window.showAppToast("You are offline. Please enter manually.", true);
                 return;
             }
 
@@ -411,7 +425,7 @@
             btn.disabled = true;
 
             if(!navigator.geolocation) {
-                window.showAppToast("Location not supported. Enter manually.", true);
+                window.showAppToast("Location not supported.", true);
                 btn.innerHTML = originalText; btn.disabled = false;
                 return;
             }
@@ -422,29 +436,46 @@
                     const lon = position.coords.longitude;
                     btn.innerHTML = '<i class="bi bi-cloud-arrow-down icon-spin"></i> Fetching...';
                     
-                    // Fetching the Marine Endpoint to get Weather, Wind AND Tides in one hit
+                    // 1. Try to fetch Marine data first
                     fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${lat},${lon}&tides=yes`)
                         .then(response => response.json())
                         .then(data => {
+                            // 2. If it throws an inland error (1006), seamlessly fall back to standard weather
+                            if(data.error && data.error.code === 1006) {
+                                return fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`)
+                                    .then(res => res.json());
+                            }
+                            return data;
+                        })
+                        .then(data => {
+                            // Catch any other hard errors
+                            if(data.error) throw new Error(data.error.message);
+                            if(!data.current) throw new Error("Invalid data received.");
+
                             // Populate Weather & Wind
                             document.getElementById('weatherInput').value = `${data.current.condition.text}, ${data.current.temp_c}°C`;
                             document.getElementById('windInput').value = `${data.current.wind_dir} ${data.current.wind_mph}mph`;
                             
-                            // Parse Tides
+                            // 3. Try to parse Tides safely
+                            document.getElementById('btnViewTides').style.display = 'none';
+                            fetchedTideTable = [];
+                            
                             try {
-                                const tidesArray = data.forecast.forecastday[0].day.tides[0].tide;
-                                fetchedTideTable = tidesArray.map(t => {
-                                    const timeOnly = t.tide_time.split(' ')[1];
-                                    return `${t.tide_type === 'HIGH' ? 'High' : 'Low'}: ${timeOnly} (${t.tide_height_mt}m)`;
-                                });
-                                document.getElementById('tideInput').value = "See Tide Table";
-                                
-                                // Show Tide button and populate modal
-                                document.getElementById('btnViewTides').style.display = 'block';
-                                document.getElementById('tideListDisplay').innerHTML = fetchedTideTable.join('<br><br>');
-                                
+                                if(data.forecast && data.forecast.forecastday[0].day.tides[0].tide) {
+                                    const tidesArray = data.forecast.forecastday[0].day.tides[0].tide;
+                                    fetchedTideTable = tidesArray.map(t => {
+                                        const timeOnly = t.tide_time.split(' ')[1];
+                                        return `${t.tide_type === 'HIGH' ? 'High' : 'Low'}: ${timeOnly} (${t.tide_height_mt}m)`;
+                                    });
+                                    document.getElementById('tideInput').value = "See Tide Table";
+                                    document.getElementById('btnViewTides').style.display = 'block';
+                                    document.getElementById('tideListDisplay').innerHTML = fetchedTideTable.join('<br><br>');
+                                } else {
+                                    // Valid weather, but no tide data (Inland)
+                                    document.getElementById('tideInput').value = "N/A (Inland)";
+                                }
                             } catch(err) {
-                                console.log("Tide data unavailable for this location.");
+                                document.getElementById('tideInput').value = "N/A (Inland)";
                             }
 
                             window.saveActiveSession();
@@ -452,12 +483,13 @@
                             setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
                         })
                         .catch(err => {
-                            window.showAppToast("API Error. Please enter manually.", true);
+                            // 4. Output the exact API error message to the toast so we know what broke
+                            window.showAppToast(err.message, true);
                             btn.innerHTML = originalText; btn.disabled = false;
                         });
                 },
                 (err) => {
-                    window.showAppToast("GPS Error: Please enable location services.", true);
+                    window.showAppToast("GPS Error. Check phone settings.", true);
                     btn.innerHTML = originalText; btn.disabled = false;
                 },
                 { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
@@ -534,7 +566,7 @@
             weatherInfo = ''; windInfo = ''; tideInfo = ''; fetchedTideTable = []; sessionStartTime = ''; sessionEndTime = '';
             document.getElementById('venueInput').value = ''; document.getElementById('scoringMethod').selectedIndex = 0; document.getElementById('isCompetition').checked = false;
             document.getElementById('teamInput').value = ''; document.getElementById('zoneInput').selectedIndex = 0; document.getElementById('pegInput').selectedIndex = 0; document.getElementById('sessionNotesInput').value = '';
-            document.getElementById('weatherInput').value = ''; document.getElementById('windInput').value = ''; document.getElementById('tideInput').selectedIndex = 0;
+            document.getElementById('weatherInput').value = ''; document.getElementById('windInput').value = ''; document.getElementById('tideInput').value = '';
             document.getElementById('btnViewTides').style.display = 'none';
             document.getElementById('speciesInput').selectedIndex = 0; document.getElementById('customSpeciesInput').value = ''; if(document.getElementById('lengthInput')) document.getElementById('lengthInput').value = '';
             document.getElementById('fishLog').innerHTML = ''; document.getElementById('liveScoreVal').textContent = '0';
@@ -607,9 +639,7 @@
             
             if(!currentAngler || !currentVenue || !currentScoringMethod) return alert("Please fill Angler, Venue, and Scoring Rules.");
             
-            // Set start time on fresh registration
             if(!sessionStartTime) sessionStartTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
             window.setupFishingUI(); window.populateSpeciesDropdown(); PageManager.show('anglerFishingPage'); window.saveActiveSession();
         };
 
@@ -685,7 +715,6 @@
             if(!confirm("Are you sure you want to end this session?\n\nIt will be automatically saved to your History.")) return;
             PageManager.show('tallyVerificationPage');
             
-            // Set end time
             if(!sessionEndTime) sessionEndTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
             document.getElementById('session_angler').textContent = currentAngler; 
@@ -760,7 +789,6 @@
                 }); eTable += '</tbody></table>'; area.innerHTML = eTable;
             }
 
-            // BUILD THE HARDWIRED BOLD SYSTEM NOTES
             let systemNotes = `<strong class="text-primary d-block mb-1"><i class="bi bi-clock-history me-1"></i>Session Time:</strong> <span class="ms-4 d-block mb-2">${d.startTime || '--:--'} to ${d.endTime || '--:--'}</span>`;
             systemNotes += `<strong class="text-primary d-block mb-1"><i class="bi bi-cloud-sun me-1"></i>Conditions:</strong> <span class="ms-4 d-block mb-2">${d.weatherInfo || 'N/A'}, ${d.windInfo || 'N/A'}</span>`;
             if(d.tideTable && d.tideTable.length > 0) { systemNotes += `<strong class="text-primary d-block mb-1"><i class="bi bi-water me-1"></i>Tide Table:</strong> <span class="ms-4 d-block mb-2">${d.tideTable.join(' | ')}</span>`; } 
