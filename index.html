@@ -31,6 +31,7 @@
             --modal-bg: #f8f9fa;
         }
 
+        /* --- DARK MODE VARIABLES --- */
         body.dark-mode {
             --primary-dark: #cbd5e1; 
             --app-blue: #38bdf8; 
@@ -143,7 +144,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 154.0 - Smart Fetch</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 155.0 - Venue Weather</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -175,14 +176,14 @@
             </div>
             <div class="row g-2">
                 <div class="col-6"><label class="form-label small mb-1">Date</label><input type="date" id="competitionDate" class="form-control" onchange="window.saveActiveSession()"></div>
-                <div class="col-6"><label class="form-label small mb-1">Venue</label><input type="text" id="venueInput" class="form-control" placeholder="Location" oninput="window.saveActiveSession()"></div>
+                <div class="col-6"><label class="form-label small mb-1">Venue</label><input type="text" id="venueInput" class="form-control border-primary" placeholder="e.g. Arbroath" oninput="window.saveActiveSession()"></div>
             </div>
         </div>
 
         <div class="inner-card p-3 mb-2">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="form-label small mb-0 text-primary fw-bold">Conditions & Tide (Optional)</label>
-                <button class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.fetchLiveWeather()"><i class="bi bi-geo-alt-fill me-1"></i>Auto-Fill</button>
+                <label class="form-label small mb-0 text-primary fw-bold">Conditions & Tide</label>
+                <button class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold" onclick="window.fetchLiveWeather()"><i class="bi bi-cloud-arrow-down-fill me-1"></i>Auto-Fill</button>
             </div>
             <div class="row g-2 mb-2">
                 <div class="col-4"><input type="text" id="weatherInput" class="form-control form-control-sm text-center" placeholder="e.g. Rain" oninput="window.saveActiveSession()"></div>
@@ -354,6 +355,9 @@
             <div class="inner-card p-3 mb-3 text-center">
                 <h4 id="saved_view_angler" class="text-primary fw-bold m-0"></h4>
                 <div class="text-muted small"><span id="saved_view_date"></span> • <span id="saved_view_venue"></span></div>
+                
+                <div id="saved_view_conditions" class="mt-2 d-flex flex-wrap justify-content-center gap-1"></div>
+
                 <div id="saved_view_comp_details" class="mt-3 d-flex flex-wrap justify-content-center gap-2" style="display:none;">
                     <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Team: <span id="saved_view_team"></span></span>
                     <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Zone: <span id="saved_view_zone"></span></span>
@@ -379,6 +383,7 @@
     <div class="modal fade" id="tideModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body p-4 text-center"><h5 class="fw-bold text-primary mb-3"><i class="bi bi-water me-2"></i>Today's Tides</h5><div id="tideListDisplay" class="text-dark"></div><button class="btn btn-secondary w-100 py-2 mt-4" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
     <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Session Found</h4><p class="text-muted">Restore unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" data-bs-dismiss="modal" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
+
     <div class="modal fade" id="imageModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="background:transparent; border:none;"><div class="modal-body p-0 text-center"><img id="fullSizeImage" src="" style="max-width:100%; border-radius:15px; border:3px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"><button class="btn btn-sm btn-light mt-3 rounded-pill px-4" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
     <script>
@@ -411,7 +416,7 @@
             new bootstrap.Toast(t).show();
         };
 
-        /* --- SMART WEATHER & TIDE FETCH ENGINE --- */
+        /* --- HYBRID WEATHER FETCH: VENUE TEXT OR GPS --- */
         window.fetchLiveWeather = function() {
             const btn = document.querySelector('button[onclick="window.fetchLiveWeather()"]');
             
@@ -420,80 +425,82 @@
                 return;
             }
 
+            const venueText = document.getElementById('venueInput').value.trim();
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Locating...';
+            btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Fetching...';
             btn.disabled = true;
 
-            if(!navigator.geolocation) {
-                window.showAppToast("Location not supported.", true);
-                btn.innerHTML = originalText; btn.disabled = false;
-                return;
-            }
+            const executeFetch = (queryValue) => {
+                // Try Marine endpoint first
+                fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${queryValue}&tides=yes`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // If it fails because there are no tides (e.g., inland town), fallback to standard weather
+                        if(data.error) {
+                            return fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${queryValue}`)
+                                .then(res => res.json());
+                        }
+                        return data;
+                    })
+                    .then(data => {
+                        if(data.error) throw new Error(data.error.message);
+                        if(!data.current) throw new Error("Invalid data received.");
 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    btn.innerHTML = '<i class="bi bi-cloud-arrow-down icon-spin"></i> Fetching...';
-                    
-                    // 1. Try to fetch Marine data first
-                    fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${lat},${lon}&tides=yes`)
-                        .then(response => response.json())
-                        .then(data => {
-                            // 2. If it throws an inland error (1006), seamlessly fall back to standard weather
-                            if(data.error && data.error.code === 1006) {
-                                return fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`)
-                                    .then(res => res.json());
-                            }
-                            return data;
-                        })
-                        .then(data => {
-                            // Catch any other hard errors
-                            if(data.error) throw new Error(data.error.message);
-                            if(!data.current) throw new Error("Invalid data received.");
-
-                            // Populate Weather & Wind
-                            document.getElementById('weatherInput').value = `${data.current.condition.text}, ${data.current.temp_c}°C`;
-                            document.getElementById('windInput').value = `${data.current.wind_dir} ${data.current.wind_mph}mph`;
-                            
-                            // 3. Try to parse Tides safely
-                            document.getElementById('btnViewTides').style.display = 'none';
-                            fetchedTideTable = [];
-                            
-                            try {
-                                if(data.forecast && data.forecast.forecastday[0].day.tides[0].tide) {
-                                    const tidesArray = data.forecast.forecastday[0].day.tides[0].tide;
-                                    fetchedTideTable = tidesArray.map(t => {
-                                        const timeOnly = t.tide_time.split(' ')[1];
-                                        return `${t.tide_type === 'HIGH' ? 'High' : 'Low'}: ${timeOnly} (${t.tide_height_mt}m)`;
-                                    });
-                                    document.getElementById('tideInput').value = "See Tide Table";
-                                    document.getElementById('btnViewTides').style.display = 'block';
-                                    document.getElementById('tideListDisplay').innerHTML = fetchedTideTable.join('<br><br>');
-                                } else {
-                                    // Valid weather, but no tide data (Inland)
-                                    document.getElementById('tideInput').value = "N/A (Inland)";
-                                }
-                            } catch(err) {
+                        document.getElementById('weatherInput').value = `${data.current.condition.text}, ${data.current.temp_c}°C`;
+                        document.getElementById('windInput').value = `${data.current.wind_dir} ${data.current.wind_mph}mph`;
+                        
+                        document.getElementById('btnViewTides').style.display = 'none';
+                        fetchedTideTable = [];
+                        
+                        try {
+                            if(data.forecast && data.forecast.forecastday[0].day.tides[0].tide) {
+                                const tidesArray = data.forecast.forecastday[0].day.tides[0].tide;
+                                fetchedTideTable = tidesArray.map(t => {
+                                    const timeOnly = t.tide_time.split(' ')[1];
+                                    return `${t.tide_type === 'HIGH' ? 'High' : 'Low'}: ${timeOnly} (${t.tide_height_mt}m)`;
+                                });
+                                document.getElementById('tideInput').value = "See Tide Table";
+                                document.getElementById('btnViewTides').style.display = 'block';
+                                document.getElementById('tideListDisplay').innerHTML = fetchedTideTable.join('<br><br>');
+                            } else {
                                 document.getElementById('tideInput').value = "N/A (Inland)";
                             }
+                        } catch(err) {
+                            document.getElementById('tideInput').value = "N/A (Inland)";
+                        }
 
-                            window.saveActiveSession();
-                            btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
-                            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
-                        })
-                        .catch(err => {
-                            // 4. Output the exact API error message to the toast so we know what broke
-                            window.showAppToast(err.message, true);
-                            btn.innerHTML = originalText; btn.disabled = false;
-                        });
-                },
-                (err) => {
-                    window.showAppToast("GPS Error. Check phone settings.", true);
+                        window.saveActiveSession();
+                        btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
+                        setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+                    })
+                    .catch(err => {
+                        window.showAppToast(err.message, true);
+                        btn.innerHTML = originalText; btn.disabled = false;
+                    });
+            };
+
+            // If user typed a venue, use that. Otherwise use GPS.
+            if (venueText !== "") {
+                executeFetch(encodeURIComponent(venueText));
+            } else {
+                if(!navigator.geolocation) {
+                    window.showAppToast("Please type a Venue first.", true);
                     btn.innerHTML = originalText; btn.disabled = false;
-                },
-                { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
-            );
+                    return;
+                }
+                btn.innerHTML = '<i class="bi bi-crosshair icon-spin"></i> Locating...';
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const query = `${position.coords.latitude},${position.coords.longitude}`;
+                        executeFetch(query);
+                    },
+                    (err) => {
+                        window.showAppToast("GPS Error. Please type a Venue instead.", true);
+                        btn.innerHTML = originalText; btn.disabled = false;
+                    },
+                    { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+                );
+            }
         };
 
         window.toggleDarkMode = function() {
