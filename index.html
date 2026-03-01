@@ -217,7 +217,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 137.0 - Pro</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 138.0 - Pro</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
@@ -391,6 +391,7 @@
             <div id="saved_view_breakdown"></div>
             <div class="d-grid gap-2 mt-4">
                 <button class="btn btn-whatsapp py-3 shadow-sm text-white" style="background:#25D366;" onclick="window.shareAsImage('saved')"><i class="bi bi-whatsapp me-2"></i>Share / Send Scorecard</button>
+                <button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete Record</button>
                 <button class="btn btn-secondary py-3" data-bs-dismiss="modal" onclick="window.closeHistoryModal()">Close History</button>
             </div>
         </div>
@@ -543,17 +544,20 @@
             window.saveActiveSession();
         };
 
+        // NEW: CAPTURE TIMESTAMP FOR EACH FISH
         window.validateInputs = function() {
             const spIn = document.getElementById('speciesInput');
             let species = spIn.value === "Other" ? document.getElementById('customSpeciesInput').value.trim() : spIn.value;
             if(!species) { alert("Select species."); return null; }
             
-            if(currentScoringMethod==='weight') return { species, ...window.getPickerValue() };
-            if(currentScoringMethod==='species_hunt') return { species, length: 0 };
+            const catchTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            if(currentScoringMethod==='weight') return { species, time: catchTime, ...window.getPickerValue() };
+            if(currentScoringMethod==='species_hunt') return { species, time: catchTime, length: 0 };
             
             const len = window.getLengthPickerValue();
             if(len <= 0) { alert("Scroll to enter a valid length."); return null; }
-            return { species, length: len };
+            return { species, time: catchTime, length: len };
         };
 
         window.addFishTextOnly = function() {
@@ -624,9 +628,17 @@
             return method==='length_only' ? Math.round(lenSum) : Math.round(lenSum + (data.length*10));
         };
 
+        // NEW: SHARED FUNCTION TO RENDER SPECIES HUNT HTML WITH TIMES
         function generateSpeciesHuntHTML(fishArray) {
             const counts = {}; 
-            fishArray.forEach(f => counts[f.species] = (counts[f.species] || 0) + 1);
+            const times = {};
+            
+            fishArray.forEach(f => {
+                counts[f.species] = (counts[f.species] || 0) + 1;
+                if(!times[f.species]) times[f.species] = [];
+                if(f.time) times[f.species].push(f.time);
+            });
+            
             let html = '';
             for(let s in counts){
                 let n = counts[s];
@@ -643,7 +655,11 @@
                     p += (n - 3);
                     extra = `<span class="pip-extra ms-2">+${n-3} extra</span>`;
                 }
-                html += `<div class="species-quota-card"><div class="d-flex justify-content-between align-items-center mb-2"><strong class="fs-6">${s}</strong><span class="fw-bold text-primary">${p} pts</span></div><div class="d-flex align-items-center">${pips}${extra}</div></div>`;
+                
+                // Add timestamp list below the header
+                let timeStr = times[s] && times[s].length > 0 ? `<div class="text-muted mb-2" style="font-size: 0.7rem;"><i class="bi bi-clock me-1"></i>${times[s].reverse().join(', ')}</div>` : '';
+                
+                html += `<div class="species-quota-card"><div class="d-flex justify-content-between align-items-center mb-1"><strong class="fs-6">${s}</strong><span class="fw-bold text-primary">${p} pts</span></div>${timeStr}<div class="d-flex align-items-center">${pips}${extra}</div></div>`;
             }
             return html;
         }
@@ -676,11 +692,13 @@
                     : `<div class="${lblInfo.cls}">${lblInfo.text}</div>`;
 
                 const ph = f.photo ? `<img src="${f.photo}" class="fish-thumb ms-3" onclick="window.viewImg('${f.photo}')">` : '';
+                const timeBadge = f.time ? `<span class="badge bg-light text-secondary ms-2 fw-normal" style="font-size: 0.7rem;"><i class="bi bi-clock"></i> ${f.time}</span>` : '';
+
                 tr.innerHTML = `
                     <td>
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
-                                <div class="fw-bold text-dark">${f.species}</div>
+                                <div class="fw-bold text-dark">${f.species} ${timeBadge}</div>
                                 ${displayHTML}
                             </div>
                             ${ph}
@@ -718,10 +736,20 @@
             document.getElementById('session_total_stat').textContent = isW ? window.calculatePoints(fishData, 'weight') : fishData.reduce((s,f)=>s+parseFloat(f.length||0),0).toFixed(1) + 'cm';
             
             const area = document.getElementById('session_breakdown_area'); area.innerHTML='';
+            
             if(currentScoringMethod==='species_hunt'){
                 area.innerHTML = generateSpeciesHuntHTML(fishData);
             } else {
-                fishData.forEach(f=>area.innerHTML+=`<div class="inner-card p-2 mb-2 border shadow-sm">${f.species}: ${f.display||f.length+'cm'}</div>`);
+                // Ensure tally table has consistent styling
+                let eTable = '<table class="table-custom"><tbody>';
+                fishData.forEach(f=>{
+                    const val = currentScoringMethod==='weight' ? f.display : `${f.length}cm`;
+                    const ph = f.photo ? `<img src="${f.photo}" class="fish-thumb ms-3" onclick="window.viewImg('${f.photo}')">` : '';
+                    const timeBadge = f.time ? `<span class="badge bg-light text-secondary ms-2 fw-normal" style="font-size: 0.7rem;"><i class="bi bi-clock"></i> ${f.time}</span>` : '';
+                    eTable += `<tr><td><div class="d-flex align-items-center justify-content-between"><div><div class="fw-bold text-dark">${f.species} ${timeBadge}</div><div class="text-primary fw-bold small">${val}</div></div>${ph}</div></td></tr>`;
+                });
+                eTable += '</tbody></table>';
+                area.innerHTML = eTable;
             }
             window.saveActiveSession();
         };
@@ -736,7 +764,6 @@
             StorageHelper.remove('active_session'); location.reload();
         };
 
-        // NEW: Load History with Archive System & Delete Buttons
         window.loadSavedScorecards = function(){
             document.getElementById('fullScorecardView').style.display='none';
             document.getElementById('savedScorecardsList').style.display='block';
@@ -788,7 +815,6 @@
             }
         };
 
-        // NEW: Direct delete from the main history list
         window.deleteFromList = function(e, k) {
             e.stopPropagation(); 
             if(confirm("Permanently delete this scorecard?")) {
@@ -822,7 +848,8 @@
                 d.fishData.forEach(f=>{
                     const val = d.method==='weight' ? f.display : `${f.length}cm`;
                     const ph = f.photo ? `<img src="${f.photo}" class="fish-thumb ms-3" onclick="window.viewImg('${f.photo}')">` : '';
-                    eTable += `<tr><td><div class="d-flex align-items-center justify-content-between"><div><div class="fw-bold text-dark">${f.species}</div><div class="text-primary fw-bold small">${val}</div></div>${ph}</div></td></tr>`;
+                    const timeBadge = f.time ? `<span class="badge bg-light text-secondary ms-2 fw-normal" style="font-size: 0.7rem;"><i class="bi bi-clock"></i> ${f.time}</span>` : '';
+                    eTable += `<tr><td><div class="d-flex align-items-center justify-content-between"><div><div class="fw-bold text-dark">${f.species} ${timeBadge}</div><div class="text-primary fw-bold small">${val}</div></div>${ph}</div></td></tr>`;
                 });
                 eTable += '</tbody></table>';
                 area.innerHTML = eTable;
