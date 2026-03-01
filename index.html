@@ -136,35 +136,23 @@
         .app-page { display: none; width: 100%; max-width: 600px; margin: 0 auto; padding: 15px 15px 40px 15px; }
         .inner-card { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.8); }
 
-        /* --- SPLASH SCREEN & NEW ANIMATED ICON --- */
+        /* --- SPLASH SCREEN & SONAR MEASURE ICON --- */
         .splash-screen {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white;
             text-align: center; padding: 20px;
         }
-        .logo-svg { width: 160px; height: 160px; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.4)); margin-bottom: 30px; }
+        .logo-svg { width: 160px; height: 160px; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.5)); margin-bottom: 30px; }
         
-        .animated-fish {
-            transform-origin: 100px 100px;
-            animation: swimBob 3.5s ease-in-out infinite;
-        }
-        @keyframes swimBob {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-12px) rotate(-6deg); }
-        }
-
-        .animated-waves path:nth-child(1) { animation: waveDrift 4s linear infinite; }
-        .animated-waves path:nth-child(2) { animation: waveDrift 3s linear infinite reverse; }
+        .sonar-sweep { transform-origin: 100px 100px; animation: spin 4s linear infinite; }
+        .blinker { animation: blink 1s step-end infinite; }
+        .target-bracket { animation: pulseBracket 2s infinite alternate; transform-origin: 100px 100px; }
         
-        @keyframes waveDrift {
-            from { transform: translateX(0); }
-            to { transform: translateX(-100px); }
-        }
-        
-        .sun-pulse { animation: sunGlow 4s ease-in-out infinite; }
-        @keyframes sunGlow {
-            0%, 100% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.15); opacity: 1; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes pulseBracket { 
+            0% { opacity: 0.3; transform: scale(0.96); } 
+            100% { opacity: 1; transform: scale(1.02); } 
         }
 
         .live-score-box { border: 4px solid var(--app-blue); background-color: white; border-radius: 24px; padding: 20px; text-align: center; margin-bottom: 25px; box-shadow: var(--shadow-lg); }
@@ -181,10 +169,11 @@
         
         /* --- MEDAL PIPS --- */
         .species-quota-card { background: white; border-radius: 18px; padding: 15px; margin-bottom: 12px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
-        .pip { width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; margin-right: 6px; }
-        .pip.active.bronze { background: #d97706; color: white; }
-        .pip.active.silver { background: #94a3b8; color: white; }
-        .pip.active.gold { background: #eab308; color: white; }
+        .pip { width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; margin-right: 6px; border: 2px solid transparent; }
+        .pip.bronze.active { background: #cd7f32; color: white; border-color: #a05a2c; box-shadow: 0 2px 4px rgba(205, 127, 50, 0.4); }
+        .pip.silver.active { background: #94a3b8; color: white; border-color: #64748b; box-shadow: 0 2px 4px rgba(148, 163, 184, 0.4); }
+        .pip.gold.active { background: #eab308; color: white; border-color: #ca8a04; box-shadow: 0 2px 4px rgba(234, 179, 8, 0.4); }
+        .pip-extra { font-size: 0.8rem; color: #64748b; font-weight: 700; display: inline-flex; align-items: center; }
 
         @keyframes slideFlash { 0% { background-color: #dcfce7; transform: translateY(-10px); } 100% { background-color: white; } }
         .new-catch-anim { animation: slideFlash 1.5s ease-out; }
@@ -194,38 +183,41 @@
 
     <div id="splashScreen" class="splash-screen">
         <svg class="logo-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="95" fill="#0f172a" stroke="#0ea5e9" stroke-width="2"/>
+            <circle cx="100" cy="100" r="60" fill="none" stroke="#0ea5e9" stroke-width="1" opacity="0.3"/>
+            <circle cx="100" cy="100" r="30" fill="none" stroke="#0ea5e9" stroke-width="1" opacity="0.3"/>
+            <line x1="5" y1="100" x2="195" y2="100" stroke="#0ea5e9" stroke-width="1" opacity="0.3"/>
+            <line x1="100" y1="5" x2="100" y2="195" stroke="#0ea5e9" stroke-width="1" opacity="0.3"/>
+            
+            <path d="M 30,135 L 30,150 L 170,150 L 170,135" fill="none" stroke="#38bdf8" stroke-width="3" opacity="0.9"/>
+            <line x1="65" y1="150" x2="65" y2="142" stroke="#38bdf8" stroke-width="2" opacity="0.9"/>
+            <line x1="100" y1="150" x2="100" y2="138" stroke="#38bdf8" stroke-width="2" opacity="0.9"/>
+            <line x1="135" y1="150" x2="135" y2="142" stroke="#38bdf8" stroke-width="2" opacity="0.9"/>
+
+            <path d="M 50,65 L 40,65 L 40,75" fill="none" stroke="#10b981" stroke-width="3" class="target-bracket"/>
+            <path d="M 150,65 L 160,65 L 160,75" fill="none" stroke="#10b981" stroke-width="3" class="target-bracket"/>
+            <path d="M 50,125 L 40,125 L 40,115" fill="none" stroke="#10b981" stroke-width="3" class="target-bracket"/>
+            <path d="M 150,125 L 160,125 L 160,115" fill="none" stroke="#10b981" stroke-width="3" class="target-bracket"/>
+
+            <path d="M 160,95 L 120,80 L 60,95 L 40,80 L 40,110 L 60,95 L 120,110 Z" fill="#e2e8f0"/>
+
+            <g class="sonar-sweep">
+                <path d="M 100,100 L 100,5 A 95 95 0 0 1 195,100 Z" fill="url(#radarGradient)" opacity="0.5"/>
+                <line x1="100" y1="100" x2="100" y2="5" stroke="#38bdf8" stroke-width="2"/>
+            </g>
+
+            <circle cx="100" cy="100" r="4" fill="#ef4444" class="blinker"/>
+
             <defs>
-                <clipPath id="circleClip">
-                    <circle cx="100" cy="100" r="95"/>
-                </clipPath>
-                <linearGradient id="gradWater" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stop-color="#38bdf8" />
-                    <stop offset="100%" stop-color="#0284c7" />
+                <linearGradient id="radarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
                 </linearGradient>
             </defs>
-            
-            <circle cx="100" cy="100" r="95" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="6"/>
-            
-            <g clip-path="url(#circleClip)">
-                <circle cx="145" cy="55" r="22" fill="#fcd34d" class="sun-pulse"/>
-                
-                <g class="animated-fish">
-                    <path d="M55,100 L20,75 L35,100 L20,125 Z" fill="#0284c7" stroke="#0f172a" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M90,75 L110,40 L125,70 Z" fill="#0284c7" stroke="#0f172a" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M50,100 C70,55 140,55 170,100 C140,145 70,145 50,100 Z" fill="#0ea5e9" stroke="#0f172a" stroke-width="2" stroke-linejoin="round"/>
-                    <circle cx="140" cy="92" r="5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
-                    <circle cx="142" cy="92" r="2" fill="#0f172a"/>
-                </g>
-                
-                <g class="animated-waves">
-                    <path d="M0,130 Q50,110 100,130 T200,130 T300,130 T400,130 L400,200 L0,200 Z" fill="#7dd3fc" opacity="0.7"/>
-                    <path d="M-100,150 Q-50,130 0,150 T100,150 T200,150 T300,150 L300,200 L-100,200 Z" fill="url(#gradWater)" opacity="0.95"/>
-                </g>
-            </g>
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 135.0 - Pro</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 136.0 - Pro</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
