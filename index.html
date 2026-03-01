@@ -179,7 +179,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="5" stroke-linecap="round"/><circle cx="160" cy="40" r="6" fill="#10b981"/></g>
         </svg>
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 132.0 - Pro</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 133.0 - Pro</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
@@ -228,6 +228,9 @@
                         <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
                         <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
                     </select>
+                </div>
+                <div class="col-12 mt-3">
+                    <input type="text" id="teamInput" class="form-control form-control-lg" placeholder="Team Name (Optional)" disabled oninput="window.saveActiveSession()">
                 </div>
             </div>
         </div>
@@ -294,7 +297,7 @@
             <h2 class="text-primary fw-bold">Match Complete</h2>
             <div id="session_angler" class="fw-bold fs-4"></div>
             <div class="text-muted"><span id="session_date"></span> • <span id="session_venue"></span></div>
-            <div id="session_comp_details" class="mt-3 badge bg-primary bg-opacity-10 text-primary fs-6" style="display:none;">Zone: <span id="session_zone"></span> | Peg: <span id="session_peg"></span></div>
+            <div id="session_comp_details" class="mt-3 badge bg-primary bg-opacity-10 text-primary fs-6" style="display:none;">Team: <span id="session_team"></span> | Zone: <span id="session_zone"></span> | Peg: <span id="session_peg"></span></div>
         </div>
         <div class="live-score-box"><div id="session_total_points" class="live-score-value">0</div></div>
         
@@ -313,11 +316,11 @@
 
         <div class="d-grid gap-3 mt-4">
             <button class="btn btn-primary btn-lg shadow py-3" onclick="window.saveAndEndSession()"><i class="bi bi-save me-2"></i>Save Record</button>
-            <button class="btn btn-whatsapp py-3 shadow-sm" onclick="window.shareAsImage('live')"><i class="bi bi-share me-2"></i>Share Summary</button>
+            <button class="btn btn-whatsapp py-3 shadow-sm text-white" style="background:#25D366;" onclick="window.shareAsImage('live')"><i class="bi bi-share me-2"></i>Share Summary</button>
         </div>
     </div>
 
-    <div class="modal fade" id="savedModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content border-0"><div class="modal-header border-0"><h5 class="modal-title fw-bold">History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div id="savedScorecardsList"><div id="recentList"></div></div><div id="fullScorecardView" style="display:none;"><div class="inner-card p-3 mb-3 text-center"><h4 id="saved_view_angler" class="text-primary fw-bold m-0"></h4><div class="text-muted small"><span id="saved_view_date"></span> • <span id="saved_view_venue"></span></div><div id="saved_view_comp_details" class="mt-2 badge bg-primary bg-opacity-10 text-primary" style="display:none;">Zone: <span id="saved_view_zone"></span> | Peg: <span id="saved_view_peg"></span></div></div><div class="live-score-box"><div id="saved_view_points" class="live-score-value">0</div></div><div id="saved_view_breakdown"></div><div class="d-grid gap-2 mt-4"><button class="btn btn-whatsapp py-3 shadow-sm text-white" style="background:#25D366;" onclick="window.shareAsImage('saved')"><i class="bi bi-whatsapp me-2"></i>Share / Send Scorecard</button><button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete Record</button><button class="btn btn-secondary py-3" data-bs-dismiss="modal" onclick="window.closeHistoryModal()">Close History</button></div></div></div></div></div></div>
+    <div class="modal fade" id="savedModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content border-0"><div class="modal-header border-0"><h5 class="modal-title fw-bold">History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div id="savedScorecardsList"><div id="recentList"></div></div><div id="fullScorecardView" style="display:none;"><div class="inner-card p-3 mb-3 text-center"><h4 id="saved_view_angler" class="text-primary fw-bold m-0"></h4><div class="text-muted small"><span id="saved_view_date"></span> • <span id="saved_view_venue"></span></div><div id="saved_view_comp_details" class="mt-2 badge bg-primary bg-opacity-10 text-primary" style="display:none;">Team: <span id="saved_view_team"></span> | Zone: <span id="saved_view_zone"></span> | Peg: <span id="saved_view_peg"></span></div></div><div class="live-score-box"><div id="saved_view_points" class="live-score-value">0</div></div><div id="saved_view_breakdown"></div><div class="d-grid gap-2 mt-4"><button class="btn btn-whatsapp py-3 shadow-sm text-white" style="background:#25D366;" onclick="window.shareAsImage('saved')"><i class="bi bi-whatsapp me-2"></i>Share / Send Scorecard</button><button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete Record</button><button class="btn btn-secondary py-3" data-bs-dismiss="modal" onclick="window.closeHistoryModal()">Close History</button></div></div></div></div></div></div>
     
     <div class="modal fade" id="weightUnitModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -348,7 +351,7 @@
         ];
         
         let fishData=[], currentScoringMethod='', selectedWeightUnit='metric', currentSavedKey='', currentAngler='', currentVenue='', currentDate='';
-        let isCompetitionMode = false, currentZone = '', currentPeg = '';
+        let isCompetitionMode = false, currentZone = '', currentPeg = '', currentTeam = '';
 
         const PageManager={
             show:function(id){
@@ -360,7 +363,7 @@
         };
         const StorageHelper={save:(k,v)=>localStorage.setItem(k,v),get:(k)=>localStorage.getItem(k),remove:(k)=>localStorage.removeItem(k),getAll:()=>({...localStorage})};
 
-        /* --- PICKER ENGINE --- */
+        /* --- DRUM PICKER ENGINE --- */
         window.initWeightPicker = function() {
             const c1 = document.getElementById('pickerCol1'), c2 = document.getElementById('pickerCol2');
             const pad = '<div style="height: 65px;"></div>';
@@ -455,6 +458,7 @@
             isCompetitionMode = document.getElementById('isCompetition').checked;
             currentZone = document.getElementById('zoneInput').value || '-';
             currentPeg = document.getElementById('pegInput').value || '-';
+            currentTeam = document.getElementById('teamInput').value.trim() || '-';
 
             if(!currentAngler || !currentVenue || !currentScoringMethod) return alert("Please fill all setup fields.");
             
@@ -623,6 +627,7 @@
             document.getElementById('session_venue').textContent = currentVenue;
             
             document.getElementById('session_comp_details').style.display = isCompetitionMode ? 'inline-block' : 'none';
+            document.getElementById('session_team').textContent = currentTeam;
             document.getElementById('session_zone').textContent = currentZone;
             document.getElementById('session_peg').textContent = currentPeg;
 
@@ -646,7 +651,7 @@
         window.saveAndEndSession = function(){
             StorageHelper.save('scorecard_'+Date.now(), JSON.stringify({
                 angler:currentAngler, venue:currentVenue, date:currentDate, 
-                isComp:isCompetitionMode, zone:currentZone, peg:currentPeg,
+                isComp:isCompetitionMode, team:currentTeam, zone:currentZone, peg:currentPeg,
                 fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, 
                 notes:document.getElementById('sessionNotesInput').value 
             }));
@@ -673,6 +678,7 @@
             
             if(d.isComp) {
                 document.getElementById('saved_view_comp_details').style.display='inline-block';
+                document.getElementById('saved_view_team').textContent=d.team || '-';
                 document.getElementById('saved_view_zone').textContent=d.zone;
                 document.getElementById('saved_view_peg').textContent=d.peg;
             } else {
@@ -706,6 +712,7 @@
                 date:currentDate||document.getElementById('competitionDate').value, 
                 method:currentScoringMethod, unit:selectedWeightUnit, 
                 isComp:document.getElementById('isCompetition').checked, 
+                team:document.getElementById('teamInput').value,
                 zone:document.getElementById('zoneInput').value, 
                 peg:document.getElementById('pegInput').value, 
                 fishData 
@@ -723,12 +730,13 @@
         window.confirmRestore = function(){
             const s = JSON.parse(StorageHelper.get('active_session')); 
             fishData=s.fishData||[]; currentAngler=s.angler; currentVenue=s.venue; currentDate=s.date; currentScoringMethod=s.method; selectedWeightUnit=s.unit;
-            isCompetitionMode=s.isComp; currentZone=s.zone; currentPeg=s.peg;
+            isCompetitionMode=s.isComp; currentTeam=s.team||''; currentZone=s.zone; currentPeg=s.peg;
             
             document.getElementById('anglerName').value=s.angler; 
             document.getElementById('venueInput').value=s.venue; 
             document.getElementById('scoringMethod').value=s.method;
             document.getElementById('isCompetition').checked=s.isComp || false;
+            document.getElementById('teamInput').value=s.team || '';
             document.getElementById('zoneInput').value=s.zone || '';
             document.getElementById('pegInput').value=s.peg || '';
             window.toggleCompetitionFields();
@@ -753,6 +761,7 @@
 
         window.toggleCompetitionFields = function(){
             const isC = document.getElementById('isCompetition').checked; 
+            document.getElementById('teamInput').disabled=!isC;
             document.getElementById('zoneInput').disabled=!isC; 
             document.getElementById('pegInput').disabled=!isC;
         };
