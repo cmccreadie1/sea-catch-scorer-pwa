@@ -217,7 +217,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 141.0 - Full Offline SPA</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 142.0 - Final SPA</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
@@ -814,7 +814,6 @@
             window.saveActiveSession();
         };
 
-        // NEW: SAVES AND SOFT-RESETS WITHOUT A BROWSER REFRESH
         window.saveAndEndSession = function(){
             try {
                 StorageHelper.save('scorecard_'+Date.now(), JSON.stringify({
@@ -923,7 +922,6 @@
             document.getElementById('fullScorecardView').style.display='block';
         };
 
-        // NEW: SOFT-RESET ALL ABANDONED ACTIONS
         window.confirmQuit=function(){if(confirm("Discard active session?")){window.resetAppToHome();}};
         window.discardRestore=function(){window.resetAppToHome();};
         window.closeHistoryModal=function(){ /* Modal handles closing itself */ };
@@ -1036,5 +1034,7 @@
             window.restoreActiveSession();
         });
     </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
