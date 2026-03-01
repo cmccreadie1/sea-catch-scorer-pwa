@@ -136,7 +136,7 @@
         .app-page { display: none; width: 100%; max-width: 600px; margin: 0 auto; padding: 15px 15px 40px 15px; }
         .inner-card { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.8); }
 
-        /* --- SPLASH SCREEN & SONAR MEASURE ICON --- */
+        /* --- SPLASH SCREEN --- */
         .splash-screen {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white;
@@ -217,7 +217,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 139.0 - Pro Offline</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 140.0 - Local Storage</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
@@ -437,9 +437,23 @@
                 window.scrollTo(0,0);
             }
         };
-        const StorageHelper={save:(k,v)=>localStorage.setItem(k,v),get:(k)=>localStorage.getItem(k),remove:(k)=>localStorage.removeItem(k),getAll:()=>({...localStorage})};
 
-        // --- SERVICE WORKER REGISTRATION ---
+        // NEW: ROBUST STORAGE HELPER WITH ERROR HANDLING
+        const StorageHelper={
+            save: function(k,v) {
+                try {
+                    localStorage.setItem(k,v);
+                } catch(e) {
+                    console.error("Storage limit reached", e);
+                    throw new Error("QUOTA_EXCEEDED");
+                }
+            },
+            get: (k) => localStorage.getItem(k),
+            remove: (k) => localStorage.removeItem(k),
+            getAll: () => ({...localStorage})
+        };
+
+        // SERVICE WORKER REGISTRATION
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('service-worker.js').then(function(registration) {
@@ -577,6 +591,7 @@
 
         window.triggerCamera = function() { if(window.validateInputs()) document.getElementById('cameraInput').click(); };
 
+        // NEW: AGGRESSIVE PHOTO COMPRESSION TO PREVENT STORAGE CRASH
         window.handleCameraInput = function() {
             const input = document.getElementById('cameraInput');
             if (input.files && input.files[0]) {
@@ -584,11 +599,14 @@
                 reader.onload = function(e) {
                     const img = new Image();
                     img.onload = function() {
-                        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                        const MAX = 600; let w = img.width, h = img.height;
+                        const canvas = document.createElement('canvas'); 
+                        const ctx = canvas.getContext('2d');
+                        // Reduced MAX size from 600 to 400 for local storage efficiency
+                        const MAX = 400; let w = img.width, h = img.height;
                         if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } } else { if (h > MAX) { w *= MAX/h; h = MAX; } }
                         canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
-                        const photoData = canvas.toDataURL('image/jpeg', 0.6);
+                        // Quality lowered to 0.5 (perfect for thumbnails, saves huge space)
+                        const photoData = canvas.toDataURL('image/jpeg', 0.5);
                         const d = window.validateInputs();
                         if(d) { fishData.push({ ...d, photo: photoData }); finishAddAction(); }
                     };
@@ -761,14 +779,20 @@
             window.saveActiveSession();
         };
 
+        // NEW: TRY/CATCH ERROR HANDLING ON FINAL SAVE
         window.saveAndEndSession = function(){
-            StorageHelper.save('scorecard_'+Date.now(), JSON.stringify({
-                angler:currentAngler, venue:currentVenue, date:currentDate, 
-                isComp:isCompetitionMode, team:currentTeam, zone:currentZone, peg:currentPeg,
-                fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, 
-                notes:document.getElementById('sessionNotesInput').value 
-            }));
-            StorageHelper.remove('active_session'); location.reload();
+            try {
+                StorageHelper.save('scorecard_'+Date.now(), JSON.stringify({
+                    angler:currentAngler, venue:currentVenue, date:currentDate, 
+                    isComp:isCompetitionMode, team:currentTeam, zone:currentZone, peg:currentPeg,
+                    fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, 
+                    notes:document.getElementById('sessionNotesInput').value 
+                }));
+                StorageHelper.remove('active_session'); 
+                location.reload();
+            } catch(e) {
+                alert("Device storage full. Please delete some old scorecards from History to save new photos.");
+            }
         };
 
         window.loadSavedScorecards = function(){
@@ -866,26 +890,32 @@
         };
 
         window.saveActiveSession = function(){
-            const p = document.getElementById('anglerFishingPage').style.display==='block'?'fishing':(document.getElementById('tallyVerificationPage').style.display==='block'?'tally':'setup');
-            StorageHelper.save('active_session', JSON.stringify({ 
-                phase:p, angler:currentAngler||document.getElementById('anglerName').value, 
-                venue:currentVenue||document.getElementById('venueInput').value, 
-                date:currentDate||document.getElementById('competitionDate').value, 
-                method:currentScoringMethod, unit:selectedWeightUnit, 
-                isComp:document.getElementById('isCompetition').checked, 
-                team:document.getElementById('teamInput').value,
-                zone:document.getElementById('zoneInput').value, 
-                peg:document.getElementById('pegInput').value, 
-                fishData 
-            }));
+            try {
+                const p = document.getElementById('anglerFishingPage').style.display==='block'?'fishing':(document.getElementById('tallyVerificationPage').style.display==='block'?'tally':'setup');
+                StorageHelper.save('active_session', JSON.stringify({ 
+                    phase:p, angler:currentAngler||document.getElementById('anglerName').value, 
+                    venue:currentVenue||document.getElementById('venueInput').value, 
+                    date:currentDate||document.getElementById('competitionDate').value, 
+                    method:currentScoringMethod, unit:selectedWeightUnit, 
+                    isComp:document.getElementById('isCompetition').checked, 
+                    team:document.getElementById('teamInput').value,
+                    zone:document.getElementById('zoneInput').value, 
+                    peg:document.getElementById('pegInput').value, 
+                    fishData 
+                }));
+            } catch(e) {
+                console.warn("Could not auto-save active session. Storage may be full.");
+            }
         };
 
         window.restoreActiveSession = function(){
-            const s = JSON.parse(StorageHelper.get('active_session'));
-            if(s && (s.angler || s.fishData.length > 0)){
-                pendingRestoreData = s; document.getElementById('restoreAnglerName').textContent = s.angler || "Unnamed";
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('restoreSessionModal')).show();
-            }
+            try {
+                const s = JSON.parse(StorageHelper.get('active_session'));
+                if(s && (s.angler || s.fishData.length > 0)){
+                    pendingRestoreData = s; document.getElementById('restoreAnglerName').textContent = s.angler || "Unnamed";
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('restoreSessionModal')).show();
+                }
+            } catch(e) {}
         };
 
         window.confirmRestore = function(){
