@@ -1,5 +1,5 @@
-// VERSION 157 
-const CACHE_NAME = 'sea-score-v157';
+// VERSION 158 - SMART TIDES & FORECAST ENGINE
+const CACHE_NAME = 'sea-score-v158';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
@@ -25,7 +25,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// ACTIVATE: Delete any old caches so they don't clog up the phone's storage
+// ACTIVATE: Delete any old caches (like v157) so they don't clog up the phone's storage
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
