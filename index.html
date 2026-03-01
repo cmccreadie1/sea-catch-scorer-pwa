@@ -32,13 +32,12 @@
             padding-bottom: 90px;
             min-height: 100vh;
             overflow-x: hidden;
-            /* STOPS PULL-TO-REFRESH REFRESH */
             overscroll-behavior-y: contain; 
         }
         
         h1, h2, h3, h4, .btn, .modal-title { font-family: 'Poppins', sans-serif; }
 
-        /* --- WEIGHT PICKER UI --- */
+        /* --- WEIGHT DRUM PICKER --- */
         .picker-outer-wrapper {
             background: #ffffff;
             padding: 15px;
@@ -120,7 +119,7 @@
             text-transform: uppercase;
         }
 
-        /* --- BUTTONS & WRAPPING --- */
+        /* --- BUTTONS --- */
         .btn-record-action {
             white-space: normal !important;
             line-height: 1.1 !important;
@@ -153,19 +152,19 @@
         .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
         .table-custom td { background: white; padding: 18px; border-radius: 18px; vertical-align: middle; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
 
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: #ffffff; padding: 15px 5px; border-radius: 16px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
+        .stat-card small { display: block; color: #64748b; font-size: 0.7rem; text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
+        .stat-card strong { font-size: 1.1rem; color: #1e293b; font-weight: 800; }
+        
         .species-quota-card { background: white; border-radius: 18px; padding: 15px; margin-bottom: 12px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
         .pip { width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; margin-right: 6px; }
         .pip.active.bronze { background: #d97706; color: white; }
         .pip.active.silver { background: #94a3b8; color: white; }
         .pip.active.gold { background: #eab308; color: white; }
 
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .stat-card { background: #ffffff; padding: 15px 5px; border-radius: 16px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
-        .stat-card small { display: block; color: #64748b; font-size: 0.7rem; text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
-        .stat-card strong { font-size: 1.1rem; color: #1e293b; font-weight: 800; }
-
         @keyframes slideFlash { 0% { background-color: #dcfce7; transform: translateY(-10px); } 100% { background-color: white; } }
-        .new-catch-anim { animation: slideFlash 1.5s ease-out; }
+        .new-catch-anim { animation: slideFlash 1s ease-out; }
     </style>
 </head>
 <body>
@@ -179,10 +178,13 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="5" stroke-linecap="round"/><circle cx="160" cy="40" r="6" fill="#10b981"/></g>
         </svg>
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 124.0 - Pro</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-4">Version 125.1 - Master</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
+            <button class="btn btn-link text-white text-decoration-none opacity-50 small mt-2" onclick="window.forceUpdateApp()">
+                <i class="bi bi-arrow-clockwise"></i> Force Update / Clear Cache
+            </button>
         </div>
     </div>
 
@@ -274,31 +276,27 @@
             <div class="text-muted"><span id="session_date"></span> • <span id="session_venue"></span></div>
         </div>
         <div class="live-score-box"><div id="session_total_points" class="live-score-value">0</div></div>
-        
         <div class="stat-grid">
             <div class="stat-card"><strong>Fish</strong><div id="session_total_fish">0</div></div>
             <div class="stat-card"><strong>Species</strong><div id="session_species_count">0</div></div>
             <div class="stat-card"><strong id="session_stat_label">Stat</strong><div id="session_total_stat">0</div></div>
         </div>
-
         <div id="session_breakdown_area"></div>
-
         <div class="inner-card">
             <label class="form-label small">Session Notes</label>
-            <textarea id="sessionNotesInput" class="form-control" rows="2" placeholder="Notes..." oninput="window.saveActiveSession()"></textarea>
+            <textarea id="sessionNotesInput" class="form-control" rows="2" oninput="window.saveActiveSession()"></textarea>
         </div>
-
         <div class="d-grid gap-3 mt-4">
-            <button class="btn btn-primary btn-lg shadow py-3" onclick="window.saveAndEndSession()"><i class="bi bi-save me-2"></i>Save Record</button>
-            <button class="btn btn-whatsapp py-3 shadow-sm" onclick="window.shareAsImage('live')"><i class="bi bi-share me-2"></i>Share Summary</button>
+            <button class="btn btn-primary btn-lg shadow py-3" onclick="window.saveAndEndSession()">Save Record</button>
+            <button class="btn btn-whatsapp py-3 shadow-sm" onclick="window.shareAsImage('live')">Share Summary</button>
         </div>
     </div>
 
-    <div class="modal fade" id="savedModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content border-0"><div class="modal-header border-0"><h5 class="modal-title fw-bold">Session History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div id="savedScorecardsList"><div id="recentList"></div></div><div id="fullScorecardView" style="display:none;"><h4 id="saved_view_angler" class="text-primary fw-bold text-center"></h4><div id="saved_view_points" class="live-score-value text-center my-4"></div><div id="saved_view_breakdown"></div><div class="d-grid gap-2 mt-4"><button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete</button><button class="btn btn-secondary py-3" onclick="window.backToScorecardList()">Back</button></div></div></div></div></div></div>
+    <div class="modal fade" id="savedModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content border-0"><div class="modal-header border-0"><h5 class="modal-title fw-bold">History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div id="savedScorecardsList"><div id="recentList"></div></div><div id="fullScorecardView" style="display:none;"><h4 id="saved_view_angler" class="text-primary fw-bold text-center"></h4><div id="saved_view_points" class="live-score-value text-center my-4"></div><div id="saved_view_breakdown"></div><div class="d-grid gap-2 mt-4"><button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete Record</button><button class="btn btn-secondary py-3" onclick="window.backToScorecardList()">Back</button></div></div></div></div></div></div>
     
-    <div class="modal fade" id="weightUnitModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 border-0 shadow-lg"><div class="modal-body p-5 text-center"><h4>Scoring Unit</h4><p class="text-muted small mb-4">Select format for this session</p><div class="d-grid gap-3"><button class="btn btn-primary btn-lg py-3" onclick="window.handleUnitSelection('metric')">Kilograms (KG)</button><button class="btn btn-primary btn-lg py-3" onclick="window.handleUnitSelection('imperial')">Pounds & Ounces</button></div></div></div></div></div>
+    <div class="modal fade" id="weightUnitModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 border-0 shadow-lg"><div class="modal-body p-5 text-center"><h4>Scoring Unit</h4><p class="text-muted small mb-4">Choose format for this session</p><div class="d-grid gap-3"><button type="button" class="btn btn-primary btn-lg py-3" onclick="window.handleUnitChoice('metric')">Kilograms (KG)</button><button type="button" class="btn btn-primary btn-lg py-3" onclick="window.handleUnitChoice('imperial')">Pounds & Ounces</button></div></div></div></div></div>
     
-    <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Session Found</h4><p class="text-muted">Restore unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
+    <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Resume Session?</h4><p class="text-muted">Restore unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
 
     <div class="modal fade" id="imageModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="background:transparent; border:none;"><div class="modal-body p-0 text-center"><img id="fullSizeImage" src="" style="max-width:100%; border-radius:15px; border:3px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"><button class="btn btn-sm btn-light mt-3 rounded-pill px-4" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
@@ -314,6 +312,24 @@
 
         const PageManager={show:function(id){document.querySelectorAll('.app-page').forEach(p=>p.style.display='none');document.getElementById('splashScreen').style.display='none';document.getElementById(id).style.display='block';window.scrollTo(0,0)}};
         const StorageHelper={save:(k,v)=>localStorage.setItem(k,v),get:(k)=>localStorage.getItem(k),remove:(k)=>localStorage.removeItem(k),getAll:()=>({...localStorage})};
+
+        /* --- PROGRAMMATIC UPDATER --- */
+        window.forceUpdateApp = function() {
+            if (confirm("This will clear the app cache and reload to the newest version. Proceed?")) {
+                if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                        for (let name of names) caches.delete(name);
+                    });
+                }
+                // Clear any stored PWA state that might interfere
+                if (window.navigator && navigator.serviceWorker) {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                        for(let registration of registrations) registration.unregister();
+                    });
+                }
+                window.location.reload(true);
+            }
+        };
 
         /* --- PICKER ENGINE --- */
         window.initWeightPicker = function() {
@@ -354,20 +370,29 @@
         window.handleMethodChange = function() {
             const m = document.getElementById("scoringMethod").value;
             if(m === 'weight') {
-                const modalEl = document.getElementById('weightUnitModal');
-                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                const modal = new bootstrap.Modal(document.getElementById('weightUnitModal'));
                 modal.show();
             }
             document.getElementById('speciesHuntInfo').style.display = m==='species_hunt' ? 'block':'none';
             window.saveActiveSession();
         };
 
-        window.handleUnitSelection = function(u) {
-            selectedWeightUnit = u;
-            document.getElementById('weightUnitDisplay').textContent = u==='metric' ? 'Metric (KG)':'Imperial (LB/OZ)';
+        window.handleUnitChoice = function(unit) {
+            selectedWeightUnit = unit;
+            document.getElementById('weightUnitDisplay').textContent = unit==='metric' ? 'Metric (KG)':'Imperial (LB/OZ)';
             document.getElementById('weightInfoDisplay').style.display='block';
-            document.getElementById('weightInfoDisplay').textContent = "Format: " + (u==='metric' ? 'Kilograms' : 'Pounds/Ounces');
-            bootstrap.Modal.getInstance(document.getElementById('weightUnitModal')).hide();
+            document.getElementById('weightInfoDisplay').textContent = "Format: " + (unit==='metric' ? 'KG/G' : 'LB/OZ');
+            
+            // CLEAN MODAL BACKDROP (STOPS FREEZING)
+            const modalEl = document.getElementById('weightUnitModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if(modalInstance) modalInstance.hide();
+            
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+
             window.saveActiveSession();
         };
 
@@ -376,7 +401,7 @@
             currentVenue = document.getElementById('venueInput').value.trim();
             currentDate = document.getElementById('competitionDate').value;
             currentScoringMethod = document.getElementById('scoringMethod').value;
-            if(!currentAngler || !currentVenue || !currentScoringMethod) return alert("Please complete setup.");
+            if(!currentAngler || !currentVenue || !currentScoringMethod) return alert("Fill setup.");
             
             document.getElementById('weightPickerContainer').style.display = currentScoringMethod==='weight' ? 'block':'none';
             document.getElementById('lengthInputContainer').style.display = (currentScoringMethod==='weight' || currentScoringMethod==='species_hunt') ? 'none':'block';
@@ -527,7 +552,7 @@
             const s = JSON.parse(StorageHelper.get('active_session'));
             if(s && (s.angler || s.fishData.length > 0)){
                 document.getElementById('restoreAnglerName').textContent = s.angler || "Unnamed";
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('restoreSessionModal')).show();
+                const modal = new bootstrap.Modal(document.getElementById('restoreSessionModal')); modal.show();
             }
         };
 
@@ -555,7 +580,7 @@
         window.backToScorecardList=function(){document.getElementById("fullScorecardView").style.display="none";document.getElementById("savedScorecardsList").style.display="block";};
         window.deleteCurrentSaved=function(){if(confirm("Delete record?")){StorageHelper.remove(currentSavedKey); location.reload();}};
         window.delFish=function(i){if(confirm("Delete catch?")){fishData.splice(i,1); window.updateFishLog(); window.saveActiveSession();}};
-        window.viewImg=function(s){document.getElementById('fullSizeImage').src=s; bootstrap.Modal.getOrCreateInstance(document.getElementById('imageModal')).show();};
+        window.viewImg=function(s){document.getElementById('fullSizeImage').src=s; new bootstrap.Modal(document.getElementById('imageModal')).show();};
         window.startFishing=function(){PageManager.show('anglerRegistration');};
         window.toggleCompetitionFields=function(){const isC=document.getElementById('isCompetition').checked; document.getElementById('zoneInput').disabled=!isC; document.getElementById('pegInput').disabled=!isC;};
         
