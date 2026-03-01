@@ -31,7 +31,6 @@
             --modal-bg: #f8f9fa;
         }
 
-        /* --- DARK MODE VARIABLES --- */
         body.dark-mode {
             --primary-dark: #cbd5e1; 
             --app-blue: #38bdf8; 
@@ -144,7 +143,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 155.0 - Venue Weather</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 156.0 - Visual Tides</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -181,13 +180,14 @@
         </div>
 
         <div class="inner-card p-3 mb-2">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="form-label small mb-0 text-primary fw-bold">Conditions & Tide</label>
-                <button class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold" onclick="window.fetchLiveWeather()"><i class="bi bi-cloud-arrow-down-fill me-1"></i>Auto-Fill</button>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <label class="form-label small mb-0 text-primary fw-bold">Conditions & Tide (Optional)</label>
+                <button class="btn btn-sm btn-primary py-1 px-3 fw-bold shadow-sm" onclick="window.fetchLiveWeather()"><i class="bi bi-cloud-arrow-down-fill me-1"></i>Fetch Venue Data</button>
             </div>
+            
             <div class="row g-2 mb-2">
-                <div class="col-4"><input type="text" id="weatherInput" class="form-control form-control-sm text-center" placeholder="e.g. Rain" oninput="window.saveActiveSession()"></div>
-                <div class="col-4"><input type="text" id="windInput" class="form-control form-control-sm text-center" placeholder="e.g. NW 15mph" oninput="window.saveActiveSession()"></div>
+                <div class="col-4"><input type="text" id="weatherInput" class="form-control form-control-sm text-center" placeholder="Weather" oninput="window.saveActiveSession()"></div>
+                <div class="col-4"><input type="text" id="windInput" class="form-control form-control-sm text-center" placeholder="Wind" oninput="window.saveActiveSession()"></div>
                 <div class="col-4">
                     <select id="tideInput" class="form-select form-select-sm text-center" onchange="window.saveActiveSession()">
                         <option value="">Tide...</option>
@@ -195,11 +195,12 @@
                         <option>High Water</option>
                         <option>Ebb (Dropping)</option>
                         <option>Low Water</option>
-                        <option value="N/A (Inland)">N/A (Inland)</option>
+                        <option value="N/A">N/A</option>
                     </select>
                 </div>
             </div>
-            <button id="btnViewTides" class="btn btn-sm btn-secondary w-100" style="display:none;" data-bs-toggle="modal" data-bs-target="#tideModal"><i class="bi bi-water me-1"></i>View Today's Tide Times</button>
+            
+            <div id="visualTideContainer" style="display:none;" class="mt-3"></div>
         </div>
         
         <div class="inner-card p-3 mb-2">
@@ -379,8 +380,6 @@
     </div></div></div></div>
     
     <div class="modal fade" id="weightUnitModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 border-0 shadow-lg"><div class="modal-body p-5 text-center"><h4>Scoring Unit</h4><p class="text-muted small mb-4">Choose format for this session</p><div class="d-grid gap-3"><button type="button" class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.handleUnitChoice('metric')">Kilograms (KG)</button><button type="button" class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.handleUnitChoice('imperial')">Pounds & Ounces</button></div></div></div></div></div>
-    
-    <div class="modal fade" id="tideModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body p-4 text-center"><h5 class="fw-bold text-primary mb-3"><i class="bi bi-water me-2"></i>Today's Tides</h5><div id="tideListDisplay" class="text-dark"></div><button class="btn btn-secondary w-100 py-2 mt-4" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
     <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Session Found</h4><p class="text-muted">Restore unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" data-bs-dismiss="modal" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
 
@@ -416,91 +415,91 @@
             new bootstrap.Toast(t).show();
         };
 
-        /* --- HYBRID WEATHER FETCH: VENUE TEXT OR GPS --- */
+        /* --- VENUE BASED WEATHER FETCH & VISUAL TIDES --- */
         window.fetchLiveWeather = function() {
             const btn = document.querySelector('button[onclick="window.fetchLiveWeather()"]');
+            const venueText = document.getElementById('venueInput').value.trim();
             
             if (!navigator.onLine) {
-                window.showAppToast("You are offline. Please enter manually.", true);
+                window.showAppToast("You are offline. Please enter conditions manually.", true);
                 return;
             }
 
-            const venueText = document.getElementById('venueInput').value.trim();
+            if (venueText === "") {
+                window.showAppToast("Please type a Venue first (e.g. Arbroath)", true);
+                return;
+            }
+
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Fetching...';
             btn.disabled = true;
 
-            const executeFetch = (queryValue) => {
-                // Try Marine endpoint first
-                fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${queryValue}&tides=yes`)
-                    .then(response => response.json())
-                    .then(data => {
-                        // If it fails because there are no tides (e.g., inland town), fallback to standard weather
-                        if(data.error) {
-                            return fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${queryValue}`)
-                                .then(res => res.json());
-                        }
-                        return data;
-                    })
-                    .then(data => {
-                        if(data.error) throw new Error(data.error.message);
-                        if(!data.current) throw new Error("Invalid data received.");
+            const queryValue = encodeURIComponent(venueText);
 
-                        document.getElementById('weatherInput').value = `${data.current.condition.text}, ${data.current.temp_c}°C`;
-                        document.getElementById('windInput').value = `${data.current.wind_dir} ${data.current.wind_mph}mph`;
-                        
-                        document.getElementById('btnViewTides').style.display = 'none';
-                        fetchedTideTable = [];
-                        
-                        try {
-                            if(data.forecast && data.forecast.forecastday[0].day.tides[0].tide) {
-                                const tidesArray = data.forecast.forecastday[0].day.tides[0].tide;
-                                fetchedTideTable = tidesArray.map(t => {
-                                    const timeOnly = t.tide_time.split(' ')[1];
-                                    return `${t.tide_type === 'HIGH' ? 'High' : 'Low'}: ${timeOnly} (${t.tide_height_mt}m)`;
-                                });
-                                document.getElementById('tideInput').value = "See Tide Table";
-                                document.getElementById('btnViewTides').style.display = 'block';
-                                document.getElementById('tideListDisplay').innerHTML = fetchedTideTable.join('<br><br>');
-                            } else {
-                                document.getElementById('tideInput').value = "N/A (Inland)";
-                            }
-                        } catch(err) {
+            fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${queryValue}&tides=yes`)
+                .then(response => response.json())
+                .then(data => {
+                    // Fallback to standard if no marine data available for this text
+                    if(data.error) {
+                        return fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${queryValue}`)
+                            .then(res => res.json());
+                    }
+                    return data;
+                })
+                .then(data => {
+                    if(data.error) throw new Error("Location not found on weather server.");
+                    if(!data.current) throw new Error("Invalid data received.");
+
+                    // Populate Input Boxes
+                    document.getElementById('weatherInput').value = `${data.current.condition.text}, ${data.current.temp_c}°C`;
+                    document.getElementById('windInput').value = `${data.current.wind_dir} ${data.current.wind_mph}mph`;
+                    
+                    const tideContainer = document.getElementById('visualTideContainer');
+                    tideContainer.style.display = 'none';
+                    fetchedTideTable = [];
+                    
+                    try {
+                        if(data.forecast && data.forecast.forecastday[0].day.tides[0].tide) {
+                            const tidesArray = data.forecast.forecastday[0].day.tides[0].tide;
+                            
+                            // Build text array for history/csv
+                            fetchedTideTable = tidesArray.map(t => {
+                                const timeOnly = t.tide_time.split(' ')[1];
+                                return `${t.tide_type === 'HIGH' ? 'High' : 'Low'}: ${timeOnly} (${t.tide_height_mt}m)`;
+                            });
+                            
+                            document.getElementById('tideInput').value = "See Timeline";
+
+                            // GENERATE VISUAL TIDE TIMELINE
+                            let tideVisualHTML = '<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-primary">';
+                            tidesArray.forEach((t, i) => {
+                                const isHigh = t.tide_type === 'HIGH';
+                                const icon = isHigh ? '<i class="bi bi-water text-primary fs-4"></i>' : '<i class="bi bi-water text-info fs-4" style="opacity:0.6;"></i>';
+                                const timeOnly = t.tide_time.split(' ')[1];
+                                tideVisualHTML += `<div class="text-center px-1">${icon}<br><strong class="small text-dark" style="font-size:0.75rem;">${isHigh?'HIGH':'LOW'}</strong><br><span class="text-muted" style="font-size:0.75rem;">${timeOnly}</span><br><span class="text-muted fw-bold" style="font-size:0.65rem;">${t.tide_height_mt}m</span></div>`;
+                                if (i < tidesArray.length - 1) {
+                                    tideVisualHTML += `<div class="text-muted"><i class="bi bi-chevron-right"></i></div>`;
+                                }
+                            });
+                            tideVisualHTML += '</div>';
+                            tideContainer.innerHTML = tideVisualHTML;
+                            tideContainer.style.display = 'block';
+
+                        } else {
                             document.getElementById('tideInput').value = "N/A (Inland)";
                         }
+                    } catch(err) {
+                        document.getElementById('tideInput').value = "N/A";
+                    }
 
-                        window.saveActiveSession();
-                        btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
-                        setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
-                    })
-                    .catch(err => {
-                        window.showAppToast(err.message, true);
-                        btn.innerHTML = originalText; btn.disabled = false;
-                    });
-            };
-
-            // If user typed a venue, use that. Otherwise use GPS.
-            if (venueText !== "") {
-                executeFetch(encodeURIComponent(venueText));
-            } else {
-                if(!navigator.geolocation) {
-                    window.showAppToast("Please type a Venue first.", true);
+                    window.saveActiveSession();
+                    btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
+                    setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+                })
+                .catch(err => {
+                    window.showAppToast(err.message, true);
                     btn.innerHTML = originalText; btn.disabled = false;
-                    return;
-                }
-                btn.innerHTML = '<i class="bi bi-crosshair icon-spin"></i> Locating...';
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const query = `${position.coords.latitude},${position.coords.longitude}`;
-                        executeFetch(query);
-                    },
-                    (err) => {
-                        window.showAppToast("GPS Error. Please type a Venue instead.", true);
-                        btn.innerHTML = originalText; btn.disabled = false;
-                    },
-                    { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
-                );
-            }
+                });
         };
 
         window.toggleDarkMode = function() {
@@ -574,7 +573,7 @@
             document.getElementById('venueInput').value = ''; document.getElementById('scoringMethod').selectedIndex = 0; document.getElementById('isCompetition').checked = false;
             document.getElementById('teamInput').value = ''; document.getElementById('zoneInput').selectedIndex = 0; document.getElementById('pegInput').selectedIndex = 0; document.getElementById('sessionNotesInput').value = '';
             document.getElementById('weatherInput').value = ''; document.getElementById('windInput').value = ''; document.getElementById('tideInput').value = '';
-            document.getElementById('btnViewTides').style.display = 'none';
+            document.getElementById('visualTideContainer').style.display = 'none';
             document.getElementById('speciesInput').selectedIndex = 0; document.getElementById('customSpeciesInput').value = ''; if(document.getElementById('lengthInput')) document.getElementById('lengthInput').value = '';
             document.getElementById('fishLog').innerHTML = ''; document.getElementById('liveScoreVal').textContent = '0';
             document.getElementById('weightInfoDisplay').style.display = 'none'; document.getElementById('speciesHuntInfo').style.display = 'none';
@@ -853,7 +852,19 @@
             const s = JSON.parse(StorageHelper.get('active_session')); fishData=s.fishData||[]; currentAngler=s.angler; currentVenue=s.venue; currentDate=s.date; currentScoringMethod=s.method; selectedWeightUnit=s.unit; isCompetitionMode=s.isComp; currentTeam=s.team||''; currentZone=s.zone; currentPeg=s.peg; weatherInfo=s.weatherInfo||''; windInfo=s.windInfo||''; tideInfo=s.tideInfo||''; fetchedTideTable=s.tideTable||[]; sessionStartTime=s.startTime||'';
             document.getElementById('anglerName').value=s.angler; document.getElementById('venueInput').value=s.venue; document.getElementById('scoringMethod').value=s.method; document.getElementById('isCompetition').checked=s.isComp || false; document.getElementById('teamInput').value=s.team || ''; document.getElementById('zoneInput').value=s.zone || ''; document.getElementById('pegInput').value=s.peg || '';
             document.getElementById('weatherInput').value=weatherInfo; document.getElementById('windInput').value=windInfo; document.getElementById('tideInput').value=tideInfo;
-            if(fetchedTideTable && fetchedTideTable.length > 0) { document.getElementById('btnViewTides').style.display = 'block'; document.getElementById('tideListDisplay').innerHTML = fetchedTideTable.join('<br><br>'); }
+            if(fetchedTideTable && fetchedTideTable.length > 0) { 
+                let tideVisualHTML = '<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-primary">';
+                fetchedTideTable.forEach((tStr, i) => {
+                    const isHigh = tStr.includes('High');
+                    const icon = isHigh ? '<i class="bi bi-water text-primary fs-4"></i>' : '<i class="bi bi-water text-info fs-4" style="opacity:0.6;"></i>';
+                    const parts = tStr.split(': '); const timeParts = parts[1].split(' ');
+                    tideVisualHTML += `<div class="text-center px-1">${icon}<br><strong class="small text-dark" style="font-size:0.75rem;">${isHigh?'HIGH':'LOW'}</strong><br><span class="text-muted" style="font-size:0.75rem;">${timeParts[0]}</span><br><span class="text-muted fw-bold" style="font-size:0.65rem;">${timeParts[1].replace(/[()]/g, '')}</span></div>`;
+                    if (i < fetchedTideTable.length - 1) { tideVisualHTML += `<div class="text-muted"><i class="bi bi-chevron-right"></i></div>`; }
+                });
+                tideVisualHTML += '</div>';
+                document.getElementById('visualTideContainer').innerHTML = tideVisualHTML;
+                document.getElementById('visualTideContainer').style.display = 'block';
+            }
             window.toggleCompetitionFields(); window.populateSpeciesDropdown();
             if(s.phase==='fishing'){ window.setupFishingUI(); PageManager.show('anglerFishingPage'); window.updateFishLog(); } else if(s.phase==='tally'){ window.endSession(); } else { PageManager.show('anglerRegistration'); }
         };
