@@ -222,7 +222,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 147.0 - Pro</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 148.0 - Editable Notes</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -414,6 +414,9 @@
             </div>
             <div class="live-score-box"><div id="saved_view_points" class="live-score-value">0</div></div>
             <div id="saved_view_breakdown"></div>
+            
+            <div id="saved_view_notes_container"></div>
+
             <div class="d-grid gap-2 mt-4">
                 <button class="btn btn-whatsapp py-3 shadow-sm text-white" style="background:#25D366;" onclick="window.shareAsImage('saved')"><i class="bi bi-whatsapp me-2"></i>Share / Send Scorecard</button>
                 <button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete Record</button>
@@ -840,7 +843,6 @@
                 area.innerHTML = eTable;
             }
 
-            // Perform Auto-Save Immediately
             currentSavedKey = 'scorecard_' + Date.now();
             try {
                 StorageHelper.save(currentSavedKey, JSON.stringify({
@@ -957,12 +959,63 @@
                 area.innerHTML = eTable;
             }
 
-            if(d.notes && d.notes.trim() !== '') {
-                area.innerHTML += `<div class="mt-3 p-3 rounded-4 bg-white border shadow-sm text-muted small"><strong class="text-dark"><i class="bi bi-journal-text me-1"></i>Notes:</strong><br>${d.notes.replace(/\n/g, '<br>')}</div>`;
-            }
+            // NEW: EDITABLE NOTES SECTION FOR HISTORY
+            const notesContent = d.notes || '';
+            const displayNotes = notesContent.trim() !== '' ? notesContent.replace(/\n/g, '<br>') : '<em>No notes added yet.</em>';
+            
+            const notesContainer = document.getElementById('saved_view_notes_container');
+            notesContainer.innerHTML = `
+                <div class="inner-card mt-3 p-3 border shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small fw-bold text-muted m-0"><i class="bi bi-journal-text me-1"></i>Session Notes</label>
+                        <button id="btnEditNotes" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.toggleEditNotes()"><i class="bi bi-pencil me-1"></i>Edit</button>
+                    </div>
+                    <div id="savedNotesDisplay" class="text-dark small">${displayNotes}</div>
+                    <div id="savedNotesEditArea" style="display:none;">
+                        <textarea id="savedNotesInputView" class="form-control text-dark small mb-2" rows="3"></textarea>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-secondary w-50" onclick="window.toggleEditNotes()">Cancel</button>
+                            <button class="btn btn-sm btn-primary w-50" onclick="window.saveEditedNotes()">Save</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Safely set the textarea value to handle line breaks and quotes
+            setTimeout(() => {
+                const ta = document.getElementById('savedNotesInputView');
+                if(ta) ta.value = notesContent;
+            }, 0);
 
             document.getElementById('savedScorecardsList').style.display='none';
             document.getElementById('fullScorecardView').style.display='block';
+        };
+
+        // NEW: FUNCTIONS TO HANDLE EDITING NOTES IN HISTORY
+        window.toggleEditNotes = function() {
+            const disp = document.getElementById('savedNotesDisplay');
+            const edit = document.getElementById('savedNotesEditArea');
+            const btn = document.getElementById('btnEditNotes');
+            if (disp.style.display === 'none') {
+                disp.style.display = 'block';
+                edit.style.display = 'none';
+                btn.style.display = 'inline-block';
+            } else {
+                disp.style.display = 'none';
+                edit.style.display = 'block';
+                btn.style.display = 'none';
+            }
+        };
+
+        window.saveEditedNotes = function() {
+            const newNotes = document.getElementById('savedNotesInputView').value;
+            try {
+                let d = JSON.parse(StorageHelper.get(currentSavedKey));
+                d.notes = newNotes;
+                StorageHelper.save(currentSavedKey, JSON.stringify(d));
+                window.viewSaved(currentSavedKey); // Refresh the view to show new notes
+            } catch(e) {
+                alert("Failed to save updated notes.");
+            }
         };
 
         window.confirmQuit=function(){if(confirm("Discard active session?")){window.resetAppToHome();}};
@@ -1051,11 +1104,17 @@
         
         window.shareAsImage=function(id){
             const el = document.getElementById(id==='live'?'tallyVerificationPage':'fullScorecardView');
-            const btns = el.querySelectorAll('button'); btns.forEach(b=>b.style.display='none');
+            
+            // Hide all buttons before taking the screenshot
+            const btns = el.querySelectorAll('button'); 
+            btns.forEach(b=>b.style.display='none');
+            
+            // Temporarily hide the text input box so it doesn't look messy in the screenshot
             const notesInput = document.getElementById('sessionNotesInput');
             if (notesInput && id === 'live') notesInput.style.display = 'none';
 
             html2canvas(el, {backgroundColor:'#f1f5f9'}).then(canvas=>{
+                // Restore buttons after screenshot
                 btns.forEach(b=>b.style.display='inline-block');
                 if (notesInput && id === 'live') notesInput.style.display = 'block';
 
