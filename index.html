@@ -36,6 +36,83 @@
         
         h1, h2, h3, h4, .btn, .modal-title { font-family: 'Poppins', sans-serif; }
 
+        /* --- NEW WEIGHT PICKER STYLES --- */
+        .weight-picker-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 10px;
+            height: 160px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #cbd5e1;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .picker-column {
+            flex: 1;
+            height: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            text-align: center;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            z-index: 2;
+        }
+        .picker-column::-webkit-scrollbar { display: none; }
+        .picker-item {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #94a3b8;
+            scroll-snap-align: center;
+            transition: all 0.2s;
+        }
+        .picker-item.selected {
+            color: var(--app-blue);
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+        .picker-highlight {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 92%;
+            height: 44px;
+            background: rgba(14, 165, 233, 0.08);
+            border-top: 2px solid var(--app-blue);
+            border-bottom: 2px solid var(--app-blue);
+            pointer-events: none;
+            z-index: 1;
+            border-radius: 8px;
+        }
+        .picker-label-text {
+            font-size: 0.65rem;
+            font-weight: 900;
+            color: #64748b;
+            position: absolute;
+            bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        /* --- BUTTON TEXT WRAPPING FIX --- */
+        .btn-record-action {
+            white-space: normal !important;
+            line-height: 1.1 !important;
+            font-size: 0.75rem !important;
+            min-height: 75px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px !important;
+        }
+
         @keyframes slideFlash {
             0% { background-color: #dcfce7; transform: translateY(-10px); opacity: 0; }
             30% { background-color: #86efac; opacity: 1; transform: translateY(0); }
@@ -94,20 +171,6 @@
             border: none; 
             letter-spacing: 0.5px;
         }
-
-        /* FIX FOR BUTTON TEXT OVERFLOW */
-        .btn-record-action {
-            white-space: normal !important;
-            line-height: 1.2 !important;
-            font-size: 0.8rem !important;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding-left: 5px !important;
-            padding-right: 5px !important;
-            min-height: 70px;
-        }
         
         .btn-primary, .btn-success, .btn-camera { 
             background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); 
@@ -123,7 +186,10 @@
         .btn-home-secondary { background: rgba(255,255,255,0.9); color: #334155; border: none; }
 
         .modal-content {
-            border-radius: 20px; border: none; box-shadow: var(--shadow-lg); background: #ffffff;
+            border-radius: 20px;
+            border: none;
+            box-shadow: var(--shadow-lg);
+            background: #ffffff;
         }
         .modal-header { border-bottom: 1px solid #f1f5f9; padding: 20px 20px 10px 20px; }
         .modal-body { padding: 20px; }
@@ -186,7 +252,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="4" stroke-linecap="round" opacity="0.8"/><circle cx="160" cy="40" r="5" fill="#10b981"/></g>
         </svg>
         <h1 class="mb-1 display-4 fw-bold">Sea Score</h1>
-        <p class="version-tag">Version 115.0</p>
+        <p class="version-tag">Version 118.0</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-home btn-lg fw-bold py-3" onclick="window.startFishing()">
                 <i class="bi bi-play-circle-fill me-2"></i> Start Fishing
@@ -267,26 +333,14 @@
                 <input type="number" id="lengthInput" class="form-control form-control-lg" placeholder="0">
             </div>
 
-            <div class="mb-4" id="weightMetricContainer" style="display:none;">
-                <label class="form-label text-primary">Weight (Kg)</label>
-                <input type="number" id="weightInputKg" class="form-control form-control-lg" placeholder="0.00" step="0.01">
-            </div>
-
-            <div class="mb-4" id="weightImperialContainer" style="display:none;">
-                <label class="form-label text-primary">Weight</label>
-                <div class="row g-2">
-                    <div class="col-6">
-                        <div class="input-group input-group-lg">
-                            <input type="number" id="weightInputLb" class="form-control form-control-lg" placeholder="0">
-                            <span class="input-group-text">lb</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="input-group input-group-lg">
-                            <input type="number" id="weightInputOz" class="form-control form-control-lg" placeholder="0">
-                            <span class="input-group-text">oz</span>
-                        </div>
-                    </div>
+            <div class="mb-4" id="weightPickerContainer" style="display:none;">
+                <label class="form-label text-primary">Select Weight</label>
+                <div class="weight-picker-container shadow-inner">
+                    <div class="picker-highlight"></div>
+                    <div id="pickerCol1" class="picker-column" onscroll="window.updatePickerDisplay('pickerCol1')"></div>
+                    <div id="pickerCol2" class="picker-column" onscroll="window.updatePickerDisplay('pickerCol2')"></div>
+                    <div class="picker-label-text" style="left: 20%;" id="label1">KG</div>
+                    <div class="picker-label-text" style="right: 20%;" id="label2">G</div>
                 </div>
             </div>
             
@@ -423,6 +477,55 @@
         const PageManager={show:function(e){["splashScreen","anglerRegistration","anglerFishingPage","tallyVerificationPage"].forEach(e=>{document.getElementById(e).style.display="none"});document.getElementById(e).style.display="block";window.scrollTo(0,0)}};
         const StorageHelper={save:function(e,t){try{localStorage.setItem(e,t)}catch(e){}},get:function(e){try{return localStorage.getItem(e)}catch(e){return null}},remove:function(e){try{localStorage.removeItem(e)}catch(e){}},getAll:function(){const e={};try{for(let t=0;t<localStorage.length;t++){const n=localStorage.key(t);(n.startsWith("scorecard_")||"active_session"===n)&&(e[n]=localStorage.getItem(n))}}catch(e){}return e}};
 
+        // --- NEW: PICKER LOGIC ---
+        window.initWeightPicker = function() {
+            const col1 = document.getElementById('pickerCol1');
+            const col2 = document.getElementById('pickerCol2');
+            col1.innerHTML = ''; col2.innerHTML = '';
+            
+            const pad = '<div class="picker-item"></div><div class="picker-item"></div>';
+            
+            if (selectedWeightUnit === 'metric') {
+                document.getElementById('label1').textContent = "KG";
+                document.getElementById('label2').textContent = "G";
+                let c1 = pad; for(let i=0; i<=50; i++) c1 += `<div class="picker-item" data-val="${i}">${i}</div>`;
+                col1.innerHTML = c1 + pad;
+                let c2 = pad; for(let i=0; i<=950; i+=50) c2 += `<div class="picker-item" data-val="${i/1000}">${i}</div>`;
+                col2.innerHTML = c2 + pad;
+            } else {
+                document.getElementById('label1').textContent = "LB";
+                document.getElementById('label2').textContent = "OZ";
+                let c1 = pad; for(let i=0; i<=60; i++) c1 += `<div class="picker-item" data-val="${i}">${i}</div>`;
+                col1.innerHTML = c1 + pad;
+                let c2 = pad; for(let i=0; i<=15; i++) c2 += `<div class="picker-item" data-val="${i}">${i}</div>`;
+                col2.innerHTML = c2 + pad;
+            }
+            // Reset scroll positions
+            col1.scrollTop = 0; col2.scrollTop = 0;
+            setTimeout(() => { window.updatePickerDisplay('pickerCol1'); window.updatePickerDisplay('pickerCol2'); }, 100);
+        };
+
+        window.updatePickerDisplay = function(id) {
+            const el = document.getElementById(id);
+            const items = el.querySelectorAll('.picker-item');
+            const center = el.scrollTop + 80; 
+            items.forEach(item => {
+                if (item.offsetTop < center && item.offsetTop + 40 > center) item.classList.add('selected');
+                else item.classList.remove('selected');
+            });
+        };
+
+        window.getPickerValue = function() {
+            const v1 = parseFloat(document.querySelector('#pickerCol1 .selected')?.dataset.val || 0);
+            const v2 = parseFloat(document.querySelector('#pickerCol2 .selected')?.dataset.val || 0);
+            if (selectedWeightUnit === 'metric') {
+                const total = v1 + v2;
+                return { display: `${total.toFixed(3)} kg`, raw: total, unit: 'kg' };
+            } else {
+                return { display: `${v1}lb ${v2}oz`, raw: (v1*16)+v2, unit: 'oz' };
+            }
+        };
+
         window.formatDate=function(e){try{return e?new Date(e).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"N/A"}catch(e){return"N/A"}};
         window.startFishing=function(){document.getElementById("anglerName").value="";try{const e=new Date,t=e.getFullYear(),n=String(e.getMonth()+1).padStart(2,"0"),a=String(e.getDate()).padStart(2,"0");document.getElementById("competitionDate").value=`${t}-${n}-${a}`}catch(e){}document.getElementById("venueInput").value="";PageManager.show("anglerRegistration");};
 
@@ -450,16 +553,7 @@
             
             let valObj = {};
             if(currentScoringMethod === 'weight') {
-                if(selectedWeightUnit === 'metric') {
-                    const kg = parseFloat(document.getElementById("weightInputKg").value);
-                    if(isNaN(kg) || kg <= 0) { alert("Enter valid Kg"); return null; }
-                    valObj = { display: `${kg.toFixed(3)} kg`, raw: kg, unit: 'kg' };
-                } else {
-                    const lb = parseFloat(document.getElementById("weightInputLb").value) || 0;
-                    const oz = parseFloat(document.getElementById("weightInputOz").value) || 0;
-                    if(lb===0 && oz===0) { alert("Enter weight"); return null; }
-                    valObj = { display: `${lb}lb ${oz}oz`, raw: (lb*16)+oz, unit: 'oz' };
-                }
+                valObj = window.getPickerValue();
             } else if ("species_hunt" !== currentScoringMethod) {
                 const cm = parseFloat(document.getElementById("lengthInput").value);
                 if (isNaN(cm) || cm <= 0) { alert("Enter length"); return null; }
@@ -531,10 +625,6 @@
             document.getElementById("speciesInput").value = "";
             document.getElementById("customSpeciesInput").value = "";
             document.getElementById("lengthInput").value = "";
-            document.getElementById("weightInputKg").value = "";
-            document.getElementById("weightInputLb").value = "";
-            document.getElementById("weightInputOz").value = "";
-            
             window.toggleCustomSpeciesInput();
             window.saveActiveSession();
         }
@@ -615,12 +705,11 @@
         
         window.setupFishingUI=function(){
             document.getElementById("lengthInputContainer").style.display="none";
-            document.getElementById("weightMetricContainer").style.display="none";
-            document.getElementById("weightImperialContainer").style.display="none";
+            document.getElementById("weightPickerContainer").style.display="none";
             
             if(currentScoringMethod === 'weight') {
-                if(selectedWeightUnit === 'metric') document.getElementById("weightMetricContainer").style.display="block";
-                else document.getElementById("weightImperialContainer").style.display="block";
+                document.getElementById("weightPickerContainer").style.display="block";
+                window.initWeightPicker();
             } else if(currentScoringMethod !== 'species_hunt') {
                 document.getElementById("lengthInputContainer").style.display="block";
             }
@@ -687,11 +776,11 @@
                 document.getElementById("session_biggest_fish").textContent=s;
             }
 
-            const c=document.getElementById("session_breakdown_area");
-            c.innerHTML="";
+            const cArea=document.getElementById("session_breakdown_area");
+            cArea.innerHTML="";
             
             if("species_hunt"===currentScoringMethod){
-                const counts={};fishData.forEach(t=>{counts[t.species]||(counts[t.species]=0),counts[t.species]++});for(const t in counts){const n=counts[t];let a=0,o="";for(let e=1;e<=3;e++){let t=n>=e?"active":"",s=3===e?"gold":1===e?"bronze":"silver",c=1===e||2===e?30:40;n>=e&&(a+=c),o+=`<span class="pip ${s} ${t}">${c}</span>`}let s="";n>3&&(a+=n-3,s=`<span class="pip-extra">+${n-3} extra</span>`),c.innerHTML+=`<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${t}</span><span class="sq-points">${a} pts</span></div><div class="sq-pips">${o}${s}</div></div>`}
+                const counts={};fishData.forEach(t=>{counts[t.species]||(counts[t.species]=0),counts[t.species]++});for(const t in counts){const n=counts[t];let a=0,o="";for(let e=1;e<=3;e++){let t=n>=e?"active":"",s=3===e?"gold":1===e?"bronze":"silver",c=1===e||2===e?30:40;n>=e&&(a+=c),o+=`<span class="pip ${s} ${t}">${c}</span>`}let s="";n>3&&(a+=n-3,s=`<span class="pip-extra">+${n-3} extra</span>`),cArea.innerHTML+=`<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${t}</span><span class="sq-points">${a} pts</span></div><div class="sq-pips">${o}${s}</div></div>`}
             } else {
                 let e='<table class="table-custom"><tbody>';
                 fishData.forEach(t=>{
@@ -699,7 +788,7 @@
                     const ph=t.photo?`<img src="${t.photo}" class="fish-thumb" onclick="window.viewImage('${t.photo}')">`:'';
                     e+=`<tr><td>${t.species}</td><td class="text-end fw-bold">${val} ${ph}</td></tr>`
                 });
-                e+="</tbody></table>",c.innerHTML=e;
+                e+="</tbody></table>",cArea.innerHTML=e;
             }
             window.saveActiveSession();
         };
@@ -814,15 +903,15 @@
                 document.getElementById("saved_view_biggest_fish").textContent=n;
             }
 
-            const a=document.getElementById("saved_view_biggest_fish_card");
-            if("species_hunt"===t.scoringMethod)a.style.display="none"; else a.style.display="block";
+            const biggestCard=document.getElementById("saved_view_biggest_fish_card");
+            if("species_hunt"===t.scoringMethod) biggestCard.style.display="none"; else biggestCard.style.display="block";
             
-            const o=document.getElementById("saved_view_verif");
-            t.isComp&&t.verified?(o.style.display="block",o.textContent=`Verified by: ${t.witness}`):o.style.display="none";
+            const vLabel=document.getElementById("saved_view_verif");
+            t.isComp&&t.verified?(vLabel.style.display="block",vLabel.textContent=`Verified by: ${t.witness}`):vLabel.style.display="none";
             document.getElementById("saved_view_notes_input").value=t.notes||"";
             
-            const s=document.getElementById("saved_view_breakdown");
-            s.innerHTML="";
+            const sArea=document.getElementById("saved_view_breakdown");
+            sArea.innerHTML="";
             
             if("species_hunt"===t.scoringMethod){
                 const counts={};
@@ -839,7 +928,7 @@
                     }
                     let extra = "";
                     if(nC > 3) { spPts += (nC - 3); extra = `<span class="pip-extra">+${nC-3} extra</span>`; }
-                    s.innerHTML += `<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${spPts} pts</span></div><div class="sq-pips">${pips}${extra}</div></div>`;
+                    sArea.innerHTML += `<div class="species-quota-card"><div class="sq-header"><span class="sq-name">${sp}</span><span class="sq-points">${spPts} pts</span></div><div class="sq-pips">${pips}${extra}</div></div>`;
                 }
             } else {
                 let e='<table class="table-custom"><tbody>';
@@ -848,7 +937,7 @@
                     const ph=item.photo?`<img src="${item.photo}" class="fish-thumb" onclick="window.viewImage('${item.photo}')">`:'';
                     e+=`<tr><td>${item.species}</td><td class="text-end fw-bold">${val} ${ph}</td></tr>`
                 });
-                e+="</tbody></table>",s.innerHTML=e;
+                e+="</tbody></table>",sArea.innerHTML=e;
             }
             
             document.getElementById("savedScorecardsList").style.display="none";
