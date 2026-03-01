@@ -1,5 +1,5 @@
-// VERSION 151 - LIVE WEATHER UPDATE
-const CACHE_NAME = 'sea-score-v151';
+// VERSION 152 - LIVE WEATHER UPDATE
+const CACHE_NAME = 'sea-score-v152';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
