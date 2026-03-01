@@ -1,4 +1,5 @@
-const CACHE_NAME = 'sea-score-v147';
+// BUMP THIS VERSION NUMBER EVERY TIME YOU UPDATE YOUR INDEX.HTML
+const CACHE_NAME = 'sea-score-v150';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
@@ -24,7 +25,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// ACTIVATE: Delete any old caches (like v145) so they don't clog up the phone
+// ACTIVATE: Delete any old caches (like v147) so they don't clog up the phone
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
@@ -42,11 +43,16 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((response) => {
+      // 1. Return the cached file if we have it
       if (response) {
         return response;
       }
+      
+      // 2. If it's not in the cache, go to the internet
       return fetch(e.request).then((fetchResponse) => {
+        // 3. Save a copy of this new file (like a hidden font file) to the cache for next time
         return caches.open(CACHE_NAME).then((cache) => {
+          // Only cache valid GET requests (prevents errors with browser extensions)
           if(e.request.url.startsWith('http') && e.request.method === 'GET'){
               cache.put(e.request, fetchResponse.clone());
           }
@@ -54,6 +60,7 @@ self.addEventListener('fetch', (e) => {
         });
       });
     }).catch(() => {
+      // Failsafe: If offline and the file isn't cached at all, fail silently rather than crashing
       console.log('Offline and resource not found in cache:', e.request.url);
     })
   );
