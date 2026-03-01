@@ -32,7 +32,7 @@
             padding-bottom: 90px;
             min-height: 100vh;
             overflow-x: hidden;
-            overscroll-behavior-y: contain; /* Prevents pull-to-refresh reload */
+            overscroll-behavior-y: contain; 
         }
         
         h1, h2, h3, h4, .btn, .modal-title { font-family: 'Poppins', sans-serif; }
@@ -148,9 +148,10 @@
         .live-score-box { border: 4px solid var(--app-blue); background-color: white; border-radius: 24px; padding: 20px; text-align: center; margin-bottom: 25px; box-shadow: var(--shadow-lg); }
         .live-score-value { font-size: 4.5rem; font-weight: 800; color: var(--primary-dark); line-height: 1; }
 
-        .fish-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; float: right; margin-left: 12px; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+        /* --- REDESIGNED TABLE & THUMBNAILS --- */
+        .fish-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); flex-shrink: 0; }
         .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
-        .table-custom td { background: white; padding: 18px; border-radius: 18px; vertical-align: middle; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
+        .table-custom td { background: white; padding: 15px 18px; border-radius: 18px; vertical-align: middle; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
 
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .stat-card { background: #ffffff; padding: 15px 5px; border-radius: 16px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
@@ -178,7 +179,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="5" stroke-linecap="round"/><circle cx="160" cy="40" r="6" fill="#10b981"/></g>
         </svg>
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-4">Version 126.0 - Pro</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-4">Version 127.0 - Pro</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
@@ -207,7 +208,7 @@
                 <option value="weight">Total Weight</option>
             </select>
             <div id="speciesHuntInfo" class="mt-3 small text-muted" style="display:none;">1st: 30 | 2nd: 30 | 3rd: 40 | 4th+: 1pt</div>
-            <div id="weightInfoDisplay" class="mt-3 small fw-bold text-success" style="display:none;"></div>
+            <div id="weightInfoDisplay" class="mt-3 small fw-bold text-primary" style="display:none;"></div>
         </div>
         <div class="inner-card">
             <div class="form-check form-switch mb-3">
@@ -276,19 +277,23 @@
             <div class="text-muted"><span id="session_date"></span> • <span id="session_venue"></span></div>
         </div>
         <div class="live-score-box"><div id="session_total_points" class="live-score-value">0</div></div>
+        
         <div class="stat-grid">
             <div class="stat-card"><strong>Fish</strong><div id="session_total_fish">0</div></div>
             <div class="stat-card"><strong>Species</strong><div id="session_species_count">0</div></div>
             <div class="stat-card"><strong id="session_stat_label">Stat</strong><div id="session_total_stat">0</div></div>
         </div>
+
         <div id="session_breakdown_area"></div>
+
         <div class="inner-card">
             <label class="form-label small">Session Notes</label>
-            <textarea id="sessionNotesInput" class="form-control" rows="2" oninput="window.saveActiveSession()"></textarea>
+            <textarea id="sessionNotesInput" class="form-control" rows="2" placeholder="Notes..." oninput="window.saveActiveSession()"></textarea>
         </div>
+
         <div class="d-grid gap-3 mt-4">
-            <button class="btn btn-primary btn-lg shadow py-3" onclick="window.saveAndEndSession()">Save Record</button>
-            <button class="btn btn-whatsapp py-3 shadow-sm" onclick="window.shareAsImage('live')">Share Summary</button>
+            <button class="btn btn-primary btn-lg shadow py-3" onclick="window.saveAndEndSession()"><i class="bi bi-save me-2"></i>Save Record</button>
+            <button class="btn btn-whatsapp py-3 shadow-sm" onclick="window.shareAsImage('live')"><i class="bi bi-share me-2"></i>Share Summary</button>
         </div>
     </div>
 
@@ -309,7 +314,7 @@
         </div>
     </div>
     
-    <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Resume Session?</h4><p class="text-muted">Restore unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" data-bs-dismiss="modal" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
+    <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Session Found</h4><p class="text-muted">Restore unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" data-bs-dismiss="modal" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
 
     <div class="modal fade" id="imageModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="background:transparent; border:none;"><div class="modal-body p-0 text-center"><img id="fullSizeImage" src="" style="max-width:100%; border-radius:15px; border:3px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"><button class="btn btn-sm btn-light mt-3 rounded-pill px-4" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
@@ -393,12 +398,16 @@
         window.handleUnitChoice = function(unit) {
             selectedWeightUnit = unit;
             
-            // Update the display text underneath the dropdown safely
             const infoDisplay = document.getElementById('weightInfoDisplay');
             if (infoDisplay) {
                 infoDisplay.style.display = 'block';
                 infoDisplay.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Format: ${unit==='metric' ? 'Kilograms (KG/G)' : 'Pounds (LB/OZ)'}`;
             }
+
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
 
             window.saveActiveSession();
         };
@@ -430,9 +439,13 @@
             return { species, length: len };
         };
 
+        // FIX FOR DOUBLE ENTRY BUG
         window.addFishTextOnly = function() {
             const d = window.validateInputs();
-            if(d) { fishData.push(d); window.updateFishLog(); window.saveActiveSession(); }
+            if(d) { 
+                fishData.push(d); 
+                finishAddAction(); // Correctly resets inputs now
+            }
         };
 
         window.triggerCamera = function() { if(window.validateInputs()) document.getElementById('cameraInput').click(); };
@@ -463,8 +476,13 @@
             window.updateFishLog();
             const firstRow = document.querySelector('#fishLog tr:first-child');
             if(firstRow) firstRow.classList.add('new-catch-anim');
-            document.getElementById("speciesInput").value = ""; document.getElementById("customSpeciesInput").value = ""; document.getElementById("lengthInput").value = "";
-            window.toggleCustomSpeciesInput(); window.saveActiveSession();
+            
+            // RESET DROPDOWN TO PREVENT ACCIDENTAL SPAMMING
+            document.getElementById("speciesInput").selectedIndex = 0; 
+            document.getElementById("customSpeciesInput").value = ""; 
+            document.getElementById("lengthInput").value = "";
+            window.toggleCustomSpeciesInput(); 
+            window.saveActiveSession();
         }
 
         window.calculatePoints = function(data, method){
@@ -482,13 +500,26 @@
             return method==='length_only' ? Math.round(lenSum) : Math.round(lenSum + (data.length*10));
         };
 
+        // FIX FOR EMPTY PHOTO BOXES
         window.updateFishLog = function(){
             const log = document.getElementById('fishLog'); log.innerHTML='';
             [...fishData].reverse().forEach(f=>{
                 const tr = document.createElement('tr');
                 const val = currentScoringMethod==='weight' ? f.display : `${f.length}cm`;
-                const ph = f.photo ? `<img src="${f.photo}" class="fish-thumb" onclick="window.viewImg('${f.photo}')">` : '';
-                tr.innerHTML = `<td><div class="fw-bold text-dark">${f.species}</div><div class="text-primary fw-bold small">${val}</div></td><td>${ph}</td><td class="text-end"><button class="btn btn-sm text-danger border-0" onclick="window.delFish(${fishData.indexOf(f)})"><i class="bi bi-trash"></i></button></td>`;
+                const ph = f.photo ? `<img src="${f.photo}" class="fish-thumb ms-3" onclick="window.viewImg('${f.photo}')">` : '';
+                tr.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="fw-bold text-dark">${f.species}</div>
+                                <div class="text-primary fw-bold small">${val}</div>
+                            </div>
+                            ${ph}
+                        </div>
+                    </td>
+                    <td class="text-end align-middle" style="width: 50px;">
+                        <button class="btn btn-sm text-danger border-0" onclick="window.delFish(${fishData.indexOf(f)})"><i class="bi bi-trash fs-5"></i></button>
+                    </td>`;
                 log.appendChild(tr);
             });
             document.getElementById('liveScoreVal').textContent = window.calculatePoints(fishData, currentScoringMethod);
@@ -509,9 +540,9 @@
             
             const area = document.getElementById('session_breakdown_area'); area.innerHTML='';
             if(currentScoringMethod==='species_hunt'){
-                const c={}; fishData.forEach(f=>counts[f.species]=(counts[f.species]||0)+1);
-                for(let s in c){
-                    let p=0, pips=''; for(let i=1;i<=3;i++){ const a=c[s]>=i?'active':''; const v=(i<3?30:40); if(c[s]>=i)p+=v; pips+=`<span class="pip bronze ${a}">${v}</span>`; }
+                const counts={}; fishData.forEach(f=>counts[f.species]=(counts[f.species]||0)+1);
+                for(let s in counts){
+                    let p=0, pips=''; for(let i=1;i<=3;i++){ const a=counts[s]>=i?'active':''; const v=(i<3?30:40); if(counts[s]>=i)p+=v; pips+=`<span class="pip bronze ${a}">${v}</span>`; }
                     area.innerHTML+=`<div class="species-quota-card"><strong>${s}</strong>: ${p}pts<br>${pips}</div>`;
                 }
             } else {
@@ -560,7 +591,7 @@
         window.restoreActiveSession = function(){
             const s = JSON.parse(StorageHelper.get('active_session'));
             if(s && (s.angler || s.fishData.length > 0)){
-                document.getElementById('restoreAnglerName').textContent = s.angler || "Unnamed";
+                pendingRestoreData = s; document.getElementById('restoreAnglerName').textContent = s.angler || "Unnamed";
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('restoreSessionModal')).show();
             }
         };
@@ -575,7 +606,8 @@
         };
 
         window.populateSpeciesDropdown = function() {
-            const e = document.getElementById('speciesInput'); e.innerHTML='<option value="" selected disabled>Select Fish...</option><option value="Other">Other (Manual Entry)</option>';
+            const e = document.getElementById('speciesInput');
+            e.innerHTML='<option value="" selected disabled>Select Fish...</option><option value="Other">Other (Manual Entry)</option>';
             speciesList.forEach(g => {
                 const grp = document.createElement('optgroup'); grp.label = g.category;
                 g.items.sort().forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; grp.appendChild(o); }); e.appendChild(grp);
