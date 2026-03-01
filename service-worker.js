@@ -1,4 +1,4 @@
-// VERSION 157 - FORECAST ENGINE & VISUAL TIDES
+// VERSION 157 
 const CACHE_NAME = 'sea-score-v157';
 
 // The essential files to load the app immediately
