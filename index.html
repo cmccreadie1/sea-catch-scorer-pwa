@@ -217,7 +217,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 136.0 - Pro</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 137.0 - Pro</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
@@ -363,7 +363,39 @@
         </div>
     </div>
 
-    <div class="modal fade" id="savedModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content border-0"><div class="modal-header border-0"><h5 class="modal-title fw-bold">History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div id="savedScorecardsList"><div id="recentList"></div></div><div id="fullScorecardView" style="display:none;"><div class="inner-card p-3 mb-3 text-center"><h4 id="saved_view_angler" class="text-primary fw-bold m-0"></h4><div class="text-muted small"><span id="saved_view_date"></span> • <span id="saved_view_venue"></span></div><div id="saved_view_comp_details" class="mt-3 d-flex flex-wrap justify-content-center gap-2" style="display:none;"><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Team: <span id="saved_view_team"></span></span><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Zone: <span id="saved_view_zone"></span></span><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Peg: <span id="saved_view_peg"></span></span></div></div><div class="live-score-box"><div id="saved_view_points" class="live-score-value">0</div></div><div id="saved_view_breakdown"></div><div class="d-grid gap-2 mt-4"><button class="btn btn-whatsapp py-3 shadow-sm text-white" style="background:#25D366;" onclick="window.shareAsImage('saved')"><i class="bi bi-whatsapp me-2"></i>Share / Send Scorecard</button><button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete Record</button><button class="btn btn-secondary py-3" data-bs-dismiss="modal" onclick="window.closeHistoryModal()">Close History</button></div></div></div></div></div></div>
+    <div class="modal fade" id="savedModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content border-0"><div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold">History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light">
+        
+        <div id="savedScorecardsList">
+            <h6 class="text-muted small text-uppercase fw-bold mb-3 ps-1">Recent Sessions</h6>
+            <div id="recentList"></div>
+            
+            <div id="archiveSection" style="display:none;" class="mt-4 border-top pt-3">
+                <button id="btnToggleArchive" class="btn btn-light w-100 fw-bold text-muted shadow-sm mb-3" onclick="document.getElementById('archiveList').style.display='block'; this.style.display='none';">
+                    <i class="bi bi-archive me-2"></i> View Archive (<span id="archiveCount">0</span>)
+                </button>
+                <div id="archiveList" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div id="fullScorecardView" style="display:none;">
+            <div class="inner-card p-3 mb-3 text-center">
+                <h4 id="saved_view_angler" class="text-primary fw-bold m-0"></h4>
+                <div class="text-muted small"><span id="saved_view_date"></span> • <span id="saved_view_venue"></span></div>
+                <div id="saved_view_comp_details" class="mt-3 d-flex flex-wrap justify-content-center gap-2" style="display:none;">
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Team: <span id="saved_view_team"></span></span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Zone: <span id="saved_view_zone"></span></span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Peg: <span id="saved_view_peg"></span></span>
+                </div>
+            </div>
+            <div class="live-score-box"><div id="saved_view_points" class="live-score-value">0</div></div>
+            <div id="saved_view_breakdown"></div>
+            <div class="d-grid gap-2 mt-4">
+                <button class="btn btn-whatsapp py-3 shadow-sm text-white" style="background:#25D366;" onclick="window.shareAsImage('saved')"><i class="bi bi-whatsapp me-2"></i>Share / Send Scorecard</button>
+                <button class="btn btn-secondary py-3" data-bs-dismiss="modal" onclick="window.closeHistoryModal()">Close History</button>
+            </div>
+        </div>
+
+    </div></div></div></div>
     
     <div class="modal fade" id="weightUnitModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -704,16 +736,65 @@
             StorageHelper.remove('active_session'); location.reload();
         };
 
+        // NEW: Load History with Archive System & Delete Buttons
         window.loadSavedScorecards = function(){
             document.getElementById('fullScorecardView').style.display='none';
             document.getElementById('savedScorecardsList').style.display='block';
             
-            const list = document.getElementById('recentList'); list.innerHTML='';
+            const recentList = document.getElementById('recentList'); 
+            const archiveList = document.getElementById('archiveList');
+            recentList.innerHTML = '';
+            archiveList.innerHTML = '';
+            
             const keys = Object.keys(StorageHelper.getAll()).filter(k=>k.startsWith('scorecard_')).sort().reverse();
-            keys.forEach(k=>{
+            
+            keys.forEach((k, index) => {
                 const d = JSON.parse(StorageHelper.get(k));
-                list.innerHTML+=`<div class="inner-card shadow-sm mb-3" onclick="window.viewSaved('${k}')"><strong>${d.venue}</strong><br><small>${new Date(d.date).toLocaleDateString('en-GB')} • ${window.calculatePoints(d.fishData, d.method, d.weightUnit)} ${d.method==='weight'?'':'pts'}</small></div>`;
+                const pts = window.calculatePoints(d.fishData, d.method, d.weightUnit);
+                const unitTxt = d.method==='weight' ? '' : ' pts';
+                const dateStr = new Date(d.date).toLocaleDateString('en-GB');
+                const compBadge = d.isComp ? `<span class="badge bg-warning text-dark ms-2">Match</span>` : '';
+                
+                const cardHTML = `
+                    <div class="inner-card shadow-sm mb-3 position-relative" style="cursor:pointer;" onclick="window.viewSaved('${k}')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold fs-5 text-primary">${d.venue} ${compBadge}</div>
+                                <div class="text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i>${dateStr}</div>
+                                <div class="fw-bold text-dark"><i class="bi bi-trophy text-warning me-1"></i>${pts}${unitTxt}</div>
+                            </div>
+                            <button class="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" onclick="window.deleteFromList(event, '${k}')">
+                                <i class="bi bi-trash fs-5"></i>
+                            </button>
+                        </div>
+                    </div>`;
+                    
+                if(index < 6) {
+                    recentList.innerHTML += cardHTML;
+                } else {
+                    archiveList.innerHTML += cardHTML;
+                }
             });
+
+            const archiveCount = keys.length > 6 ? keys.length - 6 : 0;
+            const archiveSection = document.getElementById('archiveSection');
+            if(archiveCount > 0) {
+                archiveSection.style.display = 'block';
+                document.getElementById('archiveCount').textContent = archiveCount;
+                document.getElementById('archiveList').style.display = 'none'; 
+                document.getElementById('btnToggleArchive').style.display = 'block';
+            } else {
+                archiveSection.style.display = 'none';
+            }
+        };
+
+        // NEW: Direct delete from the main history list
+        window.deleteFromList = function(e, k) {
+            e.stopPropagation(); 
+            if(confirm("Permanently delete this scorecard?")) {
+                StorageHelper.remove(k);
+                window.loadSavedScorecards(); 
+            }
         };
 
         window.viewSaved = function(k){
