@@ -39,20 +39,21 @@
 
         /* --- ENHANCED WEIGHT PICKER UI --- */
         .picker-outer-wrapper {
-            background: #e2e8f0;
+            background: #f8fafc;
             padding: 15px;
             border-radius: 24px;
-            border: 1px solid #cbd5e1;
+            border: 2px solid var(--app-blue);
             margin-bottom: 20px;
+            box-shadow: var(--shadow-lg);
         }
         .picker-instruction {
             text-align: center;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 800;
             color: var(--app-blue);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
         }
         .weight-picker-container {
             display: flex;
@@ -60,10 +61,10 @@
             align-items: center;
             background: #ffffff;
             border-radius: 16px;
-            height: 200px;
+            height: 180px;
             position: relative;
             overflow: hidden;
-            box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
         }
         .picker-column {
             flex: 1;
@@ -80,15 +81,15 @@
         }
         .picker-column::-webkit-scrollbar { display: none; }
         .picker-item {
-            height: 50px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 600;
             color: #cbd5e1;
             scroll-snap-align: center;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s;
         }
         .picker-item.selected {
             color: var(--primary-dark);
@@ -100,7 +101,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 95%;
+            width: 94%;
             height: 60px;
             background: rgba(14, 165, 233, 0.1);
             border-top: 2px solid var(--app-blue);
@@ -110,11 +111,11 @@
             border-radius: 12px;
         }
         .picker-label-text {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 900;
             color: var(--app-blue);
             position: absolute;
-            bottom: 10px;
+            bottom: 6px;
             text-transform: uppercase;
         }
 
@@ -133,9 +134,7 @@
             justify-content: center;
             padding: 12px !important;
             border-radius: 20px;
-            transition: transform 0.1s;
         }
-        .btn-record-action:active { transform: scale(0.96); }
 
         .splash-screen {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -151,18 +150,21 @@
 
         .fish-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; float: right; margin-left: 12px; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
         .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
-        .table-custom td { background: white; padding: 18px; border-radius: 18px; vertical-align: middle; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
+        .table-custom td { background: white; padding: 18px; border-radius: 18px; vertical-align: middle; border: 1px solid #e2e8f0; }
 
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: #ffffff; padding: 15px 5px; border-radius: 16px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
+        .stat-card small { display: block; color: #64748b; font-size: 0.7rem; text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
+        .stat-card strong { font-size: 1.1rem; color: #1e293b; font-weight: 800; }
+        
         .species-quota-card { background: white; border-radius: 18px; padding: 15px; margin-bottom: 12px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
         .pip { width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: #f1f5f9; color: #94a3b8; margin-right: 6px; }
         .pip.active.bronze { background: #d97706; color: white; }
         .pip.active.silver { background: #94a3b8; color: white; }
         .pip.active.gold { background: #eab308; color: white; }
 
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .stat-card { background: #ffffff; padding: 15px 5px; border-radius: 16px; text-align: center; border: 1px solid #f1f5f9; box-shadow: var(--shadow-md); }
-        .stat-card small { display: block; color: #64748b; font-size: 0.7rem; text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
-        .stat-card strong { font-size: 1.2rem; color: #1e293b; font-weight: 800; }
+        @keyframes slideFlash { 0% { background-color: #dcfce7; transform: translateY(-10px); } 100% { background-color: white; } }
+        .new-catch-anim { animation: slideFlash 1s ease-out; }
     </style>
 </head>
 <body>
@@ -176,7 +178,7 @@
             <g class="radar-sweep"><line x1="100" y1="100" x2="160" y2="40" stroke="#10b981" stroke-width="5" stroke-linecap="round"/><circle cx="160" cy="40" r="6" fill="#10b981"/></g>
         </svg>
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 122.0 - Pro</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 123.0 - Pro</p>
         <div class="d-grid gap-3 col-10 col-md-6">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <button class="btn btn-outline-light btn-lg py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button>
@@ -238,7 +240,7 @@
 
             <div id="weightPickerContainer" class="mb-4" style="display:none;">
                 <div class="picker-outer-wrapper">
-                    <div class="picker-instruction"><i class="bi bi-hand-index-thumb me-1"></i> Swipe to set weight</div>
+                    <div class="picker-instruction"><i class="bi bi-hand-index-thumb me-1"></i> Swipe Wheels to Set Weight</div>
                     <div class="weight-picker-container">
                         <div class="picker-highlight"></div>
                         <div id="pickerCol1" class="picker-column" onscroll="window.updatePickerDisplay('pickerCol1')"></div>
@@ -256,7 +258,7 @@
         </div>
 
         <div class="live-score-box">
-            <div class="small text-muted text-uppercase fw-bold mb-1">Live Score</div>
+            <div class="small text-muted text-uppercase fw-bold mb-1">Session Total</div>
             <div class="live-score-value" id="liveScoreVal">0</div>
         </div>
 
@@ -270,11 +272,11 @@
             <div id="session_angler" class="fw-bold fs-4"></div>
             <div class="text-muted"><span id="session_date"></span> • <span id="session_venue"></span></div>
         </div>
-        <div class="live-score-box"><div id="session_total_points" class="live-score-value">0</div><div class="small text-muted fw-bold">TOTAL POINTS</div></div>
+        <div class="live-score-box"><div id="session_total_points" class="live-score-value">0</div></div>
         
         <div class="stat-grid">
             <div class="stat-card"><strong>Fish</strong><div id="session_total_fish">0</div></div>
-            <div class="stat-card"><strong>Types</strong><div id="session_species_count">0</div></div>
+            <div class="stat-card"><strong>Species</strong><div id="session_species_count">0</div></div>
             <div class="stat-card"><strong id="session_stat_label">Stat</strong><div id="session_total_stat">0</div></div>
         </div>
 
@@ -282,27 +284,29 @@
 
         <div class="inner-card">
             <label class="form-label small">Session Notes</label>
-            <textarea id="sessionNotesInput" class="form-control" rows="2" placeholder="Add notes..."></textarea>
+            <textarea id="sessionNotesInput" class="form-control" rows="2" placeholder="Notes..." oninput="window.saveActiveSession()"></textarea>
         </div>
 
         <div class="d-grid gap-3 mt-4">
-            <button class="btn btn-primary btn-lg shadow py-3" onclick="window.saveAndEndSession()"><i class="bi bi-save me-2"></i>Save Final Record</button>
+            <button class="btn btn-primary btn-lg shadow py-3" onclick="window.saveAndEndSession()"><i class="bi bi-save me-2"></i>Save Record</button>
             <button class="btn btn-whatsapp py-3 shadow-sm" onclick="window.shareAsImage('live')"><i class="bi bi-share me-2"></i>Share Summary</button>
         </div>
     </div>
 
-    <div class="modal fade" id="savedModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content border-0"><div class="modal-header border-0"><h5 class="modal-title fw-bold">Scorecards</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div id="savedScorecardsList"><div id="recentList"></div></div><div id="fullScorecardView" style="display:none;"><h4 id="saved_view_angler" class="text-primary fw-bold text-center"></h4><div id="saved_view_points" class="live-score-value text-center my-4"></div><div id="saved_view_breakdown"></div><div class="d-grid gap-2 mt-4"><button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete</button><button class="btn btn-secondary py-3" onclick="window.backToScorecardList()">Back</button></div></div></div></div></div></div>
+    <div class="modal fade" id="savedModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content border-0"><div class="modal-header border-0"><h5 class="modal-title fw-bold">History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><div id="savedScorecardsList"><div id="recentList"></div></div><div id="fullScorecardView" style="display:none;"><h4 id="saved_view_angler" class="text-primary fw-bold text-center"></h4><div id="saved_view_points" class="live-score-value text-center my-4"></div><div id="saved_view_breakdown"></div><div class="d-grid gap-2 mt-4"><button class="btn btn-danger py-3" onclick="window.deleteCurrentSaved()">Delete Record</button><button class="btn btn-secondary py-3" onclick="window.backToScorecardList()">Back</button></div></div></div></div></div></div>
     
-    <div class="modal fade" id="weightUnitModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 border-0 shadow-lg"><div class="modal-body p-5 text-center"><h4>Select Weight Unit</h4><p class="text-muted small">Choose how you record weights for this session</p><div class="d-grid gap-3 mt-4"><button class="btn btn-primary btn-lg py-3" onclick="window.setWeightUnit('metric')">Kilograms (KG)</button><button class="btn btn-primary btn-lg py-3" onclick="window.setWeightUnit('imperial')">Pounds & Ounces</button></div></div></div></div></div>
-    <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Session Found</h4><p class="text-muted">Restore unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
+    <div class="modal fade" id="weightUnitModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 border-0 shadow-lg"><div class="modal-body p-5 text-center"><h4>Scoring Unit</h4><p class="text-muted small">Choose your preferred weight format</p><div class="d-grid gap-3 mt-4"><button class="btn btn-primary btn-lg py-3" onclick="window.setWeightUnit('metric')">Kilograms (KG)</button><button class="btn btn-primary btn-lg py-3" onclick="window.setWeightUnit('imperial')">Pounds & Ounces</button></div></div></div></div></div>
+    
+    <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Session Found</h4><p class="text-muted">Resume the unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
+
     <div class="modal fade" id="imageModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="background:transparent; border:none;"><div class="modal-body p-0 text-center"><img id="fullSizeImage" src="" style="max-width:100%; border-radius:15px; border:3px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"><button class="btn btn-sm btn-light mt-3 rounded-pill px-4" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
     <script>
         const speciesList=[
-            {category:"Common Species",items:["Cod","Pollack","Coalfish","Whiting","Dab","Flounder","Plaice","Turbot","Dogfish (LSD)","Bull Huss"]},
+            {category:"Common",items:["Cod","Pollack","Coalfish","Whiting","Dab","Flounder","Plaice","Turbot","Dogfish (LSD)","Bull Huss"]},
             {category:"Round Fish",items:["Bass","Bream (Black)","Bream (Gilthead)","Bream (Red)","Garfish","Gurnard (Grey)","Gurnard (Red)","Gurnard (Tub)","Mackerel","Mullet (Golden)","Mullet (Grey/Thick)","Mullet (Red)","Scad","Weever (Lesser)"]},
             {category:"Flatfish",items:["Brill","Megrim","Sole (Dover)","Sole (Lemon)","Topknot"]},
-            {category:"Sharks & Rays",items:["Dogfish (Blackmouth)","Smoothhound (Common)","Smoothhound (Starry)","Spurdog","Tope","Ray (Blonde)","Ray (Small-eyed)","Ray (Spotted)","Ray (Thornback)","Ray (Undulate)","Stingray"]},
+            {category:"Sharks & Rays",items:["Dogfish (Blackmouth)","Smoothhound (Common)","Smoothhound (Starry)","Spurdog","Tope","Ray (Thornback)","Ray (Spotted)","Ray (Blonde)","Ray (Small-eyed)","Ray (Stingray)"]},
             {category:"Wrasse & Mini",items:["Wrasse (Ballan)","Wrasse (Corkwing)","Wrasse (Cuckoo)","Wrasse (Goldsinny)","Rockling (3-Bearded)","Rockling (Shore)","Blenny (Common)","Goby (Rock)","Poor Cod","Pouting (Bib)","Scorpion Fish","Squid"]}
         ];
         let fishData=[], currentScoringMethod='', selectedWeightUnit='metric', currentSavedKey='', currentAngler='', currentVenue='', currentDate='';
@@ -318,7 +322,7 @@
             let h1 = pad, h2 = pad;
             if(selectedWeightUnit==='metric'){
                 for(let i=0;i<=50;i++) h1+=`<div class="picker-item" data-val="${i}">${i}</div>`;
-                for(let i=0;i<=950;i+=50) h2+=`<div class="picker-item" data-val="${i/1000}">${i.toString().padStart(3,'0')}</div>`;
+                for(let i=0;i<=950;i+=50) h2+=`<div class="picker-item" data-val="${i/1000}">${(i/1000).toFixed(3).split('.')[1]}</div>`;
                 document.getElementById('label1').textContent='KG'; document.getElementById('label2').textContent='G';
             } else {
                 for(let i=0;i<=60;i++) h1+=`<div class="picker-item" data-val="${i}">${i}</div>`;
@@ -326,13 +330,12 @@
                 document.getElementById('label1').textContent='LB'; document.getElementById('label2').textContent='OZ';
             }
             c1.innerHTML=h1+pad; c2.innerHTML=h2+pad;
-            // Force browser to recalculate snap after build
-            setTimeout(()=>{ window.updatePickerDisplay('pickerCol1'); window.updatePickerDisplay('pickerCol2'); }, 150);
+            setTimeout(()=>{ window.updatePickerDisplay('pickerCol1'); window.updatePickerDisplay('pickerCol2'); }, 200);
         };
 
         window.updatePickerDisplay = function(id) {
             const el = document.getElementById(id), items = el.querySelectorAll('.picker-item');
-            const mid = el.scrollTop + 100;
+            const mid = el.scrollTop + 90;
             items.forEach(it => {
                 if(it.offsetTop < mid && it.offsetTop+50 > mid) it.classList.add('selected');
                 else it.classList.remove('selected');
@@ -342,23 +345,26 @@
         window.getPickerValue = function() {
             const v1 = parseFloat(document.querySelector('#pickerCol1 .selected')?.dataset.val || 0);
             const v2 = parseFloat(document.querySelector('#pickerCol2 .selected')?.dataset.val || 0);
-            const total = selectedWeightUnit === 'metric' ? (v1 + v2) : (v1 * 16) + v2;
-            const disp = selectedWeightUnit === 'metric' ? `${(v1+v2).toFixed(3)}kg` : `${v1}lb ${v2}oz`;
-            return { raw: total, display: disp };
+            const rawVal = selectedWeightUnit === 'metric' ? (v1 + v2) : (v1 * 16) + v2;
+            const dispVal = selectedWeightUnit === 'metric' ? `${(v1 + v2).toFixed(3)}kg` : `${v1}lb ${v2}oz`;
+            return { raw: rawVal, display: dispVal };
         };
 
-        /* --- APP LOGIC --- */
-        window.handleMethodChange = function(){
-            const m = document.getElementById('scoringMethod').value;
-            if(m==='weight') { weightModalInstance = new bootstrap.Modal(document.getElementById('weightUnitModal')); weightModalInstance.show(); }
+        /* --- CORE LOGIC --- */
+        window.handleMethodChange = function() {
+            const m = document.getElementById("scoringMethod").value;
+            if(m === 'weight') {
+                weightModalInstance = new bootstrap.Modal(document.getElementById('weightUnitModal'));
+                weightModalInstance.show();
+            }
             document.getElementById('speciesHuntInfo').style.display = m==='species_hunt' ? 'block':'none';
         };
 
-        window.setWeightUnit = function(u){ 
+        window.setWeightUnit = function(u) { 
             selectedWeightUnit = u; 
             document.getElementById('weightUnitDisplay').textContent = u==='metric' ? 'Metric (KG)':'Imperial (LB/OZ)';
             document.getElementById('weightInfoDisplay').style.display='block';
-            document.getElementById('weightInfoDisplay').textContent = "Current Unit: " + (u==='metric' ? 'Kilograms':'Pounds/Ounces');
+            document.getElementById('weightInfoDisplay').textContent = "Format: " + (u==='metric' ? 'KG/G' : 'LB/OZ');
             weightModalInstance.hide();
             window.saveActiveSession();
         };
@@ -368,7 +374,7 @@
             currentVenue = document.getElementById('venueInput').value.trim();
             currentDate = document.getElementById('competitionDate').value;
             currentScoringMethod = document.getElementById('scoringMethod').value;
-            if(!currentAngler || !currentVenue || !currentScoringMethod) return alert("Setup required.");
+            if(!currentAngler || !currentVenue || !currentScoringMethod) return alert("Fill setup.");
             
             document.getElementById('weightPickerContainer').style.display = currentScoringMethod==='weight' ? 'block':'none';
             document.getElementById('lengthInputContainer').style.display = (currentScoringMethod==='weight' || currentScoringMethod==='species_hunt') ? 'none':'block';
@@ -381,7 +387,7 @@
 
         window.validateInputs = function() {
             const spIn = document.getElementById('speciesInput');
-            let species = spIn.value === "Other" ? document.getElementById('customSpeciesInput').value : spIn.value;
+            let species = spIn.value === "Other" ? document.getElementById('customSpeciesInput').value.trim() : spIn.value;
             if(!species) { alert("Select species."); return null; }
             if(currentScoringMethod==='weight') return { species, ...window.getPickerValue() };
             if(currentScoringMethod==='species_hunt') return { species, length: 0 };
@@ -429,15 +435,17 @@
 
         window.calculatePoints = function(data, method){
             if(method==='weight') {
-                const tot = data.reduce((s,f) => s + (parseFloat(f.raw) || 0), 0);
-                return selectedWeightUnit==='metric' ? tot.toFixed(3) : (Math.floor(tot/16))+'lb '+(tot%16)+'oz';
+                const totalRaw = data.reduce((sum, f) => sum + (parseFloat(f.raw) || 0), 0);
+                if(selectedWeightUnit==='metric') return totalRaw.toFixed(3);
+                return Math.floor(totalRaw/16) + 'lb ' + (totalRaw % 16) + 'oz';
             }
             if(method==='species_hunt'){
-                const counts={}; let p=0; data.forEach(f=>{ counts[f.species]=(counts[f.species]||0)+1; const n=counts[f.species]; p+=(n===1?30:n===2?30:n===3?40:1); });
-                return p;
+                const counts={}; let pts=0;
+                data.forEach(f => { counts[f.species]=(counts[f.species]||0)+1; const n=counts[f.species]; pts+=(n===1?30:n===2?30:n===3?40:1); });
+                return pts;
             }
-            const lenSum = data.reduce((s,f)=>s+parseFloat(f.length||0), 0);
-            return method==='length_only' ? Math.round(lenSum) : Math.round(lenSum + (data.length*10));
+            const sumLen = data.reduce((s,f)=>s+parseFloat(f.length||0), 0);
+            return method==='length_only' ? Math.round(sumLen) : Math.round(sumLen + (data.length*10));
         };
 
         window.updateFishLog = function(){
@@ -463,7 +471,7 @@
             
             const isW = currentScoringMethod==='weight';
             document.getElementById('session_stat_label').textContent = isW ? 'Total Weight' : 'Total Length';
-            document.getElementById('session_total_stat').textContent = isW ? window.calculatePoints(fishData, 'weight') : fishData.reduce((s,f)=>s+parseFloat(f.length||0),0).toFixed(1) + 'cm';
+            document.getElementById('session_total_stat').textContent = isW ? window.calculatePoints(fishData, 'weight') + (selectedWeightUnit==='metric'?'kg':'') : fishData.reduce((s,f)=>s+parseFloat(f.length||0),0).toFixed(1) + 'cm';
             
             const area = document.getElementById('session_breakdown_area'); area.innerHTML='';
             if(currentScoringMethod==='species_hunt'){
@@ -544,10 +552,10 @@
         };
 
         window.toggleCustomSpeciesInput=function(){document.getElementById("customSpeciesInput").style.display=document.getElementById("speciesInput").value==="Other"?"block":"none";};
-        window.confirmQuit=function(){if(confirm("Discard active session?")){StorageHelper.remove('active_session');location.reload();}};
+        window.confirmQuit=function(){if(confirm("Discard session?")){StorageHelper.remove('active_session');location.reload();}};
         window.discardRestore=function(){StorageHelper.remove('active_session');location.reload();};
         window.backToScorecardList=function(){document.getElementById("fullScorecardView").style.display="none";document.getElementById("savedScorecardsList").style.display="block";};
-        window.deleteCurrentSaved=function(){if(confirm("Delete record?")){StorageHelper.remove(currentSavedKey); location.reload();}};
+        window.deleteCurrentSaved=function(){if(confirm("Delete Record?")){StorageHelper.remove(currentSavedKey); location.reload();}};
         window.delFish=function(i){if(confirm("Delete catch?")){fishData.splice(i,1); window.updateFishLog(); window.saveActiveSession();}};
         window.viewImg=function(s){document.getElementById('fullSizeImage').src=s; new bootstrap.Modal(document.getElementById('imageModal')).show();};
         window.startFishing=function(){PageManager.show('anglerRegistration');};
@@ -558,7 +566,7 @@
             const btns = el.querySelectorAll('button'); btns.forEach(b=>b.style.display='none');
             html2canvas(el, {backgroundColor:'#f1f5f9'}).then(canvas=>{
                 btns.forEach(b=>b.style.display='inline-block');
-                const link = document.createElement('a'); link.download='seascore_card.png'; link.href=canvas.toDataURL(); link.click();
+                const link = document.createElement('a'); link.download='seascore.png'; link.href=canvas.toDataURL(); link.click();
             });
         };
 
