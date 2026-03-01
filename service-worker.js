@@ -1,5 +1,5 @@
-// VERSION 164 - FULL UNCOMPRESSED CODE
-const CACHE_NAME = 'sea-score-v164';
+// VERSION 165 - DUAL WEATHER ENGINE / TIDES REMOVED
+const CACHE_NAME = 'sea-score-v165';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
