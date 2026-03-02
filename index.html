@@ -198,7 +198,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 194.0 - Split-Target Fetch</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 195.0 - The Perfect Fetch</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -479,7 +479,7 @@
             });
         };
 
-        // --- SPLIT-TARGET FETCH ENGINE (WEATHERAPI ONLY) ---
+        // --- THE FIXED SPLIT-TARGET ENGINE ---
         window.fetchEnvironmentData = async function() {
             const btn = document.getElementById('btnFetchEnv');
             const selectBox = document.getElementById('tideStationSelect');
@@ -501,30 +501,35 @@
                 let finalHW = "";
                 let finalLW = "";
 
-                // TARGET 1: Exact Offshore Coordinates for Weather & Waves
+                // BRAIN 1: Exact Offshore Coordinates for Weather & Waves
                 const offshoreRes = await fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`);
                 const offshoreData = await offshoreRes.json();
                 
-                if (offshoreData.error) throw new Error(offshoreData.error.message);
+                if (offshoreData && !offshoreData.error) {
+                    const currentHour = new Date().getHours();
+                    const currentData = offshoreData.forecast.forecastday[0].hour[currentHour];
+                    
+                    document.getElementById('weatherInput').value = `${currentData.condition.text}, ${currentData.temp_c}°C`;
+                    document.getElementById('windInput').value = `${currentData.wind_dir} ${currentData.wind_mph}mph`;
 
-                const currentHour = new Date().getHours();
-                const currentData = offshoreData.forecast.forecastday[0].hour[currentHour];
-                
-                document.getElementById('weatherInput').value = `${currentData.condition.text}, ${currentData.temp_c}°C`;
-                document.getElementById('windInput').value = `${currentData.wind_dir} ${currentData.wind_mph}mph`;
+                    let waveH = currentData.sig_ht_mt;
+                    let swellH = currentData.swell_ht_mt;
+                    
+                    // FIX: Populate Wave and Swell boxes properly and separately
+                    if (waveH !== undefined && waveH !== null) {
+                        document.getElementById('waveInput').value = `${waveH}m`;
+                    } else {
+                        document.getElementById('waveInput').value = `--`;
+                    }
 
-                let waveH = currentData.sig_ht_mt;
-                let swellH = currentData.swell_ht_mt;
-                
-                if(waveH !== undefined && waveH !== null && swellH !== undefined && swellH !== null) {
-                    document.getElementById('swellInput').value = `W: ${waveH}m / S: ${swellH}m`;
-                } else if (waveH !== undefined && waveH !== null) {
-                    document.getElementById('swellInput').value = `Waves: ${waveH}m`;
-                } else {
-                    document.getElementById('swellInput').value = `Flat / No Data`;
+                    if (swellH !== undefined && swellH !== null) {
+                        document.getElementById('swellInput').value = `${swellH}m`;
+                    } else {
+                        document.getElementById('swellInput').value = `--`;
+                    }
                 }
 
-                // TARGET 2: Text String Name for Exact Port Tide Clocks
+                // BRAIN 2: Text String Name for Exact Port Tide Clocks
                 const portRes = await fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(selectedCoastalStation)}&tides=yes`);
                 const portData = await portRes.json();
 
@@ -534,10 +539,11 @@
                     let hw = tides.find(t => t.tide_type === "HIGH");
                     let lw = tides.find(t => t.tide_type === "LOW");
                     
-                    if(hw) { document.getElementById('hwTimeInput').value = hw.tide_time.split(' ')[1]; foundTides = true; finalHW = hw.tide_time.split(' ')[1]; }
-                    if(lw) { document.getElementById('lwTimeInput').value = lw.tide_time.split(' ')[1]; foundTides = true; finalLW = lw.tide_time.split(' ')[1]; }
+                    if(hw) { foundTides = true; finalHW = hw.tide_time.split(' ')[1]; }
+                    if(lw) { foundTides = true; finalLW = lw.tide_time.split(' ')[1]; }
                 }
                 
+                // Save to memory (NULL CRASH FIXED - NO LONGER TRIES TO UPDATE INVISIBLE HTML BOXES)
                 hwTime = finalHW;
                 lwTime = finalLW;
 
@@ -705,7 +711,6 @@
 
                         let r = 5 + ((c.count - 1) * 3.5);
 
-                        // Red Drop Line
                         ctx.beginPath();
                         ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
                         ctx.setLineDash([2, 4]);
@@ -715,7 +720,6 @@
                         ctx.stroke();
                         ctx.setLineDash([]);
 
-                        // Write Fish Time slightly above axis line (skip if overlapping HW/LW lines)
                         let distToHW = Math.abs(x - (((hwM - minT)/range)*w));
                         let distToLW = Math.abs(x - (((lwM - minT)/range)*w));
                         if (distToHW > 15 && distToLW > 15) { 
@@ -725,7 +729,6 @@
                             ctx.fillText(formatTime(c.timeM), x, graphBottom - 3);
                         }
 
-                        // Red Dot
                         ctx.beginPath();
                         ctx.fillStyle = '#ef4444';
                         ctx.arc(x, y, r, 0, 2*Math.PI);
@@ -825,7 +828,6 @@
             fishData = []; currentScoringMethod = ''; isCompetitionMode = false; currentZone = ''; currentPeg = ''; currentTeam = ''; currentVenue = ''; coastalTown = ''; currentSavedKey = ''; weatherInfo = ''; windInfo = ''; swellInfo = ''; waveInfo = ''; hwTime = ''; lwTime = ''; sessionStartTimeStr = '';
             document.getElementById('venueInput').value = ''; if(document.getElementById('coastalTownInput')) document.getElementById('coastalTownInput').selectedIndex = 0; document.getElementById('scoringMethod').selectedIndex = 0; document.getElementById('isCompetition').checked = false; document.getElementById('teamInput').value = ''; document.getElementById('zoneInput').selectedIndex = 0; document.getElementById('pegInput').selectedIndex = 0; document.getElementById('sessionNotesInput').value = '';
             document.getElementById('weatherInput').value = ''; document.getElementById('windInput').value = ''; document.getElementById('swellInput').value = ''; document.getElementById('waveInput').value = ''; 
-            document.getElementById('hwTimeInput').value = ''; document.getElementById('lwTimeInput').value = '';
             document.getElementById('speciesInput').selectedIndex = 0; document.getElementById('customSpeciesInput').value = '';
             document.getElementById('fishLog').innerHTML = ''; document.getElementById('liveScoreVal').textContent = '0'; document.getElementById('weightInfoDisplay').style.display = 'none'; document.getElementById('speciesHuntInfo').style.display = 'none';
             document.getElementById('liveTideChartContainer').style.display = 'none';
@@ -891,7 +893,6 @@
             coastalTown = tideSel.selectedIndex > 0 ? tideSel.options[tideSel.selectedIndex].text : '';
             currentDate = document.getElementById('competitionDate').value; currentScoringMethod = document.getElementById('scoringMethod').value;
             weatherInfo = document.getElementById('weatherInput').value.trim(); windInfo = document.getElementById('windInput').value.trim(); swellInfo = document.getElementById('swellInput').value.trim(); waveInfo = document.getElementById('waveInput').value.trim();
-            hwTime = document.getElementById('hwTimeInput').value; lwTime = document.getElementById('lwTimeInput').value;
             
             isCompetitionMode = document.getElementById('isCompetition').checked; currentZone = document.getElementById('zoneInput').value || '-'; currentPeg = document.getElementById('pegInput').value || '-'; currentTeam = document.getElementById('teamInput').value.trim() || '-';
 
@@ -1035,7 +1036,7 @@
             if(d.weatherInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-cloud me-1"></i>${d.weatherInfo}</span>`;
             if(d.windInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-wind me-1"></i>${d.windInfo}</span>`;
             if(d.waveInfo && d.waveInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.waveInfo}</span>`;
-            if(d.swellInfo && d.swellInfo !== 'Inland') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.swellInfo}</span>`;
+            if(d.swellInfo && d.swellInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.swellInfo}</span>`;
             document.getElementById('saved_view_conditions').innerHTML = condHTML;
 
             if(d.isComp) { document.getElementById('saved_view_comp_details').style.display='flex'; document.getElementById('saved_view_team').textContent=d.team || '-'; document.getElementById('saved_view_zone').textContent=d.zone; document.getElementById('saved_view_peg').textContent=d.peg; } 
@@ -1077,8 +1078,7 @@
             try {
                 const p = document.getElementById('anglerFishingPage').style.display==='block'?'fishing':(document.getElementById('tallyVerificationPage').style.display==='block'?'tally':'setup');
                 const weatherI = document.getElementById('weatherInput') ? document.getElementById('weatherInput').value : weatherInfo; const windI = document.getElementById('windInput') ? document.getElementById('windInput').value : windInfo; const waveI = document.getElementById('waveInput') ? document.getElementById('waveInput').value : waveInfo; const swellI = document.getElementById('swellInput') ? document.getElementById('swellInput').value : swellInfo;
-                const hwI = document.getElementById('hwTimeInput') ? document.getElementById('hwTimeInput').value : hwTime; const lwI = document.getElementById('lwTimeInput') ? document.getElementById('lwTimeInput').value : lwTime;
-                StorageHelper.save('active_session', JSON.stringify({ phase:p, angler:currentAngler||document.getElementById('anglerName').value, venue:currentVenue||document.getElementById('venueInput').value, coastalTown:coastalTown||(document.getElementById('tideStationSelect') ? document.getElementById('tideStationSelect').options[document.getElementById('tideStationSelect').selectedIndex]?.text : ''), date:currentDate||document.getElementById('competitionDate').value, method:currentScoringMethod, unit:selectedWeightUnit, isComp:document.getElementById('isCompetition').checked, team:document.getElementById('teamInput').value, zone:document.getElementById('zoneInput').value, peg:document.getElementById('pegInput').value, weatherInfo:weatherI, windInfo:windI, waveInfo:waveI, swellInfo:swellI, hwTime:hwI, lwTime:lwI, sessionStart:sessionStartTimeStr, fishData }));
+                StorageHelper.save('active_session', JSON.stringify({ phase:p, angler:currentAngler||document.getElementById('anglerName').value, venue:currentVenue||document.getElementById('venueInput').value, coastalTown:coastalTown||(document.getElementById('tideStationSelect') ? document.getElementById('tideStationSelect').options[document.getElementById('tideStationSelect').selectedIndex]?.text : ''), date:currentDate||document.getElementById('competitionDate').value, method:currentScoringMethod, unit:selectedWeightUnit, isComp:document.getElementById('isCompetition').checked, team:document.getElementById('teamInput').value, zone:document.getElementById('zoneInput').value, peg:document.getElementById('pegInput').value, weatherInfo:weatherI, windInfo:windI, waveInfo:waveI, swellInfo:swellI, hwTime:hwTime, lwTime:lwTime, sessionStart:sessionStartTimeStr, fishData }));
             } catch(e) {}
         };
 
@@ -1099,8 +1099,7 @@
             }
 
             document.getElementById('scoringMethod').value=s.method; document.getElementById('isCompetition').checked=s.isComp || false; document.getElementById('teamInput').value=s.team || ''; document.getElementById('zoneInput').value=s.zone || ''; document.getElementById('pegInput').value=s.peg || ''; document.getElementById('weatherInput').value=weatherInfo; document.getElementById('windInput').value=windInfo; if(document.getElementById('waveInput')) document.getElementById('waveInput').value=waveInfo; if(document.getElementById('swellInput')) document.getElementById('swellInput').value=swellInfo;
-            if(document.getElementById('hwTimeInput')) document.getElementById('hwTimeInput').value=hwTime; if(document.getElementById('lwTimeInput')) document.getElementById('lwTimeInput').value=lwTime;
-
+            
             window.toggleCompetitionFields(); window.populateSpeciesDropdown();
             if(s.phase==='fishing'){ window.setupFishingUI(); PageManager.show('anglerFishingPage'); window.updateFishLog(); } else if(s.phase==='tally'){ window.endSession(); } else { PageManager.show('anglerRegistration'); if(hwTime && lwTime) { document.getElementById('setupTideChartContainer').style.display = 'block'; try { window.drawTideGraph('setupTideCanvas', hwTime, lwTime, [], sessionStartTimeStr); } catch(e) {} } }
         };
