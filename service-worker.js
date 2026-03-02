@@ -1,5 +1,5 @@
-// VERSION 192 - VISUAL FORECAST HUB & FULLSCREEN MODAL
-const CACHE_NAME = 'sea-score-v192';
+// VERSION 194 - SPLIT-TARGET FETCH ENGINE
+const CACHE_NAME = 'sea-score-v194';
 
 const FILES_TO_CACHE = [
   './',
