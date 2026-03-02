@@ -1,5 +1,5 @@
-// VERSION 168 - SMART HUB (VENUE TO COORDINATES + MATH TIDES)
-const CACHE_NAME = 'sea-score-v168';
+// VERSION 169 - DUAL CONTROL TIDE & WEATHER ENGINE
+const CACHE_NAME = 'sea-score-v169';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
