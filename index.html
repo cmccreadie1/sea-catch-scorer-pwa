@@ -77,7 +77,7 @@
         .dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
         .dark-mode .table-custom td { background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-main); }
         
-        /* --- SCROLL DRUM PICKER UI --- */
+        /* --- SCROLL DRUM PICKER UI (For Weights only now) --- */
         .picker-outer-wrapper {
             background: var(--card-bg); padding: 15px; border-radius: 24px;
             border: 2px solid var(--app-blue); margin-bottom: 15px;
@@ -116,7 +116,6 @@
             position: absolute; bottom: 8px; text-transform: uppercase;
         }
 
-        /* Sleeker Action Buttons */
         .btn-record-action {
             white-space: normal !important; line-height: 1.1 !important; font-size: 0.85rem !important;
             min-height: 70px; display: flex; flex-direction: column; align-items: center;
@@ -132,7 +131,17 @@
             min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white;
             text-align: center; padding: 20px; position: relative;
         }
-        .theme-toggle-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; backdrop-filter: blur(5px); }
+        
+        /* New Text-Based Theme Toggle */
+        .theme-toggle-btn { 
+            position: absolute; top: 20px; right: 20px; 
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
+            color: white; border-radius: 20px; padding: 6px 14px; 
+            font-size: 0.8rem; font-weight: bold; cursor: pointer; backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        .theme-toggle-btn:hover { background: rgba(255,255,255,0.2); }
+        
         .logo-svg { width: 160px; height: 160px; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.5)); margin-bottom: 30px; }
         .sonar-sweep { transform-origin: 100px 100px; animation: spin 4s linear infinite; }
         .blinker { animation: blink 1s step-end infinite; }
@@ -143,7 +152,6 @@
         @keyframes subtleSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .icon-spin { animation: subtleSpin 1s linear infinite; }
 
-        /* Sleeker Live Score Box */
         .live-score-box { border: 3px solid var(--app-blue); background-color: var(--card-bg); border-radius: 16px; padding: 10px 20px; text-align: center; margin-bottom: 15px; box-shadow: var(--shadow-sm); transition: background 0.3s ease; }
         .live-score-value { font-size: 3rem; font-weight: 800; color: var(--app-blue); line-height: 1; }
 
@@ -152,7 +160,6 @@
         .dark-mode .table-custom td { background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-main); }
         .table-custom td { background: var(--card-bg); padding: 12px 15px; border-radius: 12px; vertical-align: middle; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); transition: background 0.3s ease; }
         
-        /* Sleeker Stat Grid */
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .stat-card { background: var(--card-bg); padding: 10px 5px; border-radius: 12px; text-align: center; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); transition: background 0.3s ease; }
         .stat-card small { display: block; color: var(--text-muted); font-size: 0.65rem; text-transform: uppercase; font-weight: 800; margin-bottom: 2px; }
@@ -179,7 +186,7 @@
     </div>
 
     <div id="splashScreen" class="splash-screen">
-        <button class="theme-toggle-btn" onclick="window.toggleDarkMode()" id="btnThemeToggle"><i class="bi bi-moon-stars-fill"></i></button>
+        <button class="theme-toggle-btn shadow" onclick="window.toggleDarkMode()" id="btnThemeToggle">Switch to Dark Mode</button>
 
         <svg class="logo-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <circle cx="100" cy="100" r="95" fill="#0f172a" stroke="#0ea5e9" stroke-width="2"/>
@@ -202,7 +209,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 196.0 - Visual Polish</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 197.0 - Pro UI & Tides</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -328,11 +335,9 @@
                 <input type="text" id="customSpeciesInput" class="form-control mt-2" placeholder="Species Name" style="display:none;">
             </div>
 
-            <div id="lengthPickerContainer" class="mb-3" style="display:none;">
-                <div class="picker-outer-wrapper mb-0">
-                    <div class="picker-instruction"><i class="bi bi-hand-index-thumb me-1"></i> Swipe Wheels to Set Length</div>
-                    <div class="weight-picker-container"><div class="picker-highlight"></div><div id="pickerLenCol1" class="picker-column" onscroll="window.updatePickerDisplay('pickerLenCol1')"></div><div id="pickerLenCol2" class="picker-column" onscroll="window.updatePickerDisplay('pickerLenCol2')"></div><div class="picker-label-text" style="left: 20%;">M</div><div class="picker-label-text" style="right: 20%;">CM</div></div>
-                </div>
+            <div id="lengthInputContainer" class="mb-3" style="display:none;">
+                <label class="form-label small fw-bold text-muted mb-1">Fish Length (cm)</label>
+                <input type="number" id="fishLengthInput" class="form-control form-control-lg text-center fw-bold text-primary" inputmode="decimal" placeholder="e.g. 45" style="font-size: 1.5rem;">
             </div>
 
             <div id="weightPickerContainer" class="mb-3" style="display:none;">
@@ -416,14 +421,17 @@
     <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Session Found</h4><p class="text-muted">Restore unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" data-bs-dismiss="modal" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
     
     <div class="modal fade" id="imageModal" tabindex="-1" style="z-index:9999;">
-        <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content" style="background: rgba(15, 23, 42, 0.98); border: none;">
-                <div class="modal-body d-flex flex-column align-items-center justify-content-center p-3">
-                    <button class="btn btn-outline-light mb-3 rounded-pill px-5 py-2 fw-bold shadow-lg" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>Close View
-                    </button>
-                    <div class="text-white mb-2 small fw-bold"><i class="bi bi-phone-landscape me-2"></i>Turn phone sideways for fullscreen</div>
-                    <img id="fullSizeImage" src="" style="width: 100%; height: auto; max-height: 85vh; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background: white; padding: 5px;">
+        <div class="modal-dialog modal-fullscreen m-0">
+            <div class="modal-content" style="background: #0f172a; border: none;">
+                <div class="modal-body p-0 d-flex align-items-center justify-content-center" style="overflow: hidden; height: 100vh; width: 100vw;">
+                    <div style="transform: rotate(90deg); width: 100vh; height: 100vw; display: flex; align-items: center; justify-content: center; position: relative;">
+                        
+                        <button class="btn btn-danger position-absolute shadow-lg fw-bold" style="top: 20px; right: 20px; z-index: 2000; padding: 10px 30px;" data-bs-dismiss="modal">
+                            <i class="bi bi-x-lg me-2"></i> Close View
+                        </button>
+                        
+                        <img id="fullSizeImage" src="" style="width: 85%; max-height: 85%; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); background: white; padding: 10px;">
+                    </div>
                 </div>
             </div>
         </div>
@@ -563,12 +571,13 @@
             }
         };
 
+        // --- MATH ENGINE FOR TIMELINE AND DOTS (WITH PERIOD CLAMP) ---
         window.drawTideGraph = function(canvasId, hwStr, lwStr, fishArray, startStr) {
             try {
                 const canvas = document.getElementById(canvasId);
                 if(!canvas || !hwStr || !lwStr) return;
                 const ctx = canvas.getContext('2d');
-                const w = canvas.width; const h = canvas.height; 
+                const w = canvas.width; const h = canvas.height; // 340 x 150
                 
                 const isDark = document.body.classList.contains('dark-mode');
                 
@@ -644,13 +653,16 @@
                     return `${hrs.toString().padStart(2,'0')}:${m}`;
                 };
 
+                // PREVENT "OBAN BUG": Force period clamp to standard tide length (~12.4 hours / 745 mins)
+                let rawPeriod = Math.abs(lwM - hwM) * 2;
+                if (rawPeriod === 0) rawPeriod = 1;
+                let period = (rawPeriod < 360 || rawPeriod > 900) ? 745 : rawPeriod;
+
                 ctx.beginPath();
                 ctx.strokeStyle = waveColor; 
                 ctx.lineWidth = 3;
                 for(let x=0; x<=w; x++) {
                     let t = minT + (x/w)*range;
-                    let period = Math.abs(lwM - hwM) * 2; 
-                    if(period === 0) period = 1; 
                     let phase = ((t - hwM) / period) * Math.PI * 2;
                     let y = midY - Math.cos(phase) * (amp - 10); 
                     if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
@@ -676,6 +688,7 @@
                     ctx.fillText(label, x, graphBottom + 25);
                 };
 
+                // The logic could place multiple HW/LW depending on the window, but we will mark the known ones.
                 drawAxisMarker(hwM, `HW`, true);
                 drawAxisMarker(lwM, `LW`, true);
 
@@ -701,8 +714,6 @@
 
                     clusters.forEach(c => {
                         let x = ((c.timeM - minT) / range) * w;
-                        let period = Math.abs(lwM - hwM) * 2;
-                        if(period === 0) period = 1;
                         let phase = ((c.timeM - hwM) / period) * Math.PI * 2;
                         let y = midY - Math.cos(phase) * (amp - 10);
 
@@ -751,8 +762,13 @@
         window.toggleDarkMode = function() {
             const body = document.body; const btn = document.getElementById('btnThemeToggle');
             body.classList.toggle('dark-mode');
-            if (body.classList.contains('dark-mode')) { btn.innerHTML = '<i class="bi bi-sun-fill text-warning"></i>'; localStorage.setItem('theme', 'dark'); } 
-            else { btn.innerHTML = '<i class="bi bi-moon-stars-fill"></i>'; localStorage.setItem('theme', 'light'); }
+            if (body.classList.contains('dark-mode')) { 
+                btn.innerText = 'Switch to Light Mode'; 
+                localStorage.setItem('theme', 'dark'); 
+            } else { 
+                btn.innerText = 'Switch to Dark Mode'; 
+                localStorage.setItem('theme', 'light'); 
+            }
             
             if(document.getElementById('anglerFishingPage').style.display === 'block') window.updateFishLog();
             if(document.getElementById('tallyVerificationPage').style.display === 'block') { try{ window.drawTideGraph('tallyTideCanvas', hwTime, lwTime, fishData, sessionStartTimeStr); }catch(e){} }
@@ -825,12 +841,13 @@
             fishData = []; currentScoringMethod = ''; isCompetitionMode = false; currentZone = ''; currentPeg = ''; currentTeam = ''; currentVenue = ''; coastalTown = ''; currentSavedKey = ''; weatherInfo = ''; windInfo = ''; swellInfo = ''; waveInfo = ''; hwTime = ''; lwTime = ''; sessionStartTimeStr = '';
             document.getElementById('venueInput').value = ''; if(document.getElementById('coastalTownInput')) document.getElementById('coastalTownInput').selectedIndex = 0; document.getElementById('scoringMethod').selectedIndex = 0; document.getElementById('isCompetition').checked = false; document.getElementById('teamInput').value = ''; document.getElementById('zoneInput').selectedIndex = 0; document.getElementById('pegInput').selectedIndex = 0; document.getElementById('sessionNotesInput').value = '';
             document.getElementById('weatherInput').value = ''; document.getElementById('windInput').value = ''; document.getElementById('swellInput').value = ''; document.getElementById('waveInput').value = ''; 
+            if(document.getElementById('fishLengthInput')) document.getElementById('fishLengthInput').value = '';
             document.getElementById('speciesInput').selectedIndex = 0; document.getElementById('customSpeciesInput').value = '';
             document.getElementById('fishLog').innerHTML = ''; document.getElementById('liveScoreVal').textContent = '0'; document.getElementById('weightInfoDisplay').style.display = 'none'; document.getElementById('speciesHuntInfo').style.display = 'none';
             document.getElementById('liveTideChartContainer').style.display = 'none';
             document.getElementById('setupTideChartContainer').style.display = 'none';
             window.toggleCompetitionFields(); window.toggleCustomSpeciesInput();
-            const cols = ['pickerCol1','pickerCol2','pickerLenCol1','pickerLenCol2']; cols.forEach(c => { const el = document.getElementById(c); if(el) { el.scrollTop = 0; window.updatePickerDisplay(c); } });
+            const cols = ['pickerCol1','pickerCol2']; cols.forEach(c => { const el = document.getElementById(c); if(el) { el.scrollTop = 0; window.updatePickerDisplay(c); } });
             PageManager.show('splashScreen'); StorageHelper.remove('active_session');
         };
 
@@ -839,12 +856,6 @@
             if(selectedWeightUnit==='metric'){ for(let i=0;i<=50;i++) h1+=`<div class="picker-item" data-val="${i}">${i}</div>`; for(let i=0;i<=950;i+=50) h2+=`<div class="picker-item" data-val="${i/1000}">${(i/1000).toFixed(3).split('.')[1]}</div>`; document.getElementById('label1').textContent='KG'; document.getElementById('label2').textContent='G'; } 
             else { for(let i=0;i<=60;i++) h1+=`<div class="picker-item" data-val="${i}">${i}</div>`; for(let i=0;i<=15;i++) h2+=`<div class="picker-item" data-val="${i}">${i}</div>`; document.getElementById('label1').textContent='LB'; document.getElementById('label2').textContent='OZ'; }
             c1.innerHTML=h1+pad; c2.innerHTML=h2+pad; setTimeout(()=>{ window.updatePickerDisplay('pickerCol1'); window.updatePickerDisplay('pickerCol2'); }, 200);
-        };
-
-        window.initLengthPicker = function() {
-            const c1 = document.getElementById('pickerLenCol1'), c2 = document.getElementById('pickerLenCol2'); const pad = '<div style="height: 65px;"></div>'; let h1 = pad, h2 = pad;
-            for(let i=0;i<=5;i++) h1+=`<div class="picker-item" data-val="${i}">${i}</div>`; for(let i=0;i<=99;i++) h2+=`<div class="picker-item" data-val="${i}">${i.toString().padStart(2,'0')}</div>`; c1.innerHTML=h1+pad; c2.innerHTML=h2+pad;
-            setTimeout(()=>{ window.updatePickerDisplay('pickerLenCol1'); window.updatePickerDisplay('pickerLenCol2'); }, 200);
         };
 
         window.updatePickerDisplay = function(id) {
@@ -859,7 +870,8 @@
         };
 
         window.getLengthPickerValue = function() {
-            const m = parseFloat(document.querySelector('#pickerLenCol1 .selected')?.dataset.val || 0); const cm = parseFloat(document.querySelector('#pickerLenCol2 .selected')?.dataset.val || 0); return (m * 100) + cm;
+            const val = document.getElementById('fishLengthInput').value;
+            return parseFloat(val) || 0;
         };
 
         window.handleMethodChange = function() {
@@ -875,8 +887,9 @@
 
         window.setupFishingUI = function() {
             const isWeight = currentScoringMethod === 'weight'; const isLength = currentScoringMethod === 'measure_points' || currentScoringMethod === 'length_only';
-            document.getElementById('weightPickerContainer').style.display = isWeight ? 'block' : 'none'; document.getElementById('lengthPickerContainer').style.display = isLength ? 'block' : 'none';
-            if(isWeight) window.initWeightPicker(); if(isLength) window.initLengthPicker();
+            document.getElementById('weightPickerContainer').style.display = isWeight ? 'block' : 'none'; 
+            document.getElementById('lengthInputContainer').style.display = isLength ? 'block' : 'none';
+            if(isWeight) window.initWeightPicker(); 
             
             if(hwTime && lwTime) {
                 document.getElementById('liveTideChartContainer').style.display = 'block';
@@ -910,7 +923,10 @@
             const catchTime = new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
             if(currentScoringMethod==='weight') return { species, time: catchTime, ...window.getPickerValue() };
             if(currentScoringMethod==='species_hunt') return { species, time: catchTime, length: 0 };
-            const len = window.getLengthPickerValue(); if(len <= 0) { alert("Scroll to enter a valid length."); return null; } return { species, time: catchTime, length: len };
+            
+            const len = window.getLengthPickerValue(); 
+            if(isNaN(len) || len <= 0) { alert("Enter a valid length number."); return null; } 
+            return { species, time: catchTime, length: len };
         };
 
         window.addFishTextOnly = function() { const d = window.validateInputs(); if(d) { fishData.push(d); finishAddAction(); } };
@@ -928,7 +944,7 @@
             window.updateFishLog(); const firstRow = document.querySelector('#fishLog tr:first-child'); if(firstRow) firstRow.classList.add('new-catch-anim');
             document.getElementById("speciesInput").selectedIndex = 0; document.getElementById("customSpeciesInput").value = ""; window.toggleCustomSpeciesInput(); 
             if(currentScoringMethod === 'weight') { const c1 = document.getElementById('pickerCol1'); const c2 = document.getElementById('pickerCol2'); if(c1) c1.scrollTop = 0; if(c2) c2.scrollTop = 0; setTimeout(()=>{ window.updatePickerDisplay('pickerCol1'); window.updatePickerDisplay('pickerCol2'); }, 50); }
-            if(currentScoringMethod === 'measure_points' || currentScoringMethod === 'length_only') { const c1 = document.getElementById('pickerLenCol1'); const c2 = document.getElementById('pickerLenCol2'); if(c1) c1.scrollTop = 0; if(c2) c2.scrollTop = 0; setTimeout(()=>{ window.updatePickerDisplay('pickerLenCol1'); window.updatePickerDisplay('pickerLenCol2'); }, 50); }
+            if(currentScoringMethod === 'measure_points' || currentScoringMethod === 'length_only') { document.getElementById("fishLengthInput").value = ""; }
             window.saveActiveSession();
         }
 
@@ -1121,7 +1137,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             window.populateTideStations();
             document.getElementById("competitionDate").value = new Date().toISOString().split('T')[0]; window.restoreActiveSession();
-            if(localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); document.getElementById('btnThemeToggle').innerHTML = '<i class="bi bi-sun-fill text-warning"></i>'; }
+            
+            const btnThemeToggle = document.getElementById('btnThemeToggle');
+            if(localStorage.getItem('theme') === 'dark') { 
+                document.body.classList.add('dark-mode'); 
+                if(btnThemeToggle) btnThemeToggle.innerText = 'Switch to Light Mode'; 
+            } else {
+                if(btnThemeToggle) btnThemeToggle.innerText = 'Switch to Dark Mode';
+            }
             if(sessionStorage.getItem('showUpdateToast') === 'true') { sessionStorage.removeItem('showUpdateToast'); window.showAppToast("App Updated successfully!"); }
         });
     </script>
