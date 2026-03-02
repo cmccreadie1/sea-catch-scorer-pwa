@@ -1,5 +1,5 @@
-// VERSION 176 - TIME WHEEL RESTORED & FULL WAVE/SWELL LOGIC
-const CACHE_NAME = 'sea-score-v176';
+// VERSION 177 - DENSITY HISTOGRAM TIDE GRAPH
+const CACHE_NAME = 'sea-score-v177';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
