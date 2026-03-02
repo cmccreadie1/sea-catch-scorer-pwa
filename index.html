@@ -199,7 +199,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 184.0 - Radar Net Tides</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 186.0 - Professional Setup</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -219,33 +219,70 @@
             <button class="btn btn-sm btn-outline-secondary px-3 rounded-pill" onclick="window.resetAppToHome()"><i class="bi bi-arrow-left me-1"></i>Back</button>
         </div>
         
-        <div class="inner-card p-3 mb-2">
-            <div class="mb-2"><label class="form-label small mb-1">Angler Name</label><input type="text" id="anglerName" class="form-control" placeholder="Enter Name" oninput="window.saveActiveSession()"></div>
-            <div class="row g-2">
-                <div class="col-6"><label class="form-label small mb-1">Date</label><input type="date" id="competitionDate" class="form-control" onchange="window.saveActiveSession()"></div>
-                <div class="col-6">
-                    <label class="form-label small mb-1">Venue (Personal Note)</label>
-                    <input type="text" id="venueInput" class="form-control" placeholder="e.g. Arbroath" oninput="window.saveActiveSession()">
+        <div class="inner-card p-3 mb-3 border-primary">
+            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="bi bi-person-vcard me-2"></i>Match Details</h6>
+            
+            <div class="mb-2">
+                <label class="form-label small mb-1">Angler Name</label>
+                <input type="text" id="anglerName" class="form-control" placeholder="Enter Name" oninput="window.saveActiveSession()">
+            </div>
+            
+            <div class="row g-2 mb-2">
+                <div class="col-5">
+                    <label class="form-label small mb-1">Date</label>
+                    <input type="date" id="competitionDate" class="form-control" onchange="window.saveActiveSession()">
                 </div>
+                <div class="col-7">
+                    <label class="form-label small mb-1">Venue Note (Personal)</label>
+                    <input type="text" id="venueInput" class="form-control" placeholder="e.g. The Barns - Peg 4" oninput="window.saveActiveSession()">
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label small mb-1">Scoring Rules</label>
+                <select id="scoringMethod" class="form-select" onchange="window.handleMethodChange()">
+                    <option value="" disabled selected>Select Scoring Method...</option>
+                    <option value="measure_points">Length + 10 Pts</option>
+                    <option value="length_only">Total Length Only</option>
+                    <option value="species_hunt">Species Hunt (3=100pts)</option>
+                    <option value="weight">Total Weight</option>
+                </select>
+                <div id="speciesHuntInfo" class="mt-2 small text-muted" style="display:none;">1st: 30 | 2nd: 30 | 3rd: 40 | 4th+: 1pt</div>
+                <div id="weightInfoDisplay" class="mt-2 small fw-bold text-primary" style="display:none;"></div>
+            </div>
+            
+            <div class="form-check form-switch mb-2 mt-3">
+                <input class="form-check-input" type="checkbox" id="isCompetition" onchange="window.toggleCompetitionFields(); window.saveActiveSession();">
+                <label class="form-check-label fw-bold small text-dark" for="isCompetition">Competition Mode</label>
+            </div>
+            
+            <div class="row g-2">
+                <div class="col-6"><select id="zoneInput" class="form-control form-select" disabled onchange="window.saveActiveSession()"><option selected value="">Zone</option><option>1</option><option>2</option><option>3</option><option>4</option><option>Red</option><option>Yellow</option><option>Green</option><option>Blue</option></select></div>
+                <div class="col-6"><select id="pegInput" class="form-control form-select" disabled onchange="window.saveActiveSession()"><option selected value="">Peg</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select></div>
+                <div class="col-12 mt-2"><input type="text" id="teamInput" class="form-control" placeholder="Team Name (Optional)" disabled oninput="window.saveActiveSession()"></div>
             </div>
         </div>
 
-        <div class="inner-card p-3 mb-2 border-primary">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="form-label small mb-0 text-primary fw-bold"><i class="bi bi-geo-alt-fill me-1"></i>Live Environment</label>
-                <button class="btn btn-sm btn-primary py-1 px-3 fw-bold shadow-sm" onclick="window.fetchEnvironmentData()" id="btnFetchEnv">
-                    Fetch Data
-                </button>
-            </div>
+        <div class="inner-card p-3 mb-2 border-info">
+            <h6 class="fw-bold text-info mb-3 border-bottom pb-2"><i class="bi bi-cloud-sun me-2"></i>Environment Data</h6>
             
-            <div class="small mb-3 text-muted" style="font-size: 0.65rem; line-height: 1.2;">
-                * Tip: Type a town in the Venue box to search the internet from home, OR leave Venue blank to use your Live GPS at the beach.
+            <div class="mb-3">
+                <label class="form-label small mb-1 fw-bold text-dark">Nearest Coastal Town</label>
+                <div class="input-group shadow-sm">
+                    <input type="text" id="coastalTownInput" class="form-control border-info" placeholder="e.g. Arbroath" oninput="window.saveActiveSession()">
+                    <button class="btn btn-info text-white fw-bold px-3" onclick="window.fetchEnvironmentData()" id="btnFetchEnv">
+                        <i class="bi bi-search me-1"></i> Fetch
+                    </button>
+                </div>
+                <div class="small text-muted mt-1" style="font-size: 0.65rem; line-height: 1.2;">
+                    * The app will search exactly this town to find the weather and marine data.
+                </div>
             </div>
             
             <div class="row g-2 mb-2">
                 <div class="col-4"><input type="text" id="weatherInput" class="form-control form-control-sm text-center" placeholder="Weather" oninput="window.saveActiveSession()"></div>
                 <div class="col-4"><input type="text" id="windInput" class="form-control form-control-sm text-center" placeholder="Wind" oninput="window.saveActiveSession()"></div>
-                <div class="col-4"><input type="text" id="swellInput" class="form-control form-control-sm text-center fw-bold text-primary" placeholder="Waves/Swell" oninput="window.saveActiveSession()"></div>
+                <div class="col-4"><input type="text" id="swellInput" class="form-control form-control-sm text-center fw-bold text-info" placeholder="Waves/Swell" oninput="window.saveActiveSession()"></div>
             </div>
 
             <div class="row g-2 mt-1 border-top pt-2">
@@ -260,31 +297,7 @@
             </div>
         </div>
         
-        <div class="inner-card p-3 mb-2">
-            <label class="form-label small mb-1 text-primary">Scoring Rules</label>
-            <select id="scoringMethod" class="form-select" onchange="window.handleMethodChange()">
-                <option value="" disabled selected>Select Scoring Method...</option>
-                <option value="measure_points">Length + 10 Pts</option>
-                <option value="length_only">Total Length Only</option>
-                <option value="species_hunt">Species Hunt (3=100pts)</option>
-                <option value="weight">Total Weight</option>
-            </select>
-            <div id="speciesHuntInfo" class="mt-2 small text-muted" style="display:none;">1st: 30 | 2nd: 30 | 3rd: 40 | 4th+: 1pt</div>
-            <div id="weightInfoDisplay" class="mt-2 small fw-bold text-primary" style="display:none;"></div>
-        </div>
-        
-        <div class="inner-card p-3 mb-2">
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" id="isCompetition" onchange="window.toggleCompetitionFields(); window.saveActiveSession();">
-                <label class="form-check-label fw-bold small" for="isCompetition">Competition Mode</label>
-            </div>
-            <div class="row g-2">
-                <div class="col-6"><select id="zoneInput" class="form-control form-select" disabled onchange="window.saveActiveSession()"><option selected value="">Zone</option><option>1</option><option>2</option><option>3</option><option>4</option><option>Red</option><option>Yellow</option><option>Green</option><option>Blue</option></select></div>
-                <div class="col-6"><select id="pegInput" class="form-control form-select" disabled onchange="window.saveActiveSession()"><option selected value="">Peg</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select></div>
-                <div class="col-12 mt-2"><input type="text" id="teamInput" class="form-control" placeholder="Team Name (Optional)" disabled oninput="window.saveActiveSession()"></div>
-            </div>
-        </div>
-        <button class="btn btn-primary w-100 py-3 shadow-sm mt-2 fw-bold" onclick="window.registerAngler()">Begin Session <i class="bi bi-arrow-right ms-2"></i></button>
+        <button class="btn btn-primary btn-lg w-100 py-3 shadow-lg mt-3 fw-bold" onclick="window.registerAngler()">Begin Session <i class="bi bi-arrow-right ms-2"></i></button>
     </div>
 
     <div id="anglerFishingPage" class="app-page">
@@ -405,7 +418,7 @@
         
         let fishData=[], currentScoringMethod='', selectedWeightUnit='metric', currentSavedKey='', currentAngler='', currentVenue='', currentDate='';
         let isCompetitionMode = false, currentZone = '', currentPeg = '', currentTeam = '';
-        let weatherInfo = '', windInfo = '', swellInfo = '', hwTime = '', lwTime = '';
+        let weatherInfo = '', windInfo = '', swellInfo = '', hwTime = '', lwTime = '', coastalTown = '';
         let pendingRestoreData = null; 
 
         const PageManager={ show:function(id){ document.querySelectorAll('.app-page').forEach(p=>p.style.display='none'); document.getElementById('splashScreen').style.display='none'; document.getElementById(id).style.display='block'; window.scrollTo(0,0); } };
@@ -420,135 +433,110 @@
             new bootstrap.Toast(t).show();
         };
 
-        // --- NEW: RADAR NET DATA ENGINE ---
+        // --- NEW: EXPLICIT TOWN SEARCH ENGINE ---
         window.fetchEnvironmentData = async function() {
             const btn = document.getElementById('btnFetchEnv');
-            const venueText = document.getElementById('venueInput').value.trim();
+            const townText = document.getElementById('coastalTownInput').value.trim();
             const originalText = btn.innerHTML;
             
             if (!navigator.onLine) return window.showAppToast("You are offline.", true);
+            if (townText === "") return window.showAppToast("Please enter a coastal town first.", true);
 
-            btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Searching...';
+            btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Fetching...';
             btn.disabled = true;
 
             try {
-                let lat, lon;
+                // 1. Get coordinates for the typed coastal town
+                const geoRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(townText)}`);
+                const geoData = await geoRes.json();
+                if(geoData.error) throw new Error("Town not found: " + geoData.error.message);
+                
+                const lat = geoData.location.lat;
+                const lon = geoData.location.lon;
+                
+                // Set Weather
+                document.getElementById('weatherInput').value = `${geoData.current.condition.text}, ${geoData.current.temp_c}°C`;
+                document.getElementById('windInput').value = `${geoData.current.wind_dir} ${geoData.current.wind_mph}mph`;
 
-                if (venueText !== "") {
-                    // Get coordinates from town name
-                    const geoRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(venueText)}`);
-                    const geoData = await geoRes.json();
-                    if(geoData.error) throw new Error("Venue not found: " + geoData.error.message);
-                    lat = geoData.location.lat;
-                    lon = geoData.location.lon;
-                    
-                    document.getElementById('weatherInput').value = `${geoData.current.condition.text}, ${geoData.current.temp_c}°C`;
-                    document.getElementById('windInput').value = `${geoData.current.wind_dir} ${geoData.current.wind_mph}mph`;
-
-                    await executeMarineRadarNet(lat, lon);
-                    btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
-                    setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
-
-                } else {
-                    // Get coordinates from Live GPS
-                    if (!navigator.geolocation) throw new Error("GPS not supported.");
-                    
-                    navigator.geolocation.getCurrentPosition(async (pos) => {
-                        lat = pos.coords.latitude;
-                        lon = pos.coords.longitude;
-                        try {
-                            const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`);
-                            const weatherData = await weatherRes.json();
-                            if (weatherData.error) throw new Error(weatherData.error.message);
-                            
-                            document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
-                            document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
-
-                            await executeMarineRadarNet(lat, lon);
-                            btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
-                            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
-                        } catch (e) {
-                            window.showAppToast(e.message, true);
-                            btn.innerHTML = originalText; btn.disabled = false;
-                        }
-                    }, (err) => {
-                        window.showAppToast("Unable to get GPS location.", true);
-                        btn.innerHTML = originalText; btn.disabled = false;
-                    }, { enableHighAccuracy: false, timeout: 10000 });
+                // 2. Fetch Marine Data (using a small net just to clear the town center)
+                const lats = `${lat},${lat+0.02},${lat-0.02},${lat},${lat},${lat+0.05},${lat-0.05},${lat},${lat}`;
+                const lons = `${lon},${lon},${lon},${lon+0.02},${lon-0.02},${lon},${lon},${lon+0.05},${lon-0.05}`;
+                
+                const marineRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=sea_level,wave_height,swell_wave_height&timezone=auto`);
+                const marineDataArray = await marineRes.json();
+                
+                let validData = null;
+                let dataList = Array.isArray(marineDataArray) ? marineDataArray : [marineDataArray];
+                
+                for (let d of dataList) {
+                    if (d && d.hourly && d.hourly.sea_level && d.hourly.sea_level.some(v => v !== null)) {
+                        validData = d; break;
+                    }
                 }
+
+                if(validData) {
+                    const times = validData.hourly.time;
+                    const now = new Date();
+                    let closestIdx = 0; let minDiff = Infinity;
+                    
+                    times.forEach((t, idx) => {
+                        let diff = Math.abs(new Date(t) - now);
+                        if(diff < minDiff) { minDiff = diff; closestIdx = idx; }
+                    });
+                    
+                    let waveH = validData.hourly.wave_height[closestIdx];
+                    let swellH = validData.hourly.swell_wave_height[closestIdx];
+                    
+                    if(waveH !== null && waveH !== undefined && swellH !== null && swellH !== undefined) {
+                        document.getElementById('swellInput').value = `W: ${waveH.toFixed(1)}m / S: ${swellH.toFixed(1)}m`;
+                    } else if (waveH !== null && waveH !== undefined) {
+                        document.getElementById('swellInput').value = `Waves: ${waveH.toFixed(1)}m`;
+                    } else {
+                        document.getElementById('swellInput').value = `Flat / No Data`;
+                    }
+
+                    const levels = validData.hourly.sea_level;
+                    const extremes = [];
+                    
+                    for(let i = 3; i < levels.length - 3; i++) {
+                        let curr = levels[i];
+                        if(curr === null) continue;
+                        let isMax = true, isMin = true;
+                        for(let j = i - 3; j <= i + 3; j++) {
+                            if(i === j) continue;
+                            if(levels[j] >= curr) isMax = false;
+                            if(levels[j] <= curr) isMin = false;
+                        }
+                        if(isMax) extremes.push({ type: 'High', time: new Date(times[i]) });
+                        if(isMin) extremes.push({ type: 'Low', time: new Date(times[i]) });
+                    }
+                    
+                    const today = new Date().toDateString();
+                    const todaysTides = extremes.filter(t => t.time.toDateString() === today);
+                    todaysTides.sort((a,b) => a.time - b.time);
+
+                    if(todaysTides.length >= 2) {
+                        let hw = todaysTides.find(t => t.type === 'High');
+                        let lw = todaysTides.find(t => t.type === 'Low');
+                        if(hw) document.getElementById('hwTimeInput').value = hw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
+                        if(lw) document.getElementById('lwTimeInput').value = lw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
+                    }
+                    window.showAppToast("Data Loaded!");
+                } else {
+                    document.getElementById('swellInput').value = 'No Marine Data';
+                    window.showAppToast("Weather loaded, but couldn't find marine data for this town.", true);
+                }
+                
+                window.saveActiveSession();
+                btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
+                setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+                
             } catch (err) {
                 window.showAppToast(err.message, true);
-                btn.innerHTML = originalText; btn.disabled = false;
+                btn.innerHTML = originalText; 
+                btn.disabled = false;
             }
         };
-
-        // The 15-Point Simultaneous Radar Net Algorithm
-        async function executeMarineRadarNet(lat, lon) {
-            
-            // 1. Get Waves and Swell from Open-Meteo
-            try {
-                const omRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,swell_wave_height&timezone=auto`);
-                const omData = await omRes.json();
-                if(omData && omData.hourly && omData.hourly.wave_height) {
-                    const now = new Date();
-                    let cIdx = 0; let minD = Infinity;
-                    omData.hourly.time.forEach((t, i) => { let d = Math.abs(new Date(t) - now); if(d < minD) { minD = d; cIdx = i; } });
-                    
-                    let wh = omData.hourly.wave_height[cIdx];
-                    let sw = omData.hourly.swell_wave_height[cIdx];
-                    if (wh !== null) {
-                        document.getElementById('swellInput').value = sw !== null ? `W: ${wh.toFixed(1)}m / S: ${sw.toFixed(1)}m` : `Waves: ${wh.toFixed(1)}m`;
-                    } else {
-                        document.getElementById('swellInput').value = `Flat / Inland`;
-                    }
-                } else {
-                    document.getElementById('swellInput').value = `Flat / Inland`;
-                }
-            } catch(e) {
-                document.getElementById('swellInput').value = `No Swell Data`;
-            }
-
-            // 2. Fire 15 Radar Pings Simultaneously to find the nearest Marine Station for Exact Tides
-            let offsets = [
-                [0,0], [0.02, 0], [-0.02, 0], [0, 0.02], [0, -0.02],
-                [0.05, 0.05], [0.05, -0.05], [-0.05, 0.05], [-0.05, -0.05],
-                [0.1, 0], [-0.1, 0], [0, 0.1], [0, -0.1],
-                [0.2, 0.2], [-0.2, -0.2] // extreme 25km reach
-            ];
-            
-            const fetchPromises = offsets.map(off => {
-                let qLat = lat + off[0];
-                let qLon = lon + off[1];
-                return fetch(`https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=${qLat},${qLon}&days=1&tides=yes`)
-                    .then(res => res.json())
-                    .then(data => {
-                        // If this specific coordinate hits a valid marine station with a tide array, return it instantly
-                        if(data && data.forecast && data.forecast.forecastday[0].day.tides && data.forecast.forecastday[0].day.tides[0].tide && data.forecast.forecastday[0].day.tides[0].tide.length > 0) {
-                            return data;
-                        }
-                        throw new Error("No tides");
-                    });
-            });
-
-            try {
-                // Wait for the FIRST successful radar ping to report back
-                const firstValid = await Promise.any(fetchPromises);
-                
-                let tides = firstValid.forecast.forecastday[0].day.tides[0].tide;
-                let hw = tides.find(t => t.tide_type === "HIGH");
-                let lw = tides.find(t => t.tide_type === "LOW");
-
-                if (hw) document.getElementById('hwTimeInput').value = hw.tide_time.split(' ')[1];
-                if (lw) document.getElementById('lwTimeInput').value = lw.tide_time.split(' ')[1];
-                
-                window.showAppToast("Weather, Waves, and Tides loaded!");
-            } catch (e) {
-                // If all 15 pings fail to hit an ocean station
-                window.showAppToast("Weather loaded, but no tide station found nearby. Enter times manually.", true);
-            }
-            
-            window.saveActiveSession();
-        }
 
         // --- MATH ENGINE FOR TIMELINE AND DOTS ---
         window.drawTideGraph = function(canvasId, hwStr, lwStr, fishArray) {
@@ -734,12 +722,15 @@
         };
 
         window.exportToCSV = function() {
-            let csvContent = "Date,Venue,Angler,Match Mode,Team,Zone,Peg,Weather,Wind,Swell,HW,LW,Species,Measurement,Time,Notes\n";
+            let csvContent = "Date,Venue,Coastal_Town,Angler,Match Mode,Team,Zone,Peg,Weather,Wind,Swell,HW,LW,Species,Measurement,Time,Notes\n";
             const keys = Object.keys(StorageHelper.getAll()).filter(k=>k.startsWith('scorecard_'));
             if(keys.length === 0) return alert("No history to export.");
             keys.forEach(k => {
                 const d = JSON.parse(StorageHelper.get(k));
-                const dateStr = d.date; const venue = `"${(d.venue || '').replace(/"/g, '""')}"`; const angler = `"${(d.angler || '').replace(/"/g, '""')}"`;
+                const dateStr = d.date; 
+                const venue = `"${(d.venue || '').replace(/"/g, '""')}"`; 
+                const town = `"${(d.coastalTown || '').replace(/"/g, '""')}"`;
+                const angler = `"${(d.angler || '').replace(/"/g, '""')}"`;
                 const mode = d.isComp ? "Match" : "Pleasure"; const team = `"${(d.team || '').replace(/"/g, '""')}"`; const zone = `"${(d.zone || '').replace(/"/g, '""')}"`; const peg = `"${(d.peg || '').replace(/"/g, '""')}"`;
                 const weath = `"${(d.weatherInfo || '').replace(/"/g, '""')}"`; const wind = `"${(d.windInfo || '').replace(/"/g, '""')}"`; const swell = `"${(d.swellInfo || '').replace(/"/g, '""')}"`;
                 const hw = d.hwTime || ''; const lw = d.lwTime || ''; const notes = `"${(d.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
@@ -748,9 +739,9 @@
                         const species = `"${f.species}"`; let meas = "";
                         if(d.method === 'weight') meas = `"${f.display}"`; else if(d.method === 'species_hunt') meas = `"N/A"`; else meas = `"${f.length}cm"`;
                         const time = `"${f.time || ''}"`;
-                        csvContent += `${dateStr},${venue},${angler},${mode},${team},${zone},${peg},${weath},${wind},${swell},${hw},${lw},${species},${meas},${time},${notes}\n`;
+                        csvContent += `${dateStr},${venue},${town},${angler},${mode},${team},${zone},${peg},${weath},${wind},${swell},${hw},${lw},${species},${meas},${time},${notes}\n`;
                     });
-                } else { csvContent += `${dateStr},${venue},${angler},${mode},${team},${zone},${peg},${weath},${wind},${swell},${hw},${lw},Blank,N/A,,${notes}\n`; }
+                } else { csvContent += `${dateStr},${venue},${town},${angler},${mode},${team},${zone},${peg},${weath},${wind},${swell},${hw},${lw},Blank,N/A,,${notes}\n`; }
             });
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); const url = URL.createObjectURL(blob);
             link.setAttribute("href", url); link.setAttribute("download", "SeaScore_Export.csv"); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
@@ -780,8 +771,8 @@
         };
 
         window.resetAppToHome = function() {
-            fishData = []; currentScoringMethod = ''; isCompetitionMode = false; currentZone = ''; currentPeg = ''; currentTeam = ''; currentVenue = ''; currentSavedKey = ''; weatherInfo = ''; windInfo = ''; swellInfo = ''; hwTime = ''; lwTime = '';
-            document.getElementById('venueInput').value = ''; document.getElementById('scoringMethod').selectedIndex = 0; document.getElementById('isCompetition').checked = false; document.getElementById('teamInput').value = ''; document.getElementById('zoneInput').selectedIndex = 0; document.getElementById('pegInput').selectedIndex = 0; document.getElementById('sessionNotesInput').value = '';
+            fishData = []; currentScoringMethod = ''; isCompetitionMode = false; currentZone = ''; currentPeg = ''; currentTeam = ''; currentVenue = ''; coastalTown = ''; currentSavedKey = ''; weatherInfo = ''; windInfo = ''; swellInfo = ''; hwTime = ''; lwTime = '';
+            document.getElementById('venueInput').value = ''; document.getElementById('coastalTownInput').value = ''; document.getElementById('scoringMethod').selectedIndex = 0; document.getElementById('isCompetition').checked = false; document.getElementById('teamInput').value = ''; document.getElementById('zoneInput').selectedIndex = 0; document.getElementById('pegInput').selectedIndex = 0; document.getElementById('sessionNotesInput').value = '';
             document.getElementById('weatherInput').value = ''; document.getElementById('windInput').value = ''; document.getElementById('swellInput').value = ''; document.getElementById('hwTimeInput').value = ''; document.getElementById('lwTimeInput').value = '';
             document.getElementById('speciesInput').selectedIndex = 0; document.getElementById('customSpeciesInput').value = '';
             document.getElementById('fishLog').innerHTML = ''; document.getElementById('liveScoreVal').textContent = '0'; document.getElementById('weightInfoDisplay').style.display = 'none'; document.getElementById('speciesHuntInfo').style.display = 'none';
@@ -842,7 +833,7 @@
         };
 
         window.registerAngler = function() {
-            currentAngler = document.getElementById('anglerName').value.trim(); currentVenue = document.getElementById('venueInput').value.trim(); currentDate = document.getElementById('competitionDate').value; currentScoringMethod = document.getElementById('scoringMethod').value;
+            currentAngler = document.getElementById('anglerName').value.trim(); currentVenue = document.getElementById('venueInput').value.trim(); coastalTown = document.getElementById('coastalTownInput').value.trim(); currentDate = document.getElementById('competitionDate').value; currentScoringMethod = document.getElementById('scoringMethod').value;
             weatherInfo = document.getElementById('weatherInput').value.trim(); windInfo = document.getElementById('windInput').value.trim(); swellInfo = document.getElementById('swellInput').value.trim(); 
             hwTime = document.getElementById('hwTimeInput').value; lwTime = document.getElementById('lwTimeInput').value;
             isCompetitionMode = document.getElementById('isCompetition').checked; currentZone = document.getElementById('zoneInput').value || '-'; currentPeg = document.getElementById('pegInput').value || '-'; currentTeam = document.getElementById('teamInput').value.trim() || '-';
@@ -923,7 +914,7 @@
         window.endSession = function(){
             if(!confirm("Are you sure you want to end this session?\n\nIt will be automatically saved to your History.")) return;
             PageManager.show('tallyVerificationPage');
-            document.getElementById('session_angler').textContent = currentAngler; document.getElementById('session_date').textContent = new Date(currentDate).toLocaleDateString('en-GB'); document.getElementById('session_venue').textContent = currentVenue;
+            document.getElementById('session_angler').textContent = currentAngler; document.getElementById('session_date').textContent = new Date(currentDate).toLocaleDateString('en-GB'); document.getElementById('session_venue').textContent = currentVenue || coastalTown || 'Unnamed Venue';
             
             let condHTML = '';
             if(weatherInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-cloud me-1"></i>${weatherInfo}</span>`;
@@ -956,7 +947,7 @@
             }
 
             currentSavedKey = 'scorecard_' + Date.now();
-            try { StorageHelper.save(currentSavedKey, JSON.stringify({ angler:currentAngler, venue:currentVenue, date:currentDate, isComp:isCompetitionMode, team:currentTeam, zone:currentZone, peg:currentPeg, weatherInfo, windInfo, swellInfo, hwTime, lwTime, fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, notes: '' })); StorageHelper.remove('active_session'); } 
+            try { StorageHelper.save(currentSavedKey, JSON.stringify({ angler:currentAngler, venue:currentVenue, coastalTown:coastalTown, date:currentDate, isComp:isCompetitionMode, team:currentTeam, zone:currentZone, peg:currentPeg, weatherInfo, windInfo, swellInfo, hwTime, lwTime, fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, notes: '' })); StorageHelper.remove('active_session'); } 
             catch(e) { alert("Device storage full. Session shown but not saved. Please delete old history."); }
             document.getElementById('sessionNotesInput').value = '';
             document.getElementById('sessionNotesInput').oninput = function(e) { try { let savedSession = JSON.parse(StorageHelper.get(currentSavedKey)); if (savedSession) { savedSession.notes = e.target.value; StorageHelper.save(currentSavedKey, JSON.stringify(savedSession)); } } catch(err) {} };
@@ -968,7 +959,7 @@
             const keys = Object.keys(StorageHelper.getAll()).filter(k=>k.startsWith('scorecard_')).sort().reverse();
             keys.forEach((k, index) => {
                 const d = JSON.parse(StorageHelper.get(k)); const pts = window.calculatePoints(d.fishData, d.method, d.weightUnit); const unitTxt = d.method==='weight' ? '' : ' pts'; const dateStr = new Date(d.date).toLocaleDateString('en-GB'); const compBadge = d.isComp ? `<span class="badge bg-warning text-dark ms-2">Match</span>` : '';
-                const cardHTML = `<div class="inner-card shadow-sm mb-3 position-relative" style="cursor:pointer;" onclick="window.viewSaved('${k}')"><div class="d-flex justify-content-between align-items-center"><div><div class="fw-bold fs-5 text-primary">${d.venue} ${compBadge}</div><div class="text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i>${dateStr}</div><div class="fw-bold text-dark"><i class="bi bi-trophy text-warning me-1"></i>${pts}${unitTxt}</div></div><button class="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" onclick="window.deleteFromList(event, '${k}')"><i class="bi bi-trash fs-5"></i></button></div></div>`;
+                const cardHTML = `<div class="inner-card shadow-sm mb-3 position-relative" style="cursor:pointer;" onclick="window.viewSaved('${k}')"><div class="d-flex justify-content-between align-items-center"><div><div class="fw-bold fs-5 text-primary">${d.venue || d.coastalTown || 'Unnamed Venue'} ${compBadge}</div><div class="text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i>${dateStr}</div><div class="fw-bold text-dark"><i class="bi bi-trophy text-warning me-1"></i>${pts}${unitTxt}</div></div><button class="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" onclick="window.deleteFromList(event, '${k}')"><i class="bi bi-trash fs-5"></i></button></div></div>`;
                 if(index < 6) { recentList.innerHTML += cardHTML; } else { archiveList.innerHTML += cardHTML; }
             });
             const archiveCount = keys.length > 6 ? keys.length - 6 : 0; const archiveSection = document.getElementById('archiveSection');
@@ -979,7 +970,7 @@
         window.deleteFromList = function(e, k) { e.stopPropagation(); if(confirm("Permanently delete this scorecard?")) { StorageHelper.remove(k); window.loadSavedScorecards(); } };
 
         window.viewSaved = function(k){
-            currentSavedKey = k; const d = JSON.parse(StorageHelper.get(k)); document.getElementById('saved_view_angler').textContent = d.angler; document.getElementById('saved_view_date').textContent = new Date(d.date).toLocaleDateString('en-GB'); document.getElementById('saved_view_venue').textContent = d.venue;
+            currentSavedKey = k; const d = JSON.parse(StorageHelper.get(k)); document.getElementById('saved_view_angler').textContent = d.angler; document.getElementById('saved_view_date').textContent = new Date(d.date).toLocaleDateString('en-GB'); document.getElementById('saved_view_venue').textContent = d.venue || d.coastalTown || 'Unnamed Venue';
             let condHTML = '';
             if(d.weatherInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-cloud me-1"></i>${d.weatherInfo}</span>`;
             if(d.windInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-wind me-1"></i>${d.windInfo}</span>`;
@@ -1029,7 +1020,7 @@
                 const p = document.getElementById('anglerFishingPage').style.display==='block'?'fishing':(document.getElementById('tallyVerificationPage').style.display==='block'?'tally':'setup');
                 const weatherI = document.getElementById('weatherInput') ? document.getElementById('weatherInput').value : weatherInfo; const windI = document.getElementById('windInput') ? document.getElementById('windInput').value : windInfo; const swellI = document.getElementById('swellInput') ? document.getElementById('swellInput').value : swellInfo;
                 const hwI = document.getElementById('hwTimeInput') ? document.getElementById('hwTimeInput').value : hwTime; const lwI = document.getElementById('lwTimeInput') ? document.getElementById('lwTimeInput').value : lwTime;
-                StorageHelper.save('active_session', JSON.stringify({ phase:p, angler:currentAngler||document.getElementById('anglerName').value, venue:currentVenue||document.getElementById('venueInput').value, date:currentDate||document.getElementById('competitionDate').value, method:currentScoringMethod, unit:selectedWeightUnit, isComp:document.getElementById('isCompetition').checked, team:document.getElementById('teamInput').value, zone:document.getElementById('zoneInput').value, peg:document.getElementById('pegInput').value, weatherInfo:weatherI, windInfo:windI, swellInfo:swellI, hwTime:hwI, lwTime:lwI, fishData }));
+                StorageHelper.save('active_session', JSON.stringify({ phase:p, angler:currentAngler||document.getElementById('anglerName').value, venue:currentVenue||document.getElementById('venueInput').value, coastalTown:coastalTown||document.getElementById('coastalTownInput').value, date:currentDate||document.getElementById('competitionDate').value, method:currentScoringMethod, unit:selectedWeightUnit, isComp:document.getElementById('isCompetition').checked, team:document.getElementById('teamInput').value, zone:document.getElementById('zoneInput').value, peg:document.getElementById('pegInput').value, weatherInfo:weatherI, windInfo:windI, swellInfo:swellI, hwTime:hwI, lwTime:lwI, fishData }));
             } catch(e) {}
         };
 
@@ -1037,9 +1028,9 @@
 
         window.confirmRestore = function(){
             const s = JSON.parse(StorageHelper.get('active_session')); 
-            fishData=s.fishData||[]; currentAngler=s.angler; currentVenue=s.venue; currentDate=s.date; currentScoringMethod=s.method; selectedWeightUnit=s.unit; isCompetitionMode=s.isComp; currentTeam=s.team||''; currentZone=s.zone; currentPeg=s.peg; weatherInfo=s.weatherInfo||''; windInfo=s.windInfo||''; swellInfo=s.swellInfo||''; hwTime=s.hwTime||''; lwTime=s.lwTime||'';
+            fishData=s.fishData||[]; currentAngler=s.angler; currentVenue=s.venue; coastalTown=s.coastalTown||''; currentDate=s.date; currentScoringMethod=s.method; selectedWeightUnit=s.unit; isCompetitionMode=s.isComp; currentTeam=s.team||''; currentZone=s.zone; currentPeg=s.peg; weatherInfo=s.weatherInfo||''; windInfo=s.windInfo||''; swellInfo=s.swellInfo||''; hwTime=s.hwTime||''; lwTime=s.lwTime||'';
             
-            document.getElementById('anglerName').value=s.angler; document.getElementById('venueInput').value=s.venue; document.getElementById('scoringMethod').value=s.method; document.getElementById('isCompetition').checked=s.isComp || false; document.getElementById('teamInput').value=s.team || ''; document.getElementById('zoneInput').value=s.zone || ''; document.getElementById('pegInput').value=s.peg || ''; document.getElementById('weatherInput').value=weatherInfo; document.getElementById('windInput').value=windInfo; if(document.getElementById('swellInput')) document.getElementById('swellInput').value=swellInfo;
+            document.getElementById('anglerName').value=s.angler; document.getElementById('venueInput').value=s.venue; if(document.getElementById('coastalTownInput')) document.getElementById('coastalTownInput').value=coastalTown; document.getElementById('scoringMethod').value=s.method; document.getElementById('isCompetition').checked=s.isComp || false; document.getElementById('teamInput').value=s.team || ''; document.getElementById('zoneInput').value=s.zone || ''; document.getElementById('pegInput').value=s.peg || ''; document.getElementById('weatherInput').value=weatherInfo; document.getElementById('windInput').value=windInfo; if(document.getElementById('swellInput')) document.getElementById('swellInput').value=swellInfo;
             if(document.getElementById('hwTimeInput')) document.getElementById('hwTimeInput').value=hwTime; if(document.getElementById('lwTimeInput')) document.getElementById('lwTimeInput').value=lwTime;
 
             window.toggleCompetitionFields(); window.populateSpeciesDropdown();
