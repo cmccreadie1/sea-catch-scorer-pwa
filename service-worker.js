@@ -1,5 +1,5 @@
-// VERSION 172 - OFFLINE TIDE CURVE PLOTTER
-const CACHE_NAME = 'sea-score-v172';
+// VERSION 173 - ELEGANT MAGIC WAND TIDE AUTO-FILL
+const CACHE_NAME = 'sea-score-v173';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
@@ -18,7 +18,11 @@ const FILES_TO_CACHE = [
 // INSTALL
 self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE)));
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(FILES_TO_CACHE);
+    })
+  );
 });
 
 // ACTIVATE
@@ -26,7 +30,9 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME) return caches.delete(key);
+        if (key !== CACHE_NAME) {
+          return caches.delete(key);
+        }
       }));
     })
   );
@@ -46,6 +52,8 @@ self.addEventListener('fetch', (e) => {
           return fetchResponse;
         });
       });
-    }).catch(() => console.log('Offline and resource not found in cache:', e.request.url))
+    }).catch(() => {
+      console.log('Offline and resource not found in cache:', e.request.url);
+    })
   );
 });
