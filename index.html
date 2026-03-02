@@ -164,7 +164,7 @@
         .new-catch-anim { animation: slideFlash 1.5s ease-out; }
 
         /* Tide Chart Canvas Styling */
-        .tide-chart-container { background: var(--picker-bg); border-radius: 16px; padding: 15px 10px 10px 10px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); cursor: zoom-in; }
+        .tide-chart-container { background: var(--card-bg); border-radius: 16px; padding: 15px 10px 10px 10px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); cursor: zoom-in; }
     </style>
 </head>
 <body>
@@ -199,7 +199,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 183.0 - Smart Fetch API</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 184.0 - Radar Net Tides</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -224,7 +224,7 @@
             <div class="row g-2">
                 <div class="col-6"><label class="form-label small mb-1">Date</label><input type="date" id="competitionDate" class="form-control" onchange="window.saveActiveSession()"></div>
                 <div class="col-6">
-                    <label class="form-label small mb-1">Venue</label>
+                    <label class="form-label small mb-1">Venue (Personal Note)</label>
                     <input type="text" id="venueInput" class="form-control" placeholder="e.g. Arbroath" oninput="window.saveActiveSession()">
                 </div>
             </div>
@@ -232,14 +232,14 @@
 
         <div class="inner-card p-3 mb-2 border-primary">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="form-label small mb-0 text-primary fw-bold"><i class="bi bi-globe me-1"></i>Environment</label>
-                <button class="btn btn-sm btn-primary py-1 px-3 fw-bold shadow-sm" onclick="window.fetchSmartData()" id="btnFetchEnv">
+                <label class="form-label small mb-0 text-primary fw-bold"><i class="bi bi-geo-alt-fill me-1"></i>Live Environment</label>
+                <button class="btn btn-sm btn-primary py-1 px-3 fw-bold shadow-sm" onclick="window.fetchEnvironmentData()" id="btnFetchEnv">
                     Fetch Data
                 </button>
             </div>
             
             <div class="small mb-3 text-muted" style="font-size: 0.65rem; line-height: 1.2;">
-                * Tip: Type a town in the Venue box to search the internet, OR leave Venue blank to use Live GPS.
+                * Tip: Type a town in the Venue box to search the internet from home, OR leave Venue blank to use your Live GPS at the beach.
             </div>
             
             <div class="row g-2 mb-2">
@@ -420,21 +420,22 @@
             new bootstrap.Toast(t).show();
         };
 
-        // --- SMART FETCH ENGINE ---
-        window.fetchSmartData = async function() {
+        // --- NEW: RADAR NET DATA ENGINE ---
+        window.fetchEnvironmentData = async function() {
             const btn = document.getElementById('btnFetchEnv');
             const venueText = document.getElementById('venueInput').value.trim();
             const originalText = btn.innerHTML;
             
             if (!navigator.onLine) return window.showAppToast("You are offline.", true);
 
-            btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Fetching...';
+            btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Searching...';
             btn.disabled = true;
 
             try {
                 let lat, lon;
 
                 if (venueText !== "") {
+                    // Get coordinates from town name
                     const geoRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(venueText)}`);
                     const geoData = await geoRes.json();
                     if(geoData.error) throw new Error("Venue not found: " + geoData.error.message);
@@ -444,12 +445,14 @@
                     document.getElementById('weatherInput').value = `${geoData.current.condition.text}, ${geoData.current.temp_c}°C`;
                     document.getElementById('windInput').value = `${geoData.current.wind_dir} ${geoData.current.wind_mph}mph`;
 
-                    await executeMarineFetch(lat, lon);
+                    await executeMarineRadarNet(lat, lon);
                     btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
                     setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
 
                 } else {
+                    // Get coordinates from Live GPS
                     if (!navigator.geolocation) throw new Error("GPS not supported.");
+                    
                     navigator.geolocation.getCurrentPosition(async (pos) => {
                         lat = pos.coords.latitude;
                         lon = pos.coords.longitude;
@@ -461,7 +464,7 @@
                             document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
                             document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
 
-                            await executeMarineFetch(lat, lon);
+                            await executeMarineRadarNet(lat, lon);
                             btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
                             setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
                         } catch (e) {
@@ -479,63 +482,71 @@
             }
         };
 
-        async function executeMarineFetch(lat, lon) {
-            const marineRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=sea_level,wave_height,swell_wave_height&cell_selection=sea&timezone=auto`);
-            const marineData = await marineRes.json();
+        // The 15-Point Simultaneous Radar Net Algorithm
+        async function executeMarineRadarNet(lat, lon) {
             
-            if(marineData && marineData.hourly && marineData.hourly.sea_level && marineData.hourly.sea_level.some(v => v !== null)) {
-                const times = marineData.hourly.time;
-                const now = new Date();
-                let closestIdx = 0; let minDiff = Infinity;
-                
-                times.forEach((t, idx) => {
-                    let diff = Math.abs(new Date(t) - now);
-                    if(diff < minDiff) { minDiff = diff; closestIdx = idx; }
-                });
-                
-                let waveH = marineData.hourly.wave_height[closestIdx];
-                let swellH = marineData.hourly.swell_wave_height[closestIdx];
-                
-                if(waveH !== null && waveH !== undefined && swellH !== null && swellH !== undefined) {
-                    document.getElementById('swellInput').value = `W: ${waveH.toFixed(1)}m / S: ${swellH.toFixed(1)}m`;
-                } else if (waveH !== null && waveH !== undefined) {
-                    document.getElementById('swellInput').value = `Waves: ${waveH.toFixed(1)}m`;
-                } else {
-                    document.getElementById('swellInput').value = `Flat / No Data`;
-                }
-
-                const levels = marineData.hourly.sea_level;
-                const extremes = [];
-                
-                for(let i = 3; i < levels.length - 3; i++) {
-                    let curr = levels[i];
-                    if(curr === null) continue;
-                    let isMax = true, isMin = true;
-                    for(let j = i - 3; j <= i + 3; j++) {
-                        if(i === j) continue;
-                        if(levels[j] >= curr) isMax = false;
-                        if(levels[j] <= curr) isMin = false;
-                    }
-                    if(isMax) extremes.push({ type: 'High', time: new Date(times[i]) });
-                    if(isMin) extremes.push({ type: 'Low', time: new Date(times[i]) });
-                }
-                
-                const today = new Date().toDateString();
-                const todaysTides = extremes.filter(t => t.time.toDateString() === today);
-                todaysTides.sort((a,b) => a.time - b.time);
-
-                if(todaysTides.length >= 2) {
-                    let hw = todaysTides.find(t => t.type === 'High');
-                    let lw = todaysTides.find(t => t.type === 'Low');
+            // 1. Get Waves and Swell from Open-Meteo
+            try {
+                const omRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,swell_wave_height&timezone=auto`);
+                const omData = await omRes.json();
+                if(omData && omData.hourly && omData.hourly.wave_height) {
+                    const now = new Date();
+                    let cIdx = 0; let minD = Infinity;
+                    omData.hourly.time.forEach((t, i) => { let d = Math.abs(new Date(t) - now); if(d < minD) { minD = d; cIdx = i; } });
                     
-                    if(hw) document.getElementById('hwTimeInput').value = hw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
-                    if(lw) document.getElementById('lwTimeInput').value = lw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
+                    let wh = omData.hourly.wave_height[cIdx];
+                    let sw = omData.hourly.swell_wave_height[cIdx];
+                    if (wh !== null) {
+                        document.getElementById('swellInput').value = sw !== null ? `W: ${wh.toFixed(1)}m / S: ${sw.toFixed(1)}m` : `Waves: ${wh.toFixed(1)}m`;
+                    } else {
+                        document.getElementById('swellInput').value = `Flat / Inland`;
+                    }
+                } else {
+                    document.getElementById('swellInput').value = `Flat / Inland`;
                 }
-                window.showAppToast("Environment Data Loaded!");
-            } else {
-                document.getElementById('swellInput').value = 'Inland';
-                window.showAppToast("Weather loaded. Coastal data was too far away.", true);
+            } catch(e) {
+                document.getElementById('swellInput').value = `No Swell Data`;
             }
+
+            // 2. Fire 15 Radar Pings Simultaneously to find the nearest Marine Station for Exact Tides
+            let offsets = [
+                [0,0], [0.02, 0], [-0.02, 0], [0, 0.02], [0, -0.02],
+                [0.05, 0.05], [0.05, -0.05], [-0.05, 0.05], [-0.05, -0.05],
+                [0.1, 0], [-0.1, 0], [0, 0.1], [0, -0.1],
+                [0.2, 0.2], [-0.2, -0.2] // extreme 25km reach
+            ];
+            
+            const fetchPromises = offsets.map(off => {
+                let qLat = lat + off[0];
+                let qLon = lon + off[1];
+                return fetch(`https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=${qLat},${qLon}&days=1&tides=yes`)
+                    .then(res => res.json())
+                    .then(data => {
+                        // If this specific coordinate hits a valid marine station with a tide array, return it instantly
+                        if(data && data.forecast && data.forecast.forecastday[0].day.tides && data.forecast.forecastday[0].day.tides[0].tide && data.forecast.forecastday[0].day.tides[0].tide.length > 0) {
+                            return data;
+                        }
+                        throw new Error("No tides");
+                    });
+            });
+
+            try {
+                // Wait for the FIRST successful radar ping to report back
+                const firstValid = await Promise.any(fetchPromises);
+                
+                let tides = firstValid.forecast.forecastday[0].day.tides[0].tide;
+                let hw = tides.find(t => t.tide_type === "HIGH");
+                let lw = tides.find(t => t.tide_type === "LOW");
+
+                if (hw) document.getElementById('hwTimeInput').value = hw.tide_time.split(' ')[1];
+                if (lw) document.getElementById('lwTimeInput').value = lw.tide_time.split(' ')[1];
+                
+                window.showAppToast("Weather, Waves, and Tides loaded!");
+            } catch (e) {
+                // If all 15 pings fail to hit an ocean station
+                window.showAppToast("Weather loaded, but no tide station found nearby. Enter times manually.", true);
+            }
+            
             window.saveActiveSession();
         }
 
