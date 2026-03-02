@@ -1,5 +1,5 @@
-// VERSION 173 - ELEGANT MAGIC WAND TIDE AUTO-FILL
-const CACHE_NAME = 'sea-score-v173';
+// VERSION 174 - UNIFIED ENVIRONMENT FETCH & STACKING TIDE GRAPH
+const CACHE_NAME = 'sea-score-v174';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
@@ -15,7 +15,7 @@ const FILES_TO_CACHE = [
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
-// INSTALL
+// INSTALL: Download the essential files to the phone
 self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(
@@ -25,7 +25,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// ACTIVATE
+// ACTIVATE: Delete any old caches so they don't clog up the phone's storage
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
@@ -39,11 +39,13 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(clients.claim());
 });
 
-// FETCH
+// FETCH: Try the cache first. If not found, get from network AND save to cache for next time.
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((response) => {
-      if (response) return response;
+      if (response) {
+        return response;
+      }
       return fetch(e.request).then((fetchResponse) => {
         return caches.open(CACHE_NAME).then((cache) => {
           if (e.request.url.startsWith('http') && e.request.method === 'GET') {
