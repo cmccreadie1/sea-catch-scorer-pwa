@@ -199,7 +199,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 177.0 - Histogram Plotter</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 178.0 - Anti-Crash Hub</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -403,6 +403,7 @@
         let fishData=[], currentScoringMethod='', selectedWeightUnit='metric', currentSavedKey='', currentAngler='', currentVenue='', currentDate='';
         let isCompetitionMode = false, currentZone = '', currentPeg = '', currentTeam = '';
         let weatherInfo = '', windInfo = '', swellInfo = '', hwTime = '', lwTime = '';
+        let pendingRestoreData = null; // Defined explicitly for safety
 
         const PageManager={ show:function(id){ document.querySelectorAll('.app-page').forEach(p=>p.style.display='none'); document.getElementById('splashScreen').style.display='none'; document.getElementById(id).style.display='block'; window.scrollTo(0,0); } };
         const StorageHelper={ save: function(k,v) { try { localStorage.setItem(k,v); } catch(e) { console.error("Storage limit reached", e); throw new Error("QUOTA_EXCEEDED"); } }, get: (k) => localStorage.getItem(k), remove: (k) => localStorage.removeItem(k), getAll: () => ({...localStorage}) };
@@ -528,125 +529,131 @@
             }, { enableHighAccuracy: false, timeout: 10000 });
         };
 
-        // --- NEW: THE DENSITY HISTOGRAM TIDE ENGINE ---
+        // --- NEW: ANTI-CRASH DENSITY HISTOGRAM ENGINE ---
         window.drawTideGraph = function(canvasId, hwStr, lwStr, fishArray) {
-            const canvas = document.getElementById(canvasId);
-            if(!canvas || !hwStr || !lwStr) return;
-            const ctx = canvas.getContext('2d');
-            const w = canvas.width; const h = canvas.height; // 340 x 140
-            ctx.clearRect(0,0,w,h);
+            try {
+                const canvas = document.getElementById(canvasId);
+                if(!canvas || !hwStr || !lwStr) return;
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width; const h = canvas.height; // 340 x 140
+                ctx.clearRect(0,0,w,h);
 
-            const isDark = document.body.classList.contains('dark-mode');
-            const textColor = isDark ? '#cbd5e1' : '#64748b';
-            const waveColor = '#0ea5e9';
-            const barColor = 'rgba(239, 68, 68, 0.75)'; // Transparent Red
-            const barTextColor = '#ffffff';
+                const isDark = document.body.classList.contains('dark-mode');
+                const textColor = isDark ? '#cbd5e1' : '#64748b';
+                const waveColor = '#0ea5e9';
+                const barColor = 'rgba(239, 68, 68, 0.75)'; // Transparent Red
+                const barTextColor = '#ffffff';
 
-            const toMins = t => { 
-                if(!t || typeof t !== 'string') return 0;
-                const parts = t.split(':'); 
-                if(parts.length !== 2) return 0;
-                return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10); 
-            };
+                const toMins = t => { 
+                    if(!t || typeof t !== 'string') return 0;
+                    const parts = t.split(':'); 
+                    if(parts.length !== 2) return 0;
+                    return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10); 
+                };
 
-            let hwM = toMins(hwStr); 
-            let lwM = toMins(lwStr);
-            if(hwM === 0 && lwM === 0) return;
+                let hwM = toMins(hwStr); 
+                let lwM = toMins(lwStr);
+                if(hwM === 0 && lwM === 0) return;
 
-            // Dynamically scale graph to fit all catches perfectly
-            let allTimes = [hwM, lwM];
-            if (fishArray && fishArray.length > 0) {
-                fishArray.forEach(f => { if (f.time) allTimes.push(toMins(f.time)); });
-            }
-            if(canvasId === 'liveTideCanvas') {
-                allTimes.push(toMins(new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false})));
-            }
-
-            let minT = Math.min(...allTimes) - 60; // Pad 1h left
-            let maxT = Math.max(...allTimes) + 60; // Pad 1h right
-            let range = maxT - minT;
-            if(range <= 0) range = 1;
-
-            // 1. DRAW HISTOGRAM BARS (Catch Volume)
-            let buckets = {};
-            let maxFish = 0;
-            
-            // Group fish into 30-minute intervals
-            if (fishArray && fishArray.length > 0) {
-                fishArray.forEach(f => {
-                    if(!f.time) return;
-                    let fm = toMins(f.time);
-                    let bucketM = Math.floor(fm / 30) * 30; 
-                    buckets[bucketM] = (buckets[bucketM] || 0) + 1;
-                    if(buckets[bucketM] > maxFish) maxFish = buckets[bucketM];
-                });
-            }
-
-            let bottomY = h - 20; // Y coordinate for the floor of the bars
-            let barMaxH = 45; // Tallest allowed bar
-            
-            ctx.font = "bold 11px sans-serif";
-            ctx.textAlign = "center";
-            
-            for (let b in buckets) {
-                let bTime = parseInt(b);
-                let count = buckets[b];
-                let x = ((bTime + 15 - minT) / range) * w; // Draw bar in center of the 30m bucket
-                
-                let barH = (count / maxFish) * barMaxH;
-                if(barH < 16) barH = 16; // Minimum visual height so '1' is readable
-                
-                // Draw the Bar
-                ctx.fillStyle = barColor;
-                ctx.beginPath();
-                ctx.roundRect(x - 12, bottomY - barH, 24, barH, [4, 4, 0, 0]);
-                ctx.fill();
-                
-                // Draw the Count Inside the Bar
-                ctx.fillStyle = barTextColor;
-                ctx.fillText(count, x, bottomY - barH + 12);
-                
-                // Draw the Time Label Under the Bar
-                ctx.fillStyle = textColor;
-                let hrs = Math.floor(bTime/60).toString().padStart(2,'0');
-                let mins = (bTime%60).toString().padStart(2,'0');
-                ctx.fillText(`${hrs}:${mins}`, x, bottomY + 14);
-            }
-
-            // 2. DRAW THE SINE WAVE
-            ctx.beginPath();
-            ctx.strokeStyle = waveColor; 
-            ctx.lineWidth = 3;
-            for(let x=0; x<=w; x++) {
-                let t = minT + (x/w)*range;
-                let period = Math.abs(lwM - hwM) * 2; 
-                let phase = ((t - hwM) / period) * Math.PI * 2;
-                let y = 50 - Math.cos(phase) * 35; // Oscillation between Y=15 and Y=85
-                if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-            }
-            ctx.stroke();
-
-            // 3. HW & LW MARKERS ON THE WAVE
-            const drawLabel = (timeM, label) => {
-                if(timeM >= minT && timeM <= maxT) {
-                    let x = ((timeM - minT) / range) * w;
-                    let period = Math.abs(lwM - hwM) * 2;
-                    let phase = ((timeM - hwM) / period) * Math.PI * 2;
-                    let y = 50 - Math.cos(phase) * 35;
-                    
-                    ctx.fillStyle = waveColor;
-                    ctx.beginPath(); ctx.arc(x, y, 5, 0, 2*Math.PI); ctx.fill();
-                    ctx.fillStyle = isDark ? '#0f172a' : '#ffffff';
-                    ctx.beginPath(); ctx.arc(x, y, 2.5, 0, 2*Math.PI); ctx.fill();
-                    
-                    ctx.fillStyle = textColor;
-                    let hrs = Math.floor(timeM/60).toString().padStart(2,'0');
-                    let mins = (timeM%60).toString().padStart(2,'0');
-                    ctx.fillText(`${label} ${hrs}:${mins}`, x, label === 'HW' ? y - 10 : y + 18);
+                // Dynamically scale graph to fit all catches perfectly
+                let allTimes = [hwM, lwM];
+                if (fishArray && fishArray.length > 0) {
+                    fishArray.forEach(f => { if (f.time) allTimes.push(toMins(f.time)); });
                 }
-            };
-            drawLabel(hwM, 'HW');
-            drawLabel(lwM, 'LW');
+                if(canvasId === 'liveTideCanvas') {
+                    allTimes.push(toMins(new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false})));
+                }
+
+                let minT = Math.min(...allTimes) - 60; // Pad 1h left
+                let maxT = Math.max(...allTimes) + 60; // Pad 1h right
+                let range = maxT - minT;
+                if(range <= 0) range = 1;
+
+                // 1. DRAW HISTOGRAM BARS (Catch Volume)
+                let buckets = {};
+                let maxFish = 0;
+                
+                // Group fish into 30-minute intervals
+                if (fishArray && fishArray.length > 0) {
+                    fishArray.forEach(f => {
+                        if(!f.time) return;
+                        let fm = toMins(f.time);
+                        let bucketM = Math.floor(fm / 30) * 30; 
+                        buckets[bucketM] = (buckets[bucketM] || 0) + 1;
+                        if(buckets[bucketM] > maxFish) maxFish = buckets[bucketM];
+                    });
+                }
+
+                let bottomY = h - 20; // Y coordinate for the floor of the bars
+                let barMaxH = 45; // Tallest allowed bar
+                
+                ctx.font = "bold 11px sans-serif";
+                ctx.textAlign = "center";
+                
+                for (let b in buckets) {
+                    let bTime = parseInt(b);
+                    let count = buckets[b];
+                    let x = ((bTime + 15 - minT) / range) * w; // Draw bar in center of the 30m bucket
+                    
+                    let barH = maxFish > 0 ? (count / maxFish) * barMaxH : 16;
+                    if(barH < 16) barH = 16; // Minimum visual height so '1' is readable
+                    
+                    // Draw the Bar (Using ctx.rect to ensure 100% backward compatibility on old phones)
+                    ctx.fillStyle = barColor;
+                    ctx.beginPath();
+                    ctx.rect(x - 12, bottomY - barH, 24, barH);
+                    ctx.fill();
+                    
+                    // Draw the Count Inside the Bar
+                    ctx.fillStyle = barTextColor;
+                    ctx.fillText(count, x, bottomY - barH + 12);
+                    
+                    // Draw the Time Label Under the Bar
+                    ctx.fillStyle = textColor;
+                    let hrs = Math.floor(bTime/60).toString().padStart(2,'0');
+                    let mins = (bTime%60).toString().padStart(2,'0');
+                    ctx.fillText(`${hrs}:${mins}`, x, bottomY + 14);
+                }
+
+                // 2. DRAW THE SINE WAVE
+                ctx.beginPath();
+                ctx.strokeStyle = waveColor; 
+                ctx.lineWidth = 3;
+                for(let x=0; x<=w; x++) {
+                    let t = minT + (x/w)*range;
+                    let period = Math.abs(lwM - hwM) * 2; 
+                    if(period === 0) period = 1; // Prevent division by zero
+                    let phase = ((t - hwM) / period) * Math.PI * 2;
+                    let y = 50 - Math.cos(phase) * 35; // Oscillation between Y=15 and Y=85
+                    if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                }
+                ctx.stroke();
+
+                // 3. HW & LW MARKERS ON THE WAVE
+                const drawLabel = (timeM, label) => {
+                    if(timeM >= minT && timeM <= maxT) {
+                        let x = ((timeM - minT) / range) * w;
+                        let period = Math.abs(lwM - hwM) * 2;
+                        if(period === 0) period = 1;
+                        let phase = ((timeM - hwM) / period) * Math.PI * 2;
+                        let y = 50 - Math.cos(phase) * 35;
+                        
+                        ctx.fillStyle = waveColor;
+                        ctx.beginPath(); ctx.arc(x, y, 5, 0, 2*Math.PI); ctx.fill();
+                        ctx.fillStyle = isDark ? '#0f172a' : '#ffffff';
+                        ctx.beginPath(); ctx.arc(x, y, 2.5, 0, 2*Math.PI); ctx.fill();
+                        
+                        ctx.fillStyle = textColor;
+                        let hrs = Math.floor(timeM/60).toString().padStart(2,'0');
+                        let mins = (timeM%60).toString().padStart(2,'0');
+                        ctx.fillText(`${label} ${hrs}:${mins}`, x, label === 'HW' ? y - 10 : y + 18);
+                    }
+                };
+                drawLabel(hwM, 'HW');
+                drawLabel(lwM, 'LW');
+            } catch(e) {
+                console.log("Graphing suppressed to prevent crash: ", e.message);
+            }
         };
 
         window.toggleDarkMode = function() {
@@ -655,12 +662,11 @@
             if (body.classList.contains('dark-mode')) { btn.innerHTML = '<i class="bi bi-sun-fill text-warning"></i>'; localStorage.setItem('theme', 'dark'); } 
             else { btn.innerHTML = '<i class="bi bi-moon-stars-fill"></i>'; localStorage.setItem('theme', 'light'); }
             
-            // Redraw graphs on theme change if active
             if(document.getElementById('anglerFishingPage').style.display === 'block') window.updateFishLog();
-            if(document.getElementById('tallyVerificationPage').style.display === 'block') window.drawTideGraph('tallyTideCanvas', hwTime, lwTime, fishData);
+            if(document.getElementById('tallyVerificationPage').style.display === 'block') { try{ window.drawTideGraph('tallyTideCanvas', hwTime, lwTime, fishData); }catch(e){} }
             if(document.getElementById('fullScorecardView').style.display === 'block') {
                  const d = JSON.parse(StorageHelper.get(currentSavedKey));
-                 if(d.hwTime && d.lwTime) window.drawTideGraph('historyTideCanvas', d.hwTime, d.lwTime, d.fishData);
+                 if(d.hwTime && d.lwTime) { try{ window.drawTideGraph('historyTideCanvas', d.hwTime, d.lwTime, d.fishData); }catch(e){} }
             }
         };
 
@@ -775,9 +781,7 @@
             
             if(hwTime && lwTime) {
                 document.getElementById('liveTideChartContainer').style.display = 'block';
-                document.getElementById('liveHwBadge').innerText = `HW: ${hwTime}`;
-                document.getElementById('liveLwBadge').innerText = `LW: ${lwTime}`;
-                window.drawTideGraph('liveTideCanvas', hwTime, lwTime, fishData);
+                try { window.drawTideGraph('liveTideCanvas', hwTime, lwTime, fishData); } catch(e) { console.log(e); }
             }
         };
 
@@ -787,7 +791,11 @@
             hwTime = document.getElementById('hwTimeInput').value; lwTime = document.getElementById('lwTimeInput').value;
             isCompetitionMode = document.getElementById('isCompetition').checked; currentZone = document.getElementById('zoneInput').value || '-'; currentPeg = document.getElementById('pegInput').value || '-'; currentTeam = document.getElementById('teamInput').value.trim() || '-';
 
-            if(!currentAngler || !currentVenue || !currentScoringMethod) return alert("Please fill Name, Venue, and Rules.");
+            if(!currentAngler || !currentVenue || !currentScoringMethod) {
+                window.showAppToast("Please fill your Name, Venue, and Scoring Rules.", true);
+                return;
+            }
+            
             window.setupFishingUI(); window.populateSpeciesDropdown(); PageManager.show('anglerFishingPage'); window.saveActiveSession();
         };
 
@@ -853,7 +861,7 @@
                 log.appendChild(tr);
             });
             document.getElementById('liveScoreVal').textContent = window.calculatePoints(fishData, currentScoringMethod);
-            if(hwTime && lwTime) window.drawTideGraph('liveTideCanvas', hwTime, lwTime, fishData);
+            if(hwTime && lwTime) { try { window.drawTideGraph('liveTideCanvas', hwTime, lwTime, fishData); } catch(e){} }
         };
 
         window.endSession = function(){
@@ -886,7 +894,7 @@
 
             if(hwTime && lwTime) {
                 document.getElementById('tallyTideChartContainer').style.display = 'block';
-                setTimeout(() => window.drawTideGraph('tallyTideCanvas', hwTime, lwTime, fishData), 200);
+                setTimeout(() => { try { window.drawTideGraph('tallyTideCanvas', hwTime, lwTime, fishData); } catch(e){} }, 200);
             } else {
                 document.getElementById('tallyTideChartContainer').style.display = 'none';
             }
@@ -938,12 +946,15 @@
 
             if(d.hwTime && d.lwTime) {
                 document.getElementById('historyTideChartContainer').style.display = 'block';
-                setTimeout(() => window.drawTideGraph('historyTideCanvas', d.hwTime, d.lwTime, d.fishData), 200);
+                setTimeout(() => { try { window.drawTideGraph('historyTideCanvas', d.hwTime, d.lwTime, d.fishData); } catch(e){} }, 200);
             } else { document.getElementById('historyTideChartContainer').style.display = 'none'; }
+
+            let systemHWLW = '';
+            if(d.hwTime && d.lwTime) systemHWLW = `<div class="mb-2"><strong class="text-primary d-block mb-1"><i class="bi bi-graph-up me-1"></i>Tide Cycle:</strong><span class="ms-4 small">HW: ${d.hwTime} | LW: ${d.lwTime}</span></div>`;
 
             const notesContent = d.notes || ''; const displayNotes = notesContent.trim() !== '' ? notesContent.replace(/\n/g, '<br>') : '<em>No notes added yet.</em>';
             const notesContainer = document.getElementById('saved_view_notes_container');
-            notesContainer.innerHTML = `<div class="inner-card mt-3 p-3 border shadow-sm"><div class="d-flex justify-content-between align-items-center mb-2"><label class="form-label small fw-bold text-muted m-0"><i class="bi bi-journal-text me-1"></i>Session Notes</label><button id="btnEditNotes" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.toggleEditNotes()"><i class="bi bi-pencil me-1"></i>Edit</button></div><div id="savedNotesDisplay" class="text-dark small">${displayNotes}</div><div id="savedNotesEditArea" style="display:none;"><textarea id="savedNotesInputView" class="form-control text-dark small mb-2" rows="3"></textarea><div class="d-flex gap-2"><button class="btn btn-sm btn-secondary w-50" onclick="window.toggleEditNotes()">Cancel</button><button class="btn btn-sm btn-primary w-50" onclick="window.saveEditedNotes()">Save</button></div></div></div>`;
+            notesContainer.innerHTML = `<div class="inner-card mt-3 p-3 border shadow-sm">${systemHWLW}<div class="d-flex justify-content-between align-items-center mb-2"><label class="form-label small fw-bold text-muted m-0"><i class="bi bi-journal-text me-1"></i>Session Notes</label><button id="btnEditNotes" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.toggleEditNotes()"><i class="bi bi-pencil me-1"></i>Edit</button></div><div id="savedNotesDisplay" class="text-dark small">${displayNotes}</div><div id="savedNotesEditArea" style="display:none;"><textarea id="savedNotesInputView" class="form-control text-dark small mb-2" rows="3"></textarea><div class="d-flex gap-2"><button class="btn btn-sm btn-secondary w-50" onclick="window.toggleEditNotes()">Cancel</button><button class="btn btn-sm btn-primary w-50" onclick="window.saveEditedNotes()">Save</button></div></div></div>`;
             setTimeout(() => { const ta = document.getElementById('savedNotesInputView'); if(ta) ta.value = notesContent; }, 0);
             document.getElementById('savedScorecardsList').style.display='none'; document.getElementById('fullScorecardView').style.display='block';
         };
