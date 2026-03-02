@@ -163,7 +163,7 @@
         @keyframes slideFlash { 0% { background-color: #dcfce7; transform: translateY(-10px); } 100% { background-color: var(--card-bg); } }
         .new-catch-anim { animation: slideFlash 1.5s ease-out; }
 
-        .tide-chart-container { background: var(--card-bg); border-radius: 16px; padding: 15px 10px 10px 10px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); cursor: zoom-in; }
+        .tide-chart-container { background: var(--card-bg); border-radius: 16px; padding: 15px 10px 10px 10px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); cursor: zoom-in; position: relative; }
     </style>
 </head>
 <body>
@@ -198,7 +198,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 192.0 - Visual Forecast</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 194.0 - Split-Target Fetch</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -432,229 +432,16 @@
         ];
 
         const tideStations = [
-            {
-                region: "Scotland - East",
-                stations: [
-                    { name: "Aberdeen", lat: 57.1437, lon: -2.0776 },
-                    { name: "Arbroath", lat: 56.5503, lon: -2.5802 },
-                    { name: "Buckie", lat: 57.6766, lon: -2.9649 },
-                    { name: "Burntisland", lat: 56.0500, lon: -3.2333 },
-                    { name: "Dunbar", lat: 56.0029, lon: -2.5135 },
-                    { name: "Dundee", lat: 56.4620, lon: -2.9707 },
-                    { name: "Eyemouth", lat: 55.8711, lon: -2.0867 },
-                    { name: "Fraserburgh", lat: 57.6953, lon: -2.0041 },
-                    { name: "Granton", lat: 55.9833, lon: -3.2333 },
-                    { name: "Leith (Edinburgh)", lat: 55.9855, lon: -3.1764 },
-                    { name: "Lossiemouth", lat: 57.7202, lon: -3.2842 },
-                    { name: "Macduff", lat: 57.6700, lon: -2.4939 },
-                    { name: "Methil", lat: 56.1833, lon: -3.0000 },
-                    { name: "Montrose", lat: 56.7050, lon: -2.4566 },
-                    { name: "Peterhead", lat: 57.5058, lon: -1.7765 },
-                    { name: "Rosyth", lat: 55.9833, lon: -3.4167 },
-                    { name: "St Andrews", lat: 56.3400, lon: -2.7900 },
-                    { name: "Stonehaven", lat: 56.9667, lon: -2.2000 }
-                ]
-            },
-            {
-                region: "Scotland - North & Isles",
-                stations: [
-                    { name: "Cromarty", lat: 57.6833, lon: -4.0333 },
-                    { name: "Inverness", lat: 57.4957, lon: -4.2405 },
-                    { name: "Kirkwall", lat: 58.9866, lon: -2.9566 },
-                    { name: "Lerwick", lat: 60.1550, lon: -1.1444 },
-                    { name: "Lochinver", lat: 58.1500, lon: -5.2500 },
-                    { name: "Scrabster", lat: 58.6083, lon: -3.5416 },
-                    { name: "Stornoway", lat: 58.2094, lon: -6.3849 },
-                    { name: "Thurso", lat: 58.6000, lon: -3.5167 },
-                    { name: "Ullapool", lat: 57.8953, lon: -5.1585 },
-                    { name: "Wick", lat: 58.4379, lon: -3.0841 }
-                ]
-            },
-            {
-                region: "Scotland - West",
-                stations: [
-                    { name: "Ayr", lat: 55.4586, lon: -4.6292 },
-                    { name: "Campbeltown", lat: 55.4241, lon: -5.6033 },
-                    { name: "Dunoon", lat: 55.9500, lon: -4.9167 },
-                    { name: "Fort William", lat: 56.8198, lon: -5.1052 },
-                    { name: "Girvan", lat: 55.2443, lon: -4.8582 },
-                    { name: "Gourock", lat: 55.9667, lon: -4.8167 },
-                    { name: "Greenock", lat: 55.9521, lon: -4.7644 },
-                    { name: "Helensburgh", lat: 56.0022, lon: -4.7355 },
-                    { name: "Kyle of Lochalsh", lat: 57.2833, lon: -5.7167 },
-                    { name: "Largs", lat: 55.7941, lon: -4.8727 },
-                    { name: "Mallaig", lat: 57.0064, lon: -5.8291 },
-                    { name: "Oban", lat: 56.4116, lon: -5.4747 },
-                    { name: "Portpatrick", lat: 54.8333, lon: -5.1167 },
-                    { name: "Rothesay", lat: 55.8333, lon: -5.0500 },
-                    { name: "Stranraer", lat: 54.9042, lon: -5.0253 },
-                    { name: "Tarbert", lat: 55.8667, lon: -5.4167 },
-                    { name: "Tobermory", lat: 56.6225, lon: -6.0645 },
-                    { name: "Troon", lat: 55.5500, lon: -4.6667 }
-                ]
-            },
-            {
-                region: "England - North East",
-                stations: [
-                    { name: "Amble", lat: 55.3340, lon: -1.5772 },
-                    { name: "Berwick-upon-Tweed", lat: 55.7663, lon: -1.9961 },
-                    { name: "Blyth", lat: 55.1275, lon: -1.4984 },
-                    { name: "Bridlington", lat: 54.0805, lon: -0.1906 },
-                    { name: "Filey", lat: 54.2167, lon: -0.2833 },
-                    { name: "Hartlepool", lat: 54.6946, lon: -1.1895 },
-                    { name: "Redcar", lat: 54.6167, lon: -1.0667 },
-                    { name: "Scarborough", lat: 54.2831, lon: -0.3957 },
-                    { name: "Seaham", lat: 54.8333, lon: -1.3333 },
-                    { name: "Seahouses", lat: 55.5806, lon: -1.6517 },
-                    { name: "South Shields", lat: 55.0000, lon: -1.4333 },
-                    { name: "Sunderland", lat: 54.9142, lon: -1.3735 },
-                    { name: "Tynemouth", lat: 55.0167, lon: -1.4167 },
-                    { name: "Whitby", lat: 54.4912, lon: -0.6120 }
-                ]
-            },
-            {
-                region: "England - East",
-                stations: [
-                    { name: "Aldeburgh", lat: 52.1523, lon: 1.6033 },
-                    { name: "Boston", lat: 52.9833, lon: -0.0167 },
-                    { name: "Burnham-on-Crouch", lat: 51.6288, lon: 0.8143 },
-                    { name: "Clacton-on-Sea", lat: 51.7851, lon: 1.1565 },
-                    { name: "Cleethorpes", lat: 53.5500, lon: -0.0333 },
-                    { name: "Cromer", lat: 52.9333, lon: 1.3000 },
-                    { name: "Felixstowe", lat: 51.9547, lon: 1.3485 },
-                    { name: "Great Yarmouth", lat: 52.6033, lon: 1.7335 },
-                    { name: "Grimsby", lat: 53.5701, lon: -0.0637 },
-                    { name: "Harwich", lat: 51.9421, lon: 1.2863 },
-                    { name: "Hull", lat: 54.1205, lon: -0.3341 },
-                    { name: "Hunstanton", lat: 52.9333, lon: 0.4833 },
-                    { name: "King's Lynn", lat: 52.7500, lon: 0.4000 },
-                    { name: "Lowestoft", lat: 52.4746, lon: 1.7546 },
-                    { name: "Skegness", lat: 53.1333, lon: 0.3333 },
-                    { name: "Southend-on-Sea", lat: 51.5284, lon: 0.7161 },
-                    { name: "Southwold", lat: 52.3276, lon: 1.6815 },
-                    { name: "Walton-on-the-Naze", lat: 51.8500, lon: 1.2667 }
-                ]
-            },
-            {
-                region: "England - South & South East",
-                stations: [
-                    { name: "Bognor Regis", lat: 50.7833, lon: -0.6667 },
-                    { name: "Bournemouth", lat: 50.7151, lon: -1.8754 },
-                    { name: "Brighton", lat: 50.8166, lon: -0.1374 },
-                    { name: "Deal", lat: 51.2227, lon: 1.4024 },
-                    { name: "Dover", lat: 51.1160, lon: 1.3190 },
-                    { name: "Eastbourne", lat: 50.7675, lon: 0.2845 },
-                    { name: "Folkestone", lat: 51.0792, lon: 1.1794 },
-                    { name: "Hastings", lat: 50.8522, lon: 0.5732 },
-                    { name: "Herne Bay", lat: 51.3667, lon: 1.1167 },
-                    { name: "Isle of Wight (Cowes)", lat: 50.7634, lon: -1.2977 },
-                    { name: "Littlehampton", lat: 50.8000, lon: -0.5333 },
-                    { name: "Lymington", lat: 50.7500, lon: -1.5333 },
-                    { name: "Margate", lat: 51.3897, lon: 1.3831 },
-                    { name: "Newhaven", lat: 50.7833, lon: 0.0500 },
-                    { name: "Poole", lat: 50.7118, lon: -1.9863 },
-                    { name: "Portsmouth", lat: 50.7937, lon: -1.1070 },
-                    { name: "Ramsgate", lat: 51.3323, lon: 1.4215 },
-                    { name: "Rye", lat: 50.9500, lon: 0.7333 },
-                    { name: "Sheerness", lat: 51.4333, lon: 0.7500 },
-                    { name: "Shoreham-by-Sea", lat: 50.8290, lon: -0.2709 },
-                    { name: "Southampton", lat: 50.8920, lon: -1.3965 },
-                    { name: "Swanage", lat: 50.6000, lon: -1.9500 },
-                    { name: "Weymouth", lat: 50.6083, lon: -2.4542 },
-                    { name: "Whitstable", lat: 51.3500, lon: 1.0167 },
-                    { name: "Worthing", lat: 50.8105, lon: -0.3752 }
-                ]
-            },
-            {
-                region: "England - South West",
-                stations: [
-                    { name: "Appledore", lat: 51.0500, lon: -4.2000 },
-                    { name: "Brixham", lat: 50.3957, lon: -3.5132 },
-                    { name: "Bude", lat: 50.8294, lon: -4.5492 },
-                    { name: "Burnham-on-Sea", lat: 51.2381, lon: -3.0003 },
-                    { name: "Dartmouth", lat: 50.3508, lon: -3.5786 },
-                    { name: "Exmouth", lat: 50.6186, lon: -3.4150 },
-                    { name: "Falmouth", lat: 50.1472, lon: -5.0601 },
-                    { name: "Fowey", lat: 50.3333, lon: -4.6333 },
-                    { name: "Ilfracombe", lat: 51.2081, lon: -4.1165 },
-                    { name: "Looe", lat: 50.3524, lon: -4.4539 },
-                    { name: "Minehead", lat: 51.2066, lon: -3.4735 },
-                    { name: "Newquay", lat: 50.4137, lon: -5.0768 },
-                    { name: "Padstow", lat: 50.5401, lon: -4.9388 },
-                    { name: "Penzance", lat: 50.1186, lon: -5.5371 },
-                    { name: "Plymouth", lat: 50.3664, lon: -4.1460 },
-                    { name: "Salcombe", lat: 50.2333, lon: -3.7667 },
-                    { name: "St Ives", lat: 50.2132, lon: -5.4795 },
-                    { name: "Teignmouth", lat: 50.5500, lon: -3.5000 },
-                    { name: "Torquay", lat: 50.4578, lon: -3.5222 }
-                ]
-            },
-            {
-                region: "England - North West",
-                stations: [
-                    { name: "Barrow-in-Furness", lat: 54.1105, lon: -3.2263 },
-                    { name: "Birkenhead", lat: 53.3833, lon: -3.0167 },
-                    { name: "Blackpool", lat: 53.8142, lon: -3.0558 },
-                    { name: "Clevedon", lat: 51.4414, lon: -2.8580 },
-                    { name: "Fleetwood", lat: 53.9248, lon: -3.0135 },
-                    { name: "Heysham", lat: 54.0333, lon: -2.9000 },
-                    { name: "Liverpool", lat: 53.4084, lon: -2.9916 },
-                    { name: "Maryport", lat: 54.7142, lon: -3.4984 },
-                    { name: "Morecambe", lat: 54.0735, lon: -2.8687 },
-                    { name: "Silloth", lat: 54.8667, lon: -3.3833 },
-                    { name: "Southport", lat: 53.6333, lon: -3.0000 },
-                    { name: "Weston-super-Mare", lat: 51.3458, lon: -2.9774 },
-                    { name: "Whitehaven", lat: 54.5489, lon: -3.5851 },
-                    { name: "Workington", lat: 54.6409, lon: -3.5516 }
-                ]
-            },
-            {
-                region: "Wales",
-                stations: [
-                    { name: "Aberaeron", lat: 52.2415, lon: -4.2589 },
-                    { name: "Aberdovey", lat: 52.5448, lon: -4.0450 },
-                    { name: "Aberystwyth", lat: 52.4153, lon: -4.0829 },
-                    { name: "Bangor", lat: 53.2274, lon: -4.1293 },
-                    { name: "Barmouth", lat: 52.7175, lon: -4.0531 },
-                    { name: "Barry", lat: 51.3934, lon: -3.2683 },
-                    { name: "Caernarfon", lat: 53.1333, lon: -4.2667 },
-                    { name: "Cardiff", lat: 51.4552, lon: -3.1601 },
-                    { name: "Cardigan", lat: 52.0833, lon: -4.6625 },
-                    { name: "Chepstow", lat: 51.6429, lon: -2.6738 },
-                    { name: "Conwy", lat: 53.2831, lon: -3.8300 },
-                    { name: "Fishguard", lat: 51.9939, lon: -4.9760 },
-                    { name: "Holyhead", lat: 53.3134, lon: -4.6300 },
-                    { name: "Llandudno", lat: 53.3278, lon: -3.8249 },
-                    { name: "Llanelli", lat: 51.6833, lon: -4.1500 },
-                    { name: "Milford Haven", lat: 51.7135, lon: -5.0345 },
-                    { name: "New Quay", lat: 52.2132, lon: -4.3592 },
-                    { name: "Newport", lat: 51.5877, lon: -2.9984 },
-                    { name: "Pembroke", lat: 51.6833, lon: -4.9167 },
-                    { name: "Porthcawl", lat: 51.4795, lon: -3.7027 },
-                    { name: "Porthmadog", lat: 52.9275, lon: -4.1309 },
-                    { name: "Pwllheli", lat: 52.8887, lon: -4.4172 },
-                    { name: "Rhyl", lat: 53.3211, lon: -3.4800 },
-                    { name: "St Davids", lat: 51.8813, lon: -5.2657 },
-                    { name: "Swansea", lat: 51.6152, lon: -3.9351 },
-                    { name: "Tenby", lat: 51.6738, lon: -4.6976 },
-                    { name: "The Mumbles", lat: 51.5670, lon: -3.9935 }
-                ]
-            },
-            {
-                region: "Northern Ireland",
-                stations: [
-                    { name: "Ballycastle", lat: 55.2037, lon: -6.2514 },
-                    { name: "Bangor", lat: 54.6616, lon: -5.6667 },
-                    { name: "Belfast", lat: 54.6139, lon: -5.9103 },
-                    { name: "Coleraine", lat: 55.1322, lon: -6.6668 },
-                    { name: "Derry / Londonderry", lat: 55.0068, lon: -7.3183 },
-                    { name: "Donaghadee", lat: 54.6406, lon: -5.5398 },
-                    { name: "Larne", lat: 54.8517, lon: -5.8143 },
-                    { name: "Portrush", lat: 55.2045, lon: -6.6534 },
-                    { name: "Portstewart", lat: 55.1812, lon: -6.7118 },
-                    { name: "Warrenpoint", lat: 54.1017, lon: -6.2483 }
-                ]
-            }
+            {region:"Scotland - East",stations:[{name:"Aberdeen",lat:57.1437,lon:-2.0776},{name:"Arbroath",lat:56.5503,lon:-2.5802},{name:"Buckie",lat:57.6766,lon:-2.9649},{name:"Burntisland",lat:56.05,lon:-3.2333},{name:"Dunbar",lat:56.0029,lon:-2.5135},{name:"Dundee",lat:56.462,lon:-2.9707},{name:"Eyemouth",lat:55.8711,lon:-2.0867},{name:"Fraserburgh",lat:57.6953,lon:-2.0041},{name:"Granton",lat:55.9833,lon:-3.2333},{name:"Leith (Edinburgh)",lat:55.9855,lon:-3.1764},{name:"Lossiemouth",lat:57.7202,lon:-3.2842},{name:"Macduff",lat:57.67,lon:-2.4939},{name:"Methil",lat:56.1833,lon:-3},{name:"Montrose",lat:56.705,lon:-2.4566},{name:"Peterhead",lat:57.5058,lon:-1.7765},{name:"Rosyth",lat:55.9833,lon:-3.4167},{name:"St Andrews",lat:56.34,lon:-2.79},{name:"Stonehaven",lat:56.9667,lon:-2.2}]},
+            {region:"Scotland - North & Isles",stations:[{name:"Cromarty",lat:57.6833,lon:-4.0333},{name:"Inverness",lat:57.4957,lon:-4.2405},{name:"Kirkwall",lat:58.9866,lon:-2.9566},{name:"Lerwick",lat:60.155,lon:-1.1444},{name:"Lochinver",lat:58.15,lon:-5.25},{name:"Scrabster",lat:58.6083,lon:-3.5416},{name:"Stornoway",lat:58.2094,lon:-6.3849},{name:"Thurso",lat:58.6,lon:-3.5167},{name:"Ullapool",lat:57.8953,lon:-5.1585},{name:"Wick",lat:58.4379,lon:-3.0841}]},
+            {region:"Scotland - West",stations:[{name:"Ayr",lat:55.4586,lon:-4.6292},{name:"Campbeltown",lat:55.4241,lon:-5.6033},{name:"Dunoon",lat:55.95,lon:-4.9167},{name:"Fort William",lat:56.8198,lon:-5.1052},{name:"Girvan",lat:55.2443,lon:-4.8582},{name:"Gourock",lat:55.9667,lon:-4.8167},{name:"Greenock",lat:55.9521,lon:-4.7644},{name:"Helensburgh",lat:56.0022,lon:-4.7355},{name:"Kyle of Lochalsh",lat:57.2833,lon:-5.7167},{name:"Largs",lat:55.7941,lon:-4.8727},{name:"Mallaig",lat:57.0064,lon:-5.8291},{name:"Oban",lat:56.4116,lon:-5.4747},{name:"Portpatrick",lat:54.8333,lon:-5.1167},{name:"Rothesay",lat:55.8333,lon:-5.05},{name:"Stranraer",lat:54.9042,lon:-5.0253},{name:"Tarbert",lat:55.8667,lon:-5.4167},{name:"Tobermory",lat:56.6225,lon:-6.0645},{name:"Troon",lat:55.55,lon:-4.6667}]},
+            {region:"England - North East",stations:[{name:"Amble",lat:55.334,lon:-1.5772},{name:"Berwick-upon-Tweed",lat:55.7663,lon:-1.9961},{name:"Blyth",lat:55.1275,lon:-1.4984},{name:"Bridlington",lat:54.0805,lon:-0.1906},{name:"Filey",lat:54.2167,lon:-0.2833},{name:"Hartlepool",lat:54.6946,lon:-1.1895},{name:"Redcar",lat:54.6167,lon:-1.0667},{name:"Scarborough",lat:54.2831,lon:-0.3957},{name:"Seaham",lat:54.8333,lon:-1.3333},{name:"Seahouses",lat:55.5806,lon:-1.6517},{name:"South Shields",lat:55,lon:-1.4333},{name:"Sunderland",lat:54.9142,lon:-1.3735},{name:"Tynemouth",lat:55.0167,lon:-1.4167},{name:"Whitby",lat:54.4912,lon:-0.612}]},
+            {region:"England - East",stations:[{name:"Aldeburgh",lat:52.1523,lon:1.6033},{name:"Boston",lat:52.9833,lon:-0.0167},{name:"Burnham-on-Crouch",lat:51.6288,lon:0.8143},{name:"Clacton-on-Sea",lat:51.7851,lon:1.1565},{name:"Cleethorpes",lat:53.55,lon:-0.0333},{name:"Cromer",lat:52.9333,lon:1.3},{name:"Felixstowe",lat:51.9547,lon:1.3485},{name:"Great Yarmouth",lat:52.6033,lon:1.7335},{name:"Grimsby",lat:53.5701,lon:-0.0637},{name:"Harwich",lat:51.9421,lon:1.2863},{name:"Hull",lat:54.1205,lon:-0.3341},{name:"Hunstanton",lat:52.9333,lon:0.4833},{name:"King's Lynn",lat:52.75,lon:0.4},{name:"Lowestoft",lat:52.4746,lon:1.7546},{name:"Skegness",lat:53.1333,lon:0.3333},{name:"Southend-on-Sea",lat:51.5284,lon:0.7161},{name:"Southwold",lat:52.3276,lon:1.6815},{name:"Walton-on-the-Naze",lat:51.85,lon:1.2667}]},
+            {region:"England - South & South East",stations:[{name:"Bognor Regis",lat:50.7833,lon:-0.6667},{name:"Bournemouth",lat:50.7151,lon:-1.8754},{name:"Brighton",lat:50.8166,lon:-0.1374},{name:"Deal",lat:51.2227,lon:1.4024},{name:"Dover",lat:51.116,lon:1.319},{name:"Eastbourne",lat:50.7675,lon:0.2845},{name:"Folkestone",lat:51.0792,lon:1.1794},{name:"Hastings",lat:50.8522,lon:0.5732},{name:"Herne Bay",lat:51.3667,lon:1.1167},{name:"Isle of Wight (Cowes)",lat:50.7634,lon:-1.2977},{name:"Littlehampton",lat:50.8,lon:-0.5333},{name:"Lymington",lat:50.75,lon:-1.5333},{name:"Margate",lat:51.3897,lon:1.3831},{name:"Newhaven",lat:50.7833,lon:0.05},{name:"Poole",lat:50.7118,lon:-1.9863},{name:"Portsmouth",lat:50.7937,lon:-1.107},{name:"Ramsgate",lat:51.3323,lon:1.4215},{name:"Rye",lat:50.95,lon:0.7333},{name:"Sheerness",lat:51.4333,lon:0.75},{name:"Shoreham-by-Sea",lat:50.829,lon:-0.2709},{name:"Southampton",lat:50.892,lon:-1.3965},{name:"Swanage",lat:50.6,lon:-1.95},{name:"Weymouth",lat:50.6083,lon:-2.4542},{name:"Whitstable",lat:51.35,lon:1.0167},{name:"Worthing",lat:50.8105,lon:-0.3752}]},
+            {region:"England - South West",stations:[{name:"Appledore",lat:51.05,lon:-4.2},{name:"Brixham",lat:50.3957,lon:-3.5132},{name:"Bude",lat:50.8294,lon:-4.5492},{name:"Burnham-on-Sea",lat:51.2381,lon:-3.0003},{name:"Dartmouth",lat:50.3508,lon:-3.5786},{name:"Exmouth",lat:50.6186,lon:-3.415},{name:"Falmouth",lat:50.1472,lon:-5.0601},{name:"Fowey",lat:50.3333,lon:-4.6333},{name:"Ilfracombe",lat:51.2081,lon:-4.1165},{name:"Looe",lat:50.3524,lon:-4.4539},{name:"Lyme Regis",lat:50.7244,lon:-2.9366},{name:"Minehead",lat:51.2066,lon:-3.4735},{name:"Newlyn",lat:50.1039,lon:-5.5469},{name:"Newquay",lat:50.4137,lon:-5.0768},{name:"Padstow",lat:50.5401,lon:-4.9388},{name:"Penzance",lat:50.1186,lon:-5.5371},{name:"Plymouth",lat:50.3664,lon:-4.146},{name:"Port Isaac",lat:50.5931,lon:-4.8315},{name:"Salcombe",lat:50.2333,lon:-3.7667},{name:"St Ives",lat:50.2132,lon:-5.4795},{name:"Teignmouth",lat:50.55,lon:-3.5},{name:"Torquay",lat:50.4578,lon:-3.5222}]},
+            {region:"England - North West",stations:[{name:"Barrow-in-Furness",lat:54.1105,lon:-3.2263},{name:"Birkenhead",lat:53.3833,lon:-3.0167},{name:"Blackpool",lat:53.8142,lon:-3.0558},{name:"Clevedon",lat:51.4414,lon:-2.858},{name:"Fleetwood",lat:53.9248,lon:-3.0135},{name:"Heysham",lat:54.0333,lon:-2.9},{name:"Liverpool",lat:53.4084,lon:-2.9916},{name:"Maryport",lat:54.7142,lon:-3.4984},{name:"Morecambe",lat:54.0735,lon:-2.8687},{name:"Silloth",lat:54.8667,lon:-3.3833},{name:"Southport",lat:53.6333,lon:-3},{name:"Weston-super-Mare",lat:51.3458,lon:-2.9774},{name:"Whitehaven",lat:54.5489,lon:-3.5851},{name:"Workington",lat:54.6409,lon:-3.5516}]},
+            {region:"Wales",stations:[{name:"Aberaeron",lat:52.2415,lon:-4.2589},{name:"Aberdovey",lat:52.5448,lon:-4.045},{name:"Aberystwyth",lat:52.4153,lon:-4.0829},{name:"Bangor",lat:53.2274,lon:-4.1293},{name:"Barmouth",lat:52.7175,lon:-4.0531},{name:"Barry",lat:51.3934,lon:-3.2683},{name:"Caernarfon",lat:53.1333,lon:-4.2667},{name:"Cardiff",lat:51.4552,lon:-3.1601},{name:"Cardigan",lat:52.0833,lon:-4.6625},{name:"Chepstow",lat:51.6429,lon:-2.6738},{name:"Conwy",lat:53.2831,lon:-3.83},{name:"Fishguard",lat:51.9939,lon:-4.976},{name:"Holyhead",lat:53.3134,lon:-4.63},{name:"Llandudno",lat:53.3278,lon:-3.8249},{name:"Llanelli",lat:51.6833,lon:-4.15},{name:"Milford Haven",lat:51.7135,lon:-5.0345},{name:"New Quay",lat:52.2132,lon:-4.3592},{name:"Newport",lat:51.5877,lon:-2.9984},{name:"Pembroke",lat:51.6833,lon:-4.9167},{name:"Porthcawl",lat:51.4795,lon:-3.7027},{name:"Porthmadog",lat:52.9275,lon:-4.1309},{name:"Pwllheli",lat:52.8887,lon:-4.4172},{name:"Rhyl",lat:53.3211,lon:-3.48},{name:"St Davids",lat:51.8813,lon:-5.2657},{name:"Swansea",lat:51.6152,lon:-3.9351},{name:"Tenby",lat:51.6738,lon:-4.6976},{name:"The Mumbles",lat:51.567,lon:-3.9935}]},
+            {region:"Northern Ireland",stations:[{name:"Ballycastle",lat:55.2037,lon:-6.2514},{name:"Bangor",lat:54.6616,lon:-5.6667},{name:"Belfast",lat:54.6139,lon:-5.9103},{name:"Coleraine",lat:55.1322,lon:-6.6668},{name:"Derry / Londonderry",lat:55.0068,lon:-7.3183},{name:"Donaghadee",lat:54.6406,lon:-5.5398},{name:"Larne",lat:54.8517,lon:-5.8143},{name:"Portrush",lat:55.2045,lon:-6.6534},{name:"Portstewart",lat:55.1812,lon:-6.7118},{name:"Warrenpoint",lat:54.1017,lon:-6.2483}]}
         ];
         
         let fishData=[], currentScoringMethod='', selectedWeightUnit='metric', currentSavedKey='', currentAngler='', currentVenue='', currentDate='';
@@ -692,6 +479,7 @@
             });
         };
 
+        // --- SPLIT-TARGET FETCH ENGINE (WEATHERAPI ONLY) ---
         window.fetchEnvironmentData = async function() {
             const btn = document.getElementById('btnFetchEnv');
             const selectBox = document.getElementById('tideStationSelect');
@@ -713,85 +501,52 @@
                 let finalHW = "";
                 let finalLW = "";
 
-                // Get Weather & Wind
-                const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`);
-                const weatherData = await weatherRes.json();
+                // TARGET 1: Exact Offshore Coordinates for Weather & Waves
+                const offshoreRes = await fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`);
+                const offshoreData = await offshoreRes.json();
                 
-                if (!weatherData.error) {
-                    document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
-                    document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
+                if (offshoreData.error) throw new Error(offshoreData.error.message);
+
+                const currentHour = new Date().getHours();
+                const currentData = offshoreData.forecast.forecastday[0].hour[currentHour];
+                
+                document.getElementById('weatherInput').value = `${currentData.condition.text}, ${currentData.temp_c}°C`;
+                document.getElementById('windInput').value = `${currentData.wind_dir} ${currentData.wind_mph}mph`;
+
+                let waveH = currentData.sig_ht_mt;
+                let swellH = currentData.swell_ht_mt;
+                
+                if(waveH !== undefined && waveH !== null && swellH !== undefined && swellH !== null) {
+                    document.getElementById('swellInput').value = `W: ${waveH}m / S: ${swellH}m`;
+                } else if (waveH !== undefined && waveH !== null) {
+                    document.getElementById('swellInput').value = `Waves: ${waveH}m`;
+                } else {
+                    document.getElementById('swellInput').value = `Flat / No Data`;
                 }
 
-                // Get Port Tides
-                try {
-                    const portRes = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=${lat},${lon}&days=1&tides=yes`);
-                    const portData = await portRes.json();
-                    if(portData && portData.forecast && portData.forecast.forecastday[0].day.tides && portData.forecast.forecastday[0].day.tides[0].tide.length > 0) {
-                        let tides = portData.forecast.forecastday[0].day.tides[0].tide;
-                        let hw = tides.find(t => t.tide_type === "HIGH");
-                        let lw = tides.find(t => t.tide_type === "LOW");
-                        if(hw) finalHW = hw.tide_time.split(' ')[1];
-                        if(lw) finalLW = lw.tide_time.split(' ')[1];
-                    }
-                } catch(e) {}
+                // TARGET 2: Text String Name for Exact Port Tide Clocks
+                const portRes = await fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(selectedCoastalStation)}&tides=yes`);
+                const portData = await portRes.json();
 
-                // Get Waves, Swell, and Backup Math Tides
-                const marineRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=sea_level,wave_height,swell_wave_height&timezone=auto`);
-                const data = await marineRes.json();
-                
-                if(data && data.hourly && data.hourly.sea_level) {
-                    const times = data.hourly.time;
-                    const now = new Date();
-                    let closestIdx = 0; let minDiff = Infinity;
+                let foundTides = false;
+                if (portData && !portData.error && portData.forecast && portData.forecast.forecastday[0].day.tides && portData.forecast.forecastday[0].day.tides[0].tide) {
+                    let tides = portData.forecast.forecastday[0].day.tides[0].tide;
+                    let hw = tides.find(t => t.tide_type === "HIGH");
+                    let lw = tides.find(t => t.tide_type === "LOW");
                     
-                    times.forEach((t, idx) => {
-                        let diff = Math.abs(new Date(t) - now);
-                        if(diff < minDiff) { minDiff = diff; closestIdx = idx; }
-                    });
-                    
-                    let waveH = data.hourly.wave_height[closestIdx];
-                    let swellH = data.hourly.swell_wave_height[closestIdx];
-                    
-                    document.getElementById('waveInput').value = waveH !== undefined && waveH !== null ? `${waveH.toFixed(1)}m` : `--`;
-                    document.getElementById('swellInput').value = swellH !== undefined && swellH !== null ? `${swellH.toFixed(1)}m` : `--`;
-
-                    // Fallback to math tides if port failed
-                    if(!finalHW && !finalLW) {
-                        const levels = data.hourly.sea_level;
-                        const extremes = [];
-                        for(let i = 3; i < levels.length - 3; i++) {
-                            let curr = levels[i];
-                            if(curr === null) continue;
-                            let isMax = true, isMin = true;
-                            for(let j = i - 3; j <= i + 3; j++) {
-                                if(i === j) continue;
-                                if(levels[j] >= curr) isMax = false;
-                                if(levels[j] <= curr) isMin = false;
-                            }
-                            if(isMax) extremes.push({ type: 'High', time: new Date(times[i]) });
-                            if(isMin) extremes.push({ type: 'Low', time: new Date(times[i]) });
-                        }
-                        const today = new Date().toDateString();
-                        const todaysTides = extremes.filter(t => t.time.toDateString() === today);
-                        todaysTides.sort((a,b) => a.time - b.time);
-                        if(todaysTides.length >= 2) {
-                            let hw = todaysTides.find(t => t.type === 'High');
-                            let lw = todaysTides.find(t => t.type === 'Low');
-                            if(hw) finalHW = hw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
-                            if(lw) finalLW = lw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
-                        }
-                    }
+                    if(hw) { document.getElementById('hwTimeInput').value = hw.tide_time.split(' ')[1]; foundTides = true; finalHW = hw.tide_time.split(' ')[1]; }
+                    if(lw) { document.getElementById('lwTimeInput').value = lw.tide_time.split(' ')[1]; foundTides = true; finalLW = lw.tide_time.split(' ')[1]; }
                 }
                 
                 hwTime = finalHW;
                 lwTime = finalLW;
 
-                if(hwTime && lwTime) { 
+                if(foundTides) { 
                     document.getElementById('setupTideChartContainer').style.display = 'block';
                     try { window.drawTideGraph('setupTideCanvas', hwTime, lwTime, [], sessionStartTimeStr); } catch(e){}
-                    window.showAppToast("Environment Data Loaded!"); 
+                    window.showAppToast("Weather, Waves & Tides Loaded!"); 
                 } 
-                else { window.showAppToast("Weather & Waves loaded, but no tides found.", true); }
+                else { window.showAppToast("Weather & Waves loaded. Tide times not provided by API for this port.", true); }
                 
                 window.saveActiveSession();
                 btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
@@ -810,7 +565,7 @@
                 const canvas = document.getElementById(canvasId);
                 if(!canvas || !hwStr || !lwStr) return;
                 const ctx = canvas.getContext('2d');
-                const w = canvas.width; const h = canvas.height; 
+                const w = canvas.width; const h = canvas.height; // 340 x 150
                 
                 const isDark = document.body.classList.contains('dark-mode');
                 
@@ -950,6 +705,7 @@
 
                         let r = 5 + ((c.count - 1) * 3.5);
 
+                        // Red Drop Line
                         ctx.beginPath();
                         ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
                         ctx.setLineDash([2, 4]);
@@ -959,6 +715,7 @@
                         ctx.stroke();
                         ctx.setLineDash([]);
 
+                        // Write Fish Time slightly above axis line (skip if overlapping HW/LW lines)
                         let distToHW = Math.abs(x - (((hwM - minT)/range)*w));
                         let distToLW = Math.abs(x - (((lwM - minT)/range)*w));
                         if (distToHW > 15 && distToLW > 15) { 
@@ -968,6 +725,7 @@
                             ctx.fillText(formatTime(c.timeM), x, graphBottom - 3);
                         }
 
+                        // Red Dot
                         ctx.beginPath();
                         ctx.fillStyle = '#ef4444';
                         ctx.arc(x, y, r, 0, 2*Math.PI);
@@ -1067,6 +825,7 @@
             fishData = []; currentScoringMethod = ''; isCompetitionMode = false; currentZone = ''; currentPeg = ''; currentTeam = ''; currentVenue = ''; coastalTown = ''; currentSavedKey = ''; weatherInfo = ''; windInfo = ''; swellInfo = ''; waveInfo = ''; hwTime = ''; lwTime = ''; sessionStartTimeStr = '';
             document.getElementById('venueInput').value = ''; if(document.getElementById('coastalTownInput')) document.getElementById('coastalTownInput').selectedIndex = 0; document.getElementById('scoringMethod').selectedIndex = 0; document.getElementById('isCompetition').checked = false; document.getElementById('teamInput').value = ''; document.getElementById('zoneInput').selectedIndex = 0; document.getElementById('pegInput').selectedIndex = 0; document.getElementById('sessionNotesInput').value = '';
             document.getElementById('weatherInput').value = ''; document.getElementById('windInput').value = ''; document.getElementById('swellInput').value = ''; document.getElementById('waveInput').value = ''; 
+            document.getElementById('hwTimeInput').value = ''; document.getElementById('lwTimeInput').value = '';
             document.getElementById('speciesInput').selectedIndex = 0; document.getElementById('customSpeciesInput').value = '';
             document.getElementById('fishLog').innerHTML = ''; document.getElementById('liveScoreVal').textContent = '0'; document.getElementById('weightInfoDisplay').style.display = 'none'; document.getElementById('speciesHuntInfo').style.display = 'none';
             document.getElementById('liveTideChartContainer').style.display = 'none';
@@ -1132,6 +891,7 @@
             coastalTown = tideSel.selectedIndex > 0 ? tideSel.options[tideSel.selectedIndex].text : '';
             currentDate = document.getElementById('competitionDate').value; currentScoringMethod = document.getElementById('scoringMethod').value;
             weatherInfo = document.getElementById('weatherInput').value.trim(); windInfo = document.getElementById('windInput').value.trim(); swellInfo = document.getElementById('swellInput').value.trim(); waveInfo = document.getElementById('waveInput').value.trim();
+            hwTime = document.getElementById('hwTimeInput').value; lwTime = document.getElementById('lwTimeInput').value;
             
             isCompetitionMode = document.getElementById('isCompetition').checked; currentZone = document.getElementById('zoneInput').value || '-'; currentPeg = document.getElementById('pegInput').value || '-'; currentTeam = document.getElementById('teamInput').value.trim() || '-';
 
@@ -1275,7 +1035,7 @@
             if(d.weatherInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-cloud me-1"></i>${d.weatherInfo}</span>`;
             if(d.windInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-wind me-1"></i>${d.windInfo}</span>`;
             if(d.waveInfo && d.waveInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.waveInfo}</span>`;
-            if(d.swellInfo && d.swellInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.swellInfo}</span>`;
+            if(d.swellInfo && d.swellInfo !== 'Inland') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.swellInfo}</span>`;
             document.getElementById('saved_view_conditions').innerHTML = condHTML;
 
             if(d.isComp) { document.getElementById('saved_view_comp_details').style.display='flex'; document.getElementById('saved_view_team').textContent=d.team || '-'; document.getElementById('saved_view_zone').textContent=d.zone; document.getElementById('saved_view_peg').textContent=d.peg; } 
@@ -1317,7 +1077,8 @@
             try {
                 const p = document.getElementById('anglerFishingPage').style.display==='block'?'fishing':(document.getElementById('tallyVerificationPage').style.display==='block'?'tally':'setup');
                 const weatherI = document.getElementById('weatherInput') ? document.getElementById('weatherInput').value : weatherInfo; const windI = document.getElementById('windInput') ? document.getElementById('windInput').value : windInfo; const waveI = document.getElementById('waveInput') ? document.getElementById('waveInput').value : waveInfo; const swellI = document.getElementById('swellInput') ? document.getElementById('swellInput').value : swellInfo;
-                StorageHelper.save('active_session', JSON.stringify({ phase:p, angler:currentAngler||document.getElementById('anglerName').value, venue:currentVenue||document.getElementById('venueInput').value, coastalTown:coastalTown||(document.getElementById('tideStationSelect') ? document.getElementById('tideStationSelect').options[document.getElementById('tideStationSelect').selectedIndex]?.text : ''), date:currentDate||document.getElementById('competitionDate').value, method:currentScoringMethod, unit:selectedWeightUnit, isComp:document.getElementById('isCompetition').checked, team:document.getElementById('teamInput').value, zone:document.getElementById('zoneInput').value, peg:document.getElementById('pegInput').value, weatherInfo:weatherI, windInfo:windI, waveInfo:waveI, swellInfo:swellI, hwTime:hwTime, lwTime:lwTime, sessionStart:sessionStartTimeStr, fishData }));
+                const hwI = document.getElementById('hwTimeInput') ? document.getElementById('hwTimeInput').value : hwTime; const lwI = document.getElementById('lwTimeInput') ? document.getElementById('lwTimeInput').value : lwTime;
+                StorageHelper.save('active_session', JSON.stringify({ phase:p, angler:currentAngler||document.getElementById('anglerName').value, venue:currentVenue||document.getElementById('venueInput').value, coastalTown:coastalTown||(document.getElementById('tideStationSelect') ? document.getElementById('tideStationSelect').options[document.getElementById('tideStationSelect').selectedIndex]?.text : ''), date:currentDate||document.getElementById('competitionDate').value, method:currentScoringMethod, unit:selectedWeightUnit, isComp:document.getElementById('isCompetition').checked, team:document.getElementById('teamInput').value, zone:document.getElementById('zoneInput').value, peg:document.getElementById('pegInput').value, weatherInfo:weatherI, windInfo:windI, waveInfo:waveI, swellInfo:swellI, hwTime:hwI, lwTime:lwI, sessionStart:sessionStartTimeStr, fishData }));
             } catch(e) {}
         };
 
@@ -1338,7 +1099,8 @@
             }
 
             document.getElementById('scoringMethod').value=s.method; document.getElementById('isCompetition').checked=s.isComp || false; document.getElementById('teamInput').value=s.team || ''; document.getElementById('zoneInput').value=s.zone || ''; document.getElementById('pegInput').value=s.peg || ''; document.getElementById('weatherInput').value=weatherInfo; document.getElementById('windInput').value=windInfo; if(document.getElementById('waveInput')) document.getElementById('waveInput').value=waveInfo; if(document.getElementById('swellInput')) document.getElementById('swellInput').value=swellInfo;
-            
+            if(document.getElementById('hwTimeInput')) document.getElementById('hwTimeInput').value=hwTime; if(document.getElementById('lwTimeInput')) document.getElementById('lwTimeInput').value=lwTime;
+
             window.toggleCompetitionFields(); window.populateSpeciesDropdown();
             if(s.phase==='fishing'){ window.setupFishingUI(); PageManager.show('anglerFishingPage'); window.updateFishLog(); } else if(s.phase==='tally'){ window.endSession(); } else { PageManager.show('anglerRegistration'); if(hwTime && lwTime) { document.getElementById('setupTideChartContainer').style.display = 'block'; try { window.drawTideGraph('setupTideCanvas', hwTime, lwTime, [], sessionStartTimeStr); } catch(e) {} } }
         };
