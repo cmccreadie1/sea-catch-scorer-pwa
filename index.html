@@ -31,7 +31,6 @@
             --modal-bg: #f8f9fa;
         }
 
-        /* --- DARK MODE VARIABLES --- */
         body.dark-mode {
             --primary-dark: #cbd5e1; 
             --app-blue: #38bdf8; 
@@ -60,7 +59,6 @@
         
         h1, h2, h3, h4, .btn, .modal-title { font-family: 'Poppins', sans-serif; }
 
-        /* --- DARK MODE OVERRIDES FOR BOOTSTRAP --- */
         .dark-mode .text-dark { color: #f8fafc !important; }
         .dark-mode .text-primary { color: var(--app-blue) !important; }
         .dark-mode .bg-light { background-color: #0f172a !important; }
@@ -201,7 +199,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 174.0 - Catch Stack Plotter</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 175.0 - Graph Fixes</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -249,12 +247,12 @@
 
             <div class="row g-2 mt-1">
                 <div class="col-6">
-                    <label class="form-label small mb-1 text-muted" style="font-size:0.65rem;">High Water</label>
-                    <input type="time" id="hwTimeInput" class="form-control form-control-sm text-center text-primary fw-bold" onchange="window.saveActiveSession()">
+                    <label class="form-label small mb-1 text-muted" style="font-size:0.65rem;">High Water (HH:MM)</label>
+                    <input type="text" id="hwTimeInput" class="form-control form-control-sm text-center text-primary fw-bold" placeholder="e.g. 09:30" oninput="this.value = this.value.replace(/[^0-9:]/g, ''); window.saveActiveSession();">
                 </div>
                 <div class="col-6">
-                    <label class="form-label small mb-1 text-muted" style="font-size:0.65rem;">Low Water</label>
-                    <input type="time" id="lwTimeInput" class="form-control form-control-sm text-center text-info fw-bold" onchange="window.saveActiveSession()">
+                    <label class="form-label small mb-1 text-muted" style="font-size:0.65rem;">Low Water (HH:MM)</label>
+                    <input type="text" id="lwTimeInput" class="form-control form-control-sm text-center text-info fw-bold" placeholder="e.g. 15:45" oninput="this.value = this.value.replace(/[^0-9:]/g, ''); window.saveActiveSession();">
                 </div>
             </div>
         </div>
@@ -298,7 +296,7 @@
                 <span class="badge bg-info text-dark" id="liveLwBadge">LW</span>
             </div>
             <canvas id="liveTideCanvas" width="340" height="110" class="w-100"></canvas>
-            <div class="text-center small text-muted mt-1" style="font-size:0.65rem;">Catch Times (Red dots map to tide cycle)</div>
+            <div class="text-center small text-muted mt-1" style="font-size:0.65rem;">Catch Times</div>
         </div>
         
         <div class="inner-card">
@@ -349,7 +347,7 @@
         <div class="live-score-box"><div id="session_total_points" class="live-score-value">0</div></div>
 
         <div class="tide-chart-container mb-4" id="tallyTideChartContainer" style="display:none; background:var(--card-bg);">
-            <div class="text-center small fw-bold text-primary mb-2">Catch Times & Tide</div>
+            <div class="text-center small fw-bold text-primary mb-2">Catch Times</div>
             <canvas id="tallyTideCanvas" width="340" height="110" class="w-100"></canvas>
         </div>
         
@@ -382,7 +380,7 @@
             <div class="live-score-box"><div id="saved_view_points" class="live-score-value">0</div></div>
 
             <div class="tide-chart-container mb-4" id="historyTideChartContainer" style="display:none; background:var(--card-bg);">
-                <div class="text-center small fw-bold text-primary mb-2">Catch Times & Tide</div>
+                <div class="text-center small fw-bold text-primary mb-2">Catch Times</div>
                 <canvas id="historyTideCanvas" width="340" height="110" class="w-100"></canvas>
             </div>
 
@@ -422,7 +420,6 @@
             new bootstrap.Toast(t).show();
         };
 
-        // --- NEW: UNIFIED ENVIRONMENT FETCH (GPS ONLY) ---
         window.fetchEnvironmentData = function() {
             const btn = document.getElementById('btnFetchEnv');
             const originalText = btn.innerHTML;
@@ -438,7 +435,6 @@
                 const lon = pos.coords.longitude;
                 
                 try {
-                    // 1. Fetch Weather (WeatherAPI)
                     const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`);
                     const weatherData = await weatherRes.json();
                     
@@ -447,7 +443,6 @@
                     document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
                     document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
 
-                    // 2. Fetch Marine Data (Open-Meteo) for Tides AND Wave Swell
                     const lats = `${lat},${lat+0.05},${lat-0.05},${lat},${lat}`;
                     const lons = `${lon},${lon},${lon},${lon+0.08},${lon-0.08}`;
                     
@@ -457,7 +452,6 @@
                     let validData = null;
                     let dataList = Array.isArray(marineDataArray) ? marineDataArray : [marineDataArray];
                     
-                    // Find first result that has valid sea_level
                     for (let d of dataList) {
                         if (d && d.hourly && d.hourly.sea_level && d.hourly.sea_level.some(v => v !== null)) {
                             validData = d; 
@@ -466,7 +460,6 @@
                     }
 
                     if(validData) {
-                        // Extract Wave Swell
                         const times = validData.hourly.time;
                         const now = new Date();
                         let closestIdx = 0; let minDiff = Infinity;
@@ -483,7 +476,6 @@
                             document.getElementById('swellInput').value = `No Swell`;
                         }
 
-                        // Extract Tides
                         const levels = validData.hourly.sea_level;
                         const extremes = [];
                         
@@ -508,12 +500,11 @@
                             let hw = todaysTides.find(t => t.type === 'High');
                             let lw = todaysTides.find(t => t.type === 'Low');
                             
-                            if(hw) document.getElementById('hwTimeInput').value = hw.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
-                            if(lw) document.getElementById('lwTimeInput').value = lw.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+                            if(hw) document.getElementById('hwTimeInput').value = hw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
+                            if(lw) document.getElementById('lwTimeInput').value = lw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
                         }
                         window.showAppToast("Environment Data Loaded!");
                     } else {
-                        // User is inland
                         document.getElementById('swellInput').value = 'Inland';
                         window.showAppToast("Weather loaded. GPS is inland, enter tides manually.", true);
                     }
@@ -534,7 +525,7 @@
             }, { enableHighAccuracy: false, timeout: 10000 });
         };
 
-        // --- NEW: THE TIDE STACKING MATH ENGINE ---
+        // --- MATH ENGINE FOR DYNAMIC GRAPH BOUNDS & STACKING DOTS ---
         window.drawTideGraph = function(canvasId, hwStr, lwStr, fishArray) {
             const canvas = document.getElementById(canvasId);
             if(!canvas || !hwStr || !lwStr) return;
@@ -542,24 +533,45 @@
             const w = canvas.width; const h = canvas.height;
             ctx.clearRect(0,0,w,h);
 
-            // Convert Time String "HH:MM" to Minutes from midnight
-            const toMins = t => { const [hrs,mins] = t.split(':'); return parseInt(hrs)*60 + parseInt(mins); };
-            let hwM = toMins(hwStr); let lwM = toMins(lwStr);
+            // Convert strict 24h string to minutes
+            const toMins = t => { 
+                if(!t || typeof t !== 'string') return 0;
+                const parts = t.split(':'); 
+                if(parts.length !== 2) return 0;
+                return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10); 
+            };
 
-            // Set the viewable window (Graph runs from Min time to Max time + 60m padding)
-            let minT = Math.min(hwM, lwM) - 60; 
-            let maxT = Math.max(hwM, lwM) + 60; 
+            let hwM = toMins(hwStr); 
+            let lwM = toMins(lwStr);
+            if(hwM === 0 && lwM === 0) return;
+
+            // Dynamically adjust graph X-axis bounds to fit ALL catches
+            let allTimes = [hwM, lwM];
+            if (fishArray && fishArray.length > 0) {
+                fishArray.forEach(f => {
+                    if (f.time) allTimes.push(toMins(f.time));
+                });
+            }
+            
+            // Add current time if drawing the live graph so it scrolls with the day
+            if(canvasId === 'liveTideCanvas') {
+                allTimes.push(toMins(new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false})));
+            }
+
+            let minT = Math.min(...allTimes) - 60; // Pad 1 hour left
+            let maxT = Math.max(...allTimes) + 60; // Pad 1 hour right
             let range = maxT - minT;
+            if(range <= 0) range = 1;
 
-            // Draw the smooth sine wave tide curve
+            // Draw Sine Wave
             ctx.beginPath();
-            ctx.strokeStyle = '#0ea5e9'; // App Blue
+            ctx.strokeStyle = '#0ea5e9'; 
             ctx.lineWidth = 3;
             for(let x=0; x<=w; x++) {
                 let t = minT + (x/w)*range;
                 let period = Math.abs(lwM - hwM) * 2; 
                 let phase = ((t - hwM) / period) * Math.PI * 2;
-                let y = h/2 - Math.cos(phase) * (h/2 - 15); // Scale height
+                let y = h/2 - Math.cos(phase) * (h/2 - 15); 
                 if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
             }
             ctx.stroke();
@@ -567,8 +579,6 @@
             // Overlay Fish Catches with STACKING LOGIC
             if(fishArray && fishArray.length > 0) {
                 let placedDots = [];
-                
-                // Sort chronologically so they stack logically from the bottom up
                 const sortedFish = [...fishArray].sort((a,b) => toMins(a.time) - toMins(b.time));
 
                 sortedFish.forEach(f => {
@@ -580,13 +590,10 @@
                         let phase = ((fm - hwM) / period) * Math.PI * 2;
                         let baseY = h/2 - Math.cos(phase) * (h/2 - 15);
                         
-                        // Check for clustering (is there already a dot very close on the X axis?)
                         let clusterCount = placedDots.filter(p => Math.abs(p.x - x) < 8).length;
-                        
-                        // Push the Y coordinate up by 12px for every dot already in this cluster
-                        let y = baseY - (clusterCount * 12);
+                        let y = baseY - (clusterCount * 12); // Push up 12px per stacked dot
 
-                        // If stacked, draw a subtle drop line down to the curve
+                        // Drop Line
                         if(clusterCount > 0) {
                             ctx.beginPath();
                             ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
@@ -596,9 +603,9 @@
                             ctx.stroke();
                         }
 
-                        // Draw Red Dot
+                        // Red Dot
                         ctx.beginPath();
-                        ctx.fillStyle = '#ef4444'; // Red
+                        ctx.fillStyle = '#ef4444';
                         ctx.arc(x, y, 5, 0, 2*Math.PI);
                         ctx.fill();
                         ctx.strokeStyle = '#ffffff';
@@ -616,7 +623,6 @@
             body.classList.toggle('dark-mode');
             if (body.classList.contains('dark-mode')) { btn.innerHTML = '<i class="bi bi-sun-fill text-warning"></i>'; localStorage.setItem('theme', 'dark'); } 
             else { btn.innerHTML = '<i class="bi bi-moon-stars-fill"></i>'; localStorage.setItem('theme', 'light'); }
-            // Redraw graphs on theme change if active
             if(document.getElementById('anglerFishingPage').style.display === 'block') window.updateFishLog();
             if(document.getElementById('tallyVerificationPage').style.display === 'block') window.drawTideGraph('tallyTideCanvas', hwTime, lwTime, fishData);
             if(document.getElementById('fullScorecardView').style.display === 'block') {
@@ -755,7 +761,10 @@
         window.validateInputs = function() {
             const spIn = document.getElementById('speciesInput'); let species = spIn.value === "Other" ? document.getElementById('customSpeciesInput').value.trim() : spIn.value;
             if(!species) { alert("Select species."); return null; }
-            const catchTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            // Enforce strictly parsed 24h string to prevent the bug
+            const catchTime = new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
+            
             if(currentScoringMethod==='weight') return { species, time: catchTime, ...window.getPickerValue() };
             if(currentScoringMethod==='species_hunt') return { species, time: catchTime, length: 0 };
             const len = window.getLengthPickerValue(); if(len <= 0) { alert("Scroll to enter a valid length."); return null; } return { species, time: catchTime, length: len };
