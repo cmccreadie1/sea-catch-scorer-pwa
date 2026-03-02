@@ -1,5 +1,5 @@
-// VERSION 198 - NATIVE LANDSCAPE MODAL & CLEAN SPLASH
-const CACHE_NAME = 'sea-score-v198';
+// VERSION 199 - NATIVE LANDSCAPE & BLUE BADGES
+const CACHE_NAME = 'sea-score-v199';
 
 const FILES_TO_CACHE = [
   './',
