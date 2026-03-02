@@ -1,5 +1,5 @@
-// VERSION 169 - DUAL CONTROL TIDE & WEATHER ENGINE
-const CACHE_NAME = 'sea-score-v169';
+// VERSION 170 - COASTLINE SNAPPER TIDE ALGORITHM
+const CACHE_NAME = 'sea-score-v170';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
