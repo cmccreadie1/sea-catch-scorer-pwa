@@ -77,7 +77,7 @@
         .dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
         .dark-mode .table-custom td { background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-main); }
         
-        /* --- SCROLL DRUM PICKER UI --- */
+        /* --- SCROLL DRUM PICKER UI (For Weights only) --- */
         .picker-outer-wrapper {
             background: var(--card-bg); padding: 15px; border-radius: 24px;
             border: 2px solid var(--app-blue); margin-bottom: 15px;
@@ -208,7 +208,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 198.0</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 199.0</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -420,17 +420,17 @@
     <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Session Found</h4><p class="text-muted">Restore unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" data-bs-dismiss="modal" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
     
     <div class="modal fade" id="imageModal" tabindex="-1" style="z-index:9999;">
-        <div class="modal-dialog modal-fullscreen m-0">
-            <div class="modal-content" style="background: #0f172a; border: none;">
-                <div class="modal-header border-0 pb-0 position-absolute w-100" style="z-index: 10;">
-                    <button type="button" class="btn-close btn-close-white ms-auto m-3" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-0 d-flex flex-column align-items-center justify-content-center" style="height: 100vh; width: 100vw;">
-                    <div class="text-white mb-3 small fw-bold text-center px-3" id="rotateInstruction">
-                        <i class="bi bi-phone-landscape fs-3 d-block mb-1"></i>
-                        Rotate phone sideways for maximum size
+        <div class="modal-dialog modal-fullscreen m-0" style="max-width: 100%; width: 100%; height: 100%;">
+            <div class="modal-content rounded-0" style="background: rgba(15, 23, 42, 0.98); border: none; height: 100%;">
+                <div class="modal-body p-0 d-flex flex-column align-items-center justify-content-center position-relative" style="height: 100vh; width: 100vw; overflow: hidden;">
+                    <button class="btn btn-outline-light position-absolute top-0 end-0 m-3 shadow" style="z-index: 10;" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Close
+                    </button>
+                    <div class="text-white-50 mb-3 small fw-bold text-center mt-5" id="rotateInstruction">
+                        <i class="bi bi-phone-landscape fs-1 d-block mb-2"></i>
+                        Turn phone sideways to enlarge
                     </div>
-                    <img id="fullSizeImage" src="" style="width: 95%; max-height: 90vh; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); background: white;">
+                    <img id="fullSizeImage" src="" style="width: 100%; height: 100%; object-fit: contain; padding: 15px;">
                 </div>
             </div>
         </div>
@@ -986,10 +986,10 @@
             document.getElementById('session_angler').textContent = currentAngler; document.getElementById('session_date').textContent = new Date(currentDate).toLocaleDateString('en-GB'); document.getElementById('session_venue').textContent = currentVenue || coastalTown || 'Unnamed Venue';
             
             let condHTML = '';
-            if(weatherInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-cloud me-1"></i>${weatherInfo}</span>`;
-            if(windInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-wind me-1"></i>${windInfo}</span>`;
-            if(waveInfo && waveInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${waveInfo}</span>`;
-            if(swellInfo && swellInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${swellInfo}</span>`;
+            if(weatherInfo) condHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"><i class="bi bi-cloud me-1"></i>${weatherInfo}</span>`;
+            if(windInfo) condHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"><i class="bi bi-wind me-1"></i>${windInfo}</span>`;
+            if(waveInfo && waveInfo !== '--') condHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"><i class="bi bi-water me-1"></i>${waveInfo}</span>`;
+            if(swellInfo && swellInfo !== '--') condHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"><i class="bi bi-water me-1"></i>${swellInfo}</span>`;
             document.getElementById('session_live_conditions').innerHTML = condHTML;
 
             if(isCompetitionMode) { document.getElementById('session_comp_details').style.display = 'flex'; document.getElementById('session_team').textContent = currentTeam; document.getElementById('session_zone').textContent = currentZone; document.getElementById('session_peg').textContent = currentPeg; } 
@@ -1042,10 +1042,10 @@
         window.viewSaved = function(k){
             currentSavedKey = k; const d = JSON.parse(StorageHelper.get(k)); document.getElementById('saved_view_angler').textContent = d.angler; document.getElementById('saved_view_date').textContent = new Date(d.date).toLocaleDateString('en-GB'); document.getElementById('saved_view_venue').textContent = d.venue || d.coastalTown || 'Unnamed Venue';
             let condHTML = '';
-            if(d.weatherInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-cloud me-1"></i>${d.weatherInfo}</span>`;
-            if(d.windInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-wind me-1"></i>${d.windInfo}</span>`;
-            if(d.waveInfo && d.waveInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.waveInfo}</span>`;
-            if(d.swellInfo && d.swellInfo !== 'Inland' && d.swellInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.swellInfo}</span>`;
+            if(d.weatherInfo) condHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"><i class="bi bi-cloud me-1"></i>${d.weatherInfo}</span>`;
+            if(d.windInfo) condHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"><i class="bi bi-wind me-1"></i>${d.windInfo}</span>`;
+            if(d.waveInfo && d.waveInfo !== '--') condHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"><i class="bi bi-water me-1"></i>${d.waveInfo}</span>`;
+            if(d.swellInfo && d.swellInfo !== 'Inland' && d.swellInfo !== '--') condHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"><i class="bi bi-water me-1"></i>${d.swellInfo}</span>`;
             document.getElementById('saved_view_conditions').innerHTML = condHTML;
 
             if(d.isComp) { document.getElementById('saved_view_comp_details').style.display='flex'; document.getElementById('saved_view_team').textContent=d.team || '-'; document.getElementById('saved_view_zone').textContent=d.zone; document.getElementById('saved_view_peg').textContent=d.peg; } 
