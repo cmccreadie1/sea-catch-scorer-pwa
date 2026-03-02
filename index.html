@@ -163,7 +163,7 @@
         @keyframes slideFlash { 0% { background-color: #dcfce7; transform: translateY(-10px); } 100% { background-color: var(--card-bg); } }
         .new-catch-anim { animation: slideFlash 1.5s ease-out; }
 
-        .tide-chart-container { background: var(--card-bg); border-radius: 16px; padding: 15px 10px 10px 10px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); cursor: zoom-in; position: relative; }
+        .tide-chart-container { background: var(--card-bg); border-radius: 16px; padding: 15px 10px 10px 10px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); cursor: zoom-in; }
     </style>
 </head>
 <body>
@@ -198,7 +198,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 191.0 - Pro Tide Tables</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 192.0 - Visual Forecast</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -273,26 +273,30 @@
                         <i class="bi bi-search me-1"></i> Fetch
                     </button>
                 </div>
-                <div class="small text-muted mt-1" style="font-size: 0.65rem; line-height: 1.2;">
-                    * Choose from 150+ verified BBC/Admiralty locations to guarantee marine data accuracy.
-                </div>
             </div>
             
-            <div class="row g-2 mb-2">
-                <div class="col-4"><input type="text" id="weatherInput" class="form-control form-control-sm text-center" placeholder="Weather" oninput="window.saveActiveSession()"></div>
-                <div class="col-4"><input type="text" id="windInput" class="form-control form-control-sm text-center" placeholder="Wind" oninput="window.saveActiveSession()"></div>
-                <div class="col-4"><input type="text" id="swellInput" class="form-control form-control-sm text-center fw-bold text-info" placeholder="Waves/Swell" oninput="window.saveActiveSession()"></div>
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label small mb-0 text-muted" style="font-size:0.65rem; text-transform: uppercase;">Weather</label>
+                    <input type="text" id="weatherInput" class="form-control form-control-sm text-center fw-bold" placeholder="--" readonly>
+                </div>
+                <div class="col-6">
+                    <label class="form-label small mb-0 text-muted" style="font-size:0.65rem; text-transform: uppercase;">Wind</label>
+                    <input type="text" id="windInput" class="form-control form-control-sm text-center fw-bold" placeholder="--" readonly>
+                </div>
+                <div class="col-6">
+                    <label class="form-label small mb-0 text-muted" style="font-size:0.65rem; text-transform: uppercase;">Wave Height</label>
+                    <input type="text" id="waveInput" class="form-control form-control-sm text-center fw-bold text-info" placeholder="--" readonly>
+                </div>
+                <div class="col-6">
+                    <label class="form-label small mb-0 text-muted" style="font-size:0.65rem; text-transform: uppercase;">Swell Height</label>
+                    <input type="text" id="swellInput" class="form-control form-control-sm text-center fw-bold text-primary" placeholder="--" readonly>
+                </div>
             </div>
 
-            <div class="row g-2 mt-1 border-top pt-2">
-                <div class="col-6">
-                    <label class="form-label small mb-1 text-muted" style="font-size:0.65rem;">High Water</label>
-                    <input type="time" id="hwTimeInput" class="form-control form-control-sm text-center text-primary fw-bold" onchange="window.saveActiveSession()">
-                </div>
-                <div class="col-6">
-                    <label class="form-label small mb-1 text-muted" style="font-size:0.65rem;">Low Water</label>
-                    <input type="time" id="lwTimeInput" class="form-control form-control-sm text-center text-info fw-bold" onchange="window.saveActiveSession()">
-                </div>
+            <div class="tide-chart-container" id="setupTideChartContainer" style="display:none;" onclick="window.viewImg(document.getElementById('setupTideCanvas').toDataURL())">
+                <div class="text-center small fw-bold text-primary mb-1">Tide Forecast (Tap to Enlarge)</div>
+                <canvas id="setupTideCanvas" width="340" height="150" class="w-100"></canvas>
             </div>
         </div>
         
@@ -306,7 +310,7 @@
         </div>
 
         <div class="tide-chart-container mb-4" id="liveTideChartContainer" style="display:none;" onclick="window.viewImg(document.getElementById('liveTideCanvas').toDataURL())">
-            <div class="text-center small fw-bold text-primary mb-1">Session Timeline (Tap to Enlarge)</div>
+            <div class="text-center small fw-bold text-primary mb-1">Catch Timeline (Tap to Enlarge)</div>
             <canvas id="liveTideCanvas" width="340" height="150" class="w-100"></canvas>
         </div>
         
@@ -402,7 +406,19 @@
     
     <div class="modal fade" id="weightUnitModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 border-0 shadow-lg"><div class="modal-body p-5 text-center"><h4>Scoring Unit</h4><p class="text-muted small mb-4">Choose format for this session</p><div class="d-grid gap-3"><button type="button" class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.handleUnitChoice('metric')">Kilograms (KG)</button><button type="button" class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.handleUnitChoice('imperial')">Pounds & Ounces</button></div></div></div></div></div>
     <div class="modal fade" id="restoreSessionModal" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-5"><h4>Session Found</h4><p class="text-muted">Restore unfinished session for <strong id="restoreAnglerName"></strong>?</p><div class="d-grid gap-2 mt-4"><button class="btn btn-primary btn-lg py-3" data-bs-dismiss="modal" onclick="window.confirmRestore()">Resume Fishing</button><button class="btn btn-outline-secondary py-3" data-bs-dismiss="modal" onclick="window.discardRestore()">Start New</button></div></div></div></div></div>
-    <div class="modal fade" id="imageModal" tabindex="-1" style="z-index:9999;"><div class="modal-dialog modal-dialog-centered modal-xl"><div class="modal-content" style="background:transparent; border:none;"><div class="modal-body p-0 text-center"><img id="fullSizeImage" src="" style="max-width:100%; border-radius:15px; border:3px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: white;"><button class="btn btn-sm btn-light mt-3 rounded-pill px-4" data-bs-dismiss="modal">Close</button></div></div></div></div>
+    
+    <div class="modal fade" id="imageModal" tabindex="-1" style="z-index:9999;">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content" style="background: rgba(15, 23, 42, 0.98); border: none;">
+                <div class="modal-body d-flex flex-column align-items-center justify-content-center p-3">
+                    <button class="btn btn-light mb-4 rounded-pill px-5 py-2 fw-bold shadow-lg" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Close Graph
+                    </button>
+                    <img id="fullSizeImage" src="" style="width:100%; max-height:80vh; object-fit:contain; border-radius:15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background: white; padding: 10px;">
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         const WEATHER_API_KEY = "db7f2afb64d943719e0203116260103";
@@ -415,7 +431,6 @@
             {category:"Wrasse & Mini",items:["Wrasse (Ballan)","Wrasse (Corkwing)","Wrasse (Cuckoo)","Wrasse (Goldsinny)","Rockling (3-Bearded)","Rockling (Shore)","Blenny (Common)","Goby (Rock)","Poor Cod","Pouting (Bib)","Scorpion Fish","Squid"]}
         ];
 
-        // MASSIVE 150+ STATION REGIONAL DATABASE (All verified offshore coordinates)
         const tideStations = [
             {
                 region: "Scotland - East",
@@ -644,8 +659,8 @@
         
         let fishData=[], currentScoringMethod='', selectedWeightUnit='metric', currentSavedKey='', currentAngler='', currentVenue='', currentDate='';
         let isCompetitionMode = false, currentZone = '', currentPeg = '', currentTeam = '';
-        let weatherInfo = '', windInfo = '', swellInfo = '', hwTime = '', lwTime = '', coastalTown = '';
-        let sessionStartTimeStr = ''; // Used to anchor the graph exactly when the user started
+        let weatherInfo = '', windInfo = '', swellInfo = '', waveInfo = '', hwTime = '', lwTime = '', coastalTown = '';
+        let sessionStartTimeStr = ''; 
         let pendingRestoreData = null; 
 
         const PageManager={ show:function(id){ document.querySelectorAll('.app-page').forEach(p=>p.style.display='none'); document.getElementById('splashScreen').style.display='none'; document.getElementById(id).style.display='block'; window.scrollTo(0,0); } };
@@ -689,47 +704,94 @@
             const [lat, lon] = val.split(',');
             selectedCoastalStation = selectBox.options[selectBox.selectedIndex].text;
             
-            // Set session start time exactly when they hit Fetch
             sessionStartTimeStr = new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
 
             btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Fetching...';
             btn.disabled = true;
 
             try {
-                const res = await fetch(`https://api.weatherapi.com/v1/marine.json?key=${WEATHER_API_KEY}&q=${lat},${lon}&tides=yes`);
-                const data = await res.json();
-                
-                if (data.error) throw new Error(data.error.message);
+                let finalHW = "";
+                let finalLW = "";
 
-                const currentHour = new Date().getHours();
-                const currentData = data.forecast.forecastday[0].hour[currentHour];
+                // Get Weather & Wind
+                const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`);
+                const weatherData = await weatherRes.json();
                 
-                document.getElementById('weatherInput').value = `${currentData.condition.text}, ${currentData.temp_c}°C`;
-                document.getElementById('windInput').value = `${currentData.wind_dir} ${currentData.wind_mph}mph`;
-
-                let waveH = currentData.sig_ht_mt;
-                let swellH = currentData.swell_ht_mt;
-                
-                if(waveH !== undefined && waveH !== null && swellH !== undefined && swellH !== null) {
-                    document.getElementById('swellInput').value = `W: ${waveH}m / S: ${swellH}m`;
-                } else if (waveH !== undefined && waveH !== null) {
-                    document.getElementById('swellInput').value = `Waves: ${waveH}m`;
-                } else {
-                    document.getElementById('swellInput').value = `Flat / No Data`;
+                if (!weatherData.error) {
+                    document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
+                    document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
                 }
 
-                let foundTides = false;
-                if (data.forecast.forecastday[0].day.tides && data.forecast.forecastday[0].day.tides[0].tide) {
-                    let tides = data.forecast.forecastday[0].day.tides[0].tide;
-                    let hw = tides.find(t => t.tide_type === "HIGH");
-                    let lw = tides.find(t => t.tide_type === "LOW");
+                // Get Port Tides
+                try {
+                    const portRes = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=${lat},${lon}&days=1&tides=yes`);
+                    const portData = await portRes.json();
+                    if(portData && portData.forecast && portData.forecast.forecastday[0].day.tides && portData.forecast.forecastday[0].day.tides[0].tide.length > 0) {
+                        let tides = portData.forecast.forecastday[0].day.tides[0].tide;
+                        let hw = tides.find(t => t.tide_type === "HIGH");
+                        let lw = tides.find(t => t.tide_type === "LOW");
+                        if(hw) finalHW = hw.tide_time.split(' ')[1];
+                        if(lw) finalLW = lw.tide_time.split(' ')[1];
+                    }
+                } catch(e) {}
+
+                // Get Waves, Swell, and Backup Math Tides
+                const marineRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=sea_level,wave_height,swell_wave_height&timezone=auto`);
+                const data = await marineRes.json();
+                
+                if(data && data.hourly && data.hourly.sea_level) {
+                    const times = data.hourly.time;
+                    const now = new Date();
+                    let closestIdx = 0; let minDiff = Infinity;
                     
-                    if(hw) { document.getElementById('hwTimeInput').value = hw.tide_time.split(' ')[1]; foundTides = true; }
-                    if(lw) { document.getElementById('lwTimeInput').value = lw.tide_time.split(' ')[1]; foundTides = true; }
+                    times.forEach((t, idx) => {
+                        let diff = Math.abs(new Date(t) - now);
+                        if(diff < minDiff) { minDiff = diff; closestIdx = idx; }
+                    });
+                    
+                    let waveH = data.hourly.wave_height[closestIdx];
+                    let swellH = data.hourly.swell_wave_height[closestIdx];
+                    
+                    document.getElementById('waveInput').value = waveH !== undefined && waveH !== null ? `${waveH.toFixed(1)}m` : `--`;
+                    document.getElementById('swellInput').value = swellH !== undefined && swellH !== null ? `${swellH.toFixed(1)}m` : `--`;
+
+                    // Fallback to math tides if port failed
+                    if(!finalHW && !finalLW) {
+                        const levels = data.hourly.sea_level;
+                        const extremes = [];
+                        for(let i = 3; i < levels.length - 3; i++) {
+                            let curr = levels[i];
+                            if(curr === null) continue;
+                            let isMax = true, isMin = true;
+                            for(let j = i - 3; j <= i + 3; j++) {
+                                if(i === j) continue;
+                                if(levels[j] >= curr) isMax = false;
+                                if(levels[j] <= curr) isMin = false;
+                            }
+                            if(isMax) extremes.push({ type: 'High', time: new Date(times[i]) });
+                            if(isMin) extremes.push({ type: 'Low', time: new Date(times[i]) });
+                        }
+                        const today = new Date().toDateString();
+                        const todaysTides = extremes.filter(t => t.time.toDateString() === today);
+                        todaysTides.sort((a,b) => a.time - b.time);
+                        if(todaysTides.length >= 2) {
+                            let hw = todaysTides.find(t => t.type === 'High');
+                            let lw = todaysTides.find(t => t.type === 'Low');
+                            if(hw) finalHW = hw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
+                            if(lw) finalLW = lw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
+                        }
+                    }
                 }
                 
-                if(foundTides) { window.showAppToast("Environment Data Loaded!"); } 
-                else { window.showAppToast("Weather & Waves loaded. Tide times not provided by station.", true); }
+                hwTime = finalHW;
+                lwTime = finalLW;
+
+                if(hwTime && lwTime) { 
+                    document.getElementById('setupTideChartContainer').style.display = 'block';
+                    try { window.drawTideGraph('setupTideCanvas', hwTime, lwTime, [], sessionStartTimeStr); } catch(e){}
+                    window.showAppToast("Environment Data Loaded!"); 
+                } 
+                else { window.showAppToast("Weather & Waves loaded, but no tides found.", true); }
                 
                 window.saveActiveSession();
                 btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
@@ -742,13 +804,13 @@
             }
         };
 
-        // --- NEW: THE 9-HOUR WINDOW TIMELINE ENGINE ---
+        // --- MATH ENGINE FOR TIMELINE AND DOTS ---
         window.drawTideGraph = function(canvasId, hwStr, lwStr, fishArray, startStr) {
             try {
                 const canvas = document.getElementById(canvasId);
                 if(!canvas || !hwStr || !lwStr) return;
                 const ctx = canvas.getContext('2d');
-                const w = canvas.width; const h = canvas.height; // 340 x 150
+                const w = canvas.width; const h = canvas.height; 
                 
                 const isDark = document.body.classList.contains('dark-mode');
                 
@@ -770,11 +832,9 @@
                 let lwM = toMins(lwStr);
                 if(hwM === 0 && lwM === 0) return;
 
-                // Set 9-hour window anchored to session start
                 let anchorM = startStr ? toMins(startStr) : Math.min(hwM, lwM);
-                
-                let baseMin = anchorM - 60;  // 1 hour before
-                let baseMax = anchorM + 480; // 8 hours after
+                let baseMin = anchorM - 60;  
+                let baseMax = anchorM + 480; 
                 
                 let allTimes = [baseMin, baseMax];
                 if (fishArray && fishArray.length > 0) {
@@ -789,12 +849,11 @@
                 let range = maxT - minT;
                 if(range <= 0) range = 1;
 
-                const graphBottom = h - 30; // More space for hourly labels
+                const graphBottom = h - 30; 
                 const graphTop = 20; 
                 const amp = (graphBottom - graphTop) / 2;
                 const midY = graphTop + amp;
 
-                // X-Axis Line
                 ctx.beginPath();
                 ctx.strokeStyle = gridColor;
                 ctx.lineWidth = 2;
@@ -802,12 +861,9 @@
                 ctx.lineTo(w, graphBottom);
                 ctx.stroke();
 
-                // Draw Hourly Grid Labels on X-Axis
                 let startHour = Math.ceil(minT / 60) * 60;
                 for(let t = startHour; t <= maxT; t += 60) {
                     let x = ((t - minT) / range) * w;
-                    
-                    // Tiny notch
                     ctx.beginPath();
                     ctx.strokeStyle = gridColor;
                     ctx.lineWidth = 1;
@@ -815,7 +871,6 @@
                     ctx.lineTo(x, graphBottom + 5);
                     ctx.stroke();
                     
-                    // Hour text
                     ctx.fillStyle = textColor;
                     ctx.font = "8px sans-serif";
                     ctx.textAlign = "center";
@@ -831,7 +886,6 @@
                     return `${hrs.toString().padStart(2,'0')}:${m}`;
                 };
 
-                // Draw Sine Wave
                 ctx.beginPath();
                 ctx.strokeStyle = waveColor; 
                 ctx.lineWidth = 3;
@@ -845,9 +899,8 @@
                 }
                 ctx.stroke();
 
-                // Draw HW/LW Droplines
                 const drawAxisMarker = (timeM, label, isTide = false) => {
-                    if (timeM < minT || timeM > maxT) return; // Don't draw if outside window
+                    if (timeM < minT || timeM > maxT) return; 
                     
                     let x = ((timeM - minT) / range) * w;
                     ctx.beginPath();
@@ -868,7 +921,6 @@
                 drawAxisMarker(hwM, `HW`, true);
                 drawAxisMarker(lwM, `LW`, true);
 
-                // Draw Fish Clusters
                 if (fishArray && fishArray.length > 0) {
                     let clusters = [];
                     const sortedFish = [...fishArray].sort((a,b) => toMins(a.time) - toMins(b.time));
@@ -898,7 +950,6 @@
 
                         let r = 5 + ((c.count - 1) * 3.5);
 
-                        // Red Drop Line
                         ctx.beginPath();
                         ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
                         ctx.setLineDash([2, 4]);
@@ -908,7 +959,6 @@
                         ctx.stroke();
                         ctx.setLineDash([]);
 
-                        // Write Fish Time slightly above axis line (skip if overlapping HW/LW lines)
                         let distToHW = Math.abs(x - (((hwM - minT)/range)*w));
                         let distToLW = Math.abs(x - (((lwM - minT)/range)*w));
                         if (distToHW > 15 && distToLW > 15) { 
@@ -918,7 +968,6 @@
                             ctx.fillText(formatTime(c.timeM), x, graphBottom - 3);
                         }
 
-                        // Red Dot
                         ctx.beginPath();
                         ctx.fillStyle = '#ef4444';
                         ctx.arc(x, y, r, 0, 2*Math.PI);
@@ -953,6 +1002,9 @@
                  const d = JSON.parse(StorageHelper.get(currentSavedKey));
                  if(d.hwTime && d.lwTime) { try{ window.drawTideGraph('historyTideCanvas', d.hwTime, d.lwTime, d.fishData, d.sessionStart); }catch(e){} }
             }
+            if(document.getElementById('setupTideChartContainer').style.display === 'block') {
+                 try{ window.drawTideGraph('setupTideCanvas', hwTime, lwTime, [], sessionStartTimeStr); }catch(e){} 
+            }
         };
 
         window.forceAppUpdate = function() {
@@ -963,7 +1015,7 @@
         };
 
         window.exportToCSV = function() {
-            let csvContent = "Date,Venue,Coastal_Town,Angler,Match Mode,Team,Zone,Peg,Weather,Wind,Swell,HW,LW,Species,Measurement,Time,Notes\n";
+            let csvContent = "Date,Venue,Coastal_Town,Angler,Match Mode,Team,Zone,Peg,Weather,Wind,Waves,Swell,HW,LW,Species,Measurement,Time,Notes\n";
             const keys = Object.keys(StorageHelper.getAll()).filter(k=>k.startsWith('scorecard_'));
             if(keys.length === 0) return alert("No history to export.");
             keys.forEach(k => {
@@ -973,16 +1025,16 @@
                 const town = `"${(d.coastalTown || '').replace(/"/g, '""')}"`;
                 const angler = `"${(d.angler || '').replace(/"/g, '""')}"`;
                 const mode = d.isComp ? "Match" : "Pleasure"; const team = `"${(d.team || '').replace(/"/g, '""')}"`; const zone = `"${(d.zone || '').replace(/"/g, '""')}"`; const peg = `"${(d.peg || '').replace(/"/g, '""')}"`;
-                const weath = `"${(d.weatherInfo || '').replace(/"/g, '""')}"`; const wind = `"${(d.windInfo || '').replace(/"/g, '""')}"`; const swell = `"${(d.swellInfo || '').replace(/"/g, '""')}"`;
+                const weath = `"${(d.weatherInfo || '').replace(/"/g, '""')}"`; const wind = `"${(d.windInfo || '').replace(/"/g, '""')}"`; const wave = `"${(d.waveInfo || '').replace(/"/g, '""')}"`; const swell = `"${(d.swellInfo || '').replace(/"/g, '""')}"`;
                 const hw = d.hwTime || ''; const lw = d.lwTime || ''; const notes = `"${(d.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
                 if(d.fishData && d.fishData.length > 0) {
                     d.fishData.forEach(f => {
                         const species = `"${f.species}"`; let meas = "";
                         if(d.method === 'weight') meas = `"${f.display}"`; else if(d.method === 'species_hunt') meas = `"N/A"`; else meas = `"${f.length}cm"`;
                         const time = `"${f.time || ''}"`;
-                        csvContent += `${dateStr},${venue},${town},${angler},${mode},${team},${zone},${peg},${weath},${wind},${swell},${hw},${lw},${species},${meas},${time},${notes}\n`;
+                        csvContent += `${dateStr},${venue},${town},${angler},${mode},${team},${zone},${peg},${weath},${wind},${wave},${swell},${hw},${lw},${species},${meas},${time},${notes}\n`;
                     });
-                } else { csvContent += `${dateStr},${venue},${town},${angler},${mode},${team},${zone},${peg},${weath},${wind},${swell},${hw},${lw},Blank,N/A,,${notes}\n`; }
+                } else { csvContent += `${dateStr},${venue},${town},${angler},${mode},${team},${zone},${peg},${weath},${wind},${wave},${swell},${hw},${lw},Blank,N/A,,${notes}\n`; }
             });
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); const url = URL.createObjectURL(blob);
             link.setAttribute("href", url); link.setAttribute("download", "SeaScore_Export.csv"); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
@@ -1012,12 +1064,13 @@
         };
 
         window.resetAppToHome = function() {
-            fishData = []; currentScoringMethod = ''; isCompetitionMode = false; currentZone = ''; currentPeg = ''; currentTeam = ''; currentVenue = ''; coastalTown = ''; currentSavedKey = ''; weatherInfo = ''; windInfo = ''; swellInfo = ''; hwTime = ''; lwTime = ''; sessionStartTimeStr = '';
+            fishData = []; currentScoringMethod = ''; isCompetitionMode = false; currentZone = ''; currentPeg = ''; currentTeam = ''; currentVenue = ''; coastalTown = ''; currentSavedKey = ''; weatherInfo = ''; windInfo = ''; swellInfo = ''; waveInfo = ''; hwTime = ''; lwTime = ''; sessionStartTimeStr = '';
             document.getElementById('venueInput').value = ''; if(document.getElementById('coastalTownInput')) document.getElementById('coastalTownInput').selectedIndex = 0; document.getElementById('scoringMethod').selectedIndex = 0; document.getElementById('isCompetition').checked = false; document.getElementById('teamInput').value = ''; document.getElementById('zoneInput').selectedIndex = 0; document.getElementById('pegInput').selectedIndex = 0; document.getElementById('sessionNotesInput').value = '';
-            document.getElementById('weatherInput').value = ''; document.getElementById('windInput').value = ''; document.getElementById('swellInput').value = ''; document.getElementById('hwTimeInput').value = ''; document.getElementById('lwTimeInput').value = '';
+            document.getElementById('weatherInput').value = ''; document.getElementById('windInput').value = ''; document.getElementById('swellInput').value = ''; document.getElementById('waveInput').value = ''; 
             document.getElementById('speciesInput').selectedIndex = 0; document.getElementById('customSpeciesInput').value = '';
             document.getElementById('fishLog').innerHTML = ''; document.getElementById('liveScoreVal').textContent = '0'; document.getElementById('weightInfoDisplay').style.display = 'none'; document.getElementById('speciesHuntInfo').style.display = 'none';
             document.getElementById('liveTideChartContainer').style.display = 'none';
+            document.getElementById('setupTideChartContainer').style.display = 'none';
             window.toggleCompetitionFields(); window.toggleCustomSpeciesInput();
             const cols = ['pickerCol1','pickerCol2','pickerLenCol1','pickerLenCol2']; cols.forEach(c => { const el = document.getElementById(c); if(el) { el.scrollTop = 0; window.updatePickerDisplay(c); } });
             PageManager.show('splashScreen'); StorageHelper.remove('active_session');
@@ -1078,8 +1131,8 @@
             const tideSel = document.getElementById('tideStationSelect');
             coastalTown = tideSel.selectedIndex > 0 ? tideSel.options[tideSel.selectedIndex].text : '';
             currentDate = document.getElementById('competitionDate').value; currentScoringMethod = document.getElementById('scoringMethod').value;
-            weatherInfo = document.getElementById('weatherInput').value.trim(); windInfo = document.getElementById('windInput').value.trim(); swellInfo = document.getElementById('swellInput').value.trim(); 
-            hwTime = document.getElementById('hwTimeInput').value; lwTime = document.getElementById('lwTimeInput').value;
+            weatherInfo = document.getElementById('weatherInput').value.trim(); windInfo = document.getElementById('windInput').value.trim(); swellInfo = document.getElementById('swellInput').value.trim(); waveInfo = document.getElementById('waveInput').value.trim();
+            
             isCompetitionMode = document.getElementById('isCompetition').checked; currentZone = document.getElementById('zoneInput').value || '-'; currentPeg = document.getElementById('pegInput').value || '-'; currentTeam = document.getElementById('teamInput').value.trim() || '-';
 
             if(!currentAngler || !currentScoringMethod) {
@@ -1087,7 +1140,6 @@
                 return;
             }
 
-            // Fallback: If they manually typed times but never hit fetch, anchor to 'now'
             if(!sessionStartTimeStr) sessionStartTimeStr = new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
             
             window.setupFishingUI(); window.populateSpeciesDropdown(); PageManager.show('anglerFishingPage'); window.saveActiveSession();
@@ -1166,7 +1218,8 @@
             let condHTML = '';
             if(weatherInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-cloud me-1"></i>${weatherInfo}</span>`;
             if(windInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-wind me-1"></i>${windInfo}</span>`;
-            if(swellInfo && swellInfo !== 'Inland') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${swellInfo}</span>`;
+            if(waveInfo && waveInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${waveInfo}</span>`;
+            if(swellInfo && swellInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${swellInfo}</span>`;
             document.getElementById('session_live_conditions').innerHTML = condHTML;
 
             if(isCompetitionMode) { document.getElementById('session_comp_details').style.display = 'flex'; document.getElementById('session_team').textContent = currentTeam; document.getElementById('session_zone').textContent = currentZone; document.getElementById('session_peg').textContent = currentPeg; } 
@@ -1194,7 +1247,7 @@
             }
 
             currentSavedKey = 'scorecard_' + Date.now();
-            try { StorageHelper.save(currentSavedKey, JSON.stringify({ angler:currentAngler, venue:currentVenue, coastalTown:coastalTown, date:currentDate, isComp:isCompetitionMode, team:currentTeam, zone:currentZone, peg:currentPeg, weatherInfo, windInfo, swellInfo, hwTime, lwTime, sessionStart:sessionStartTimeStr, fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, notes: '' })); StorageHelper.remove('active_session'); } 
+            try { StorageHelper.save(currentSavedKey, JSON.stringify({ angler:currentAngler, venue:currentVenue, coastalTown:coastalTown, date:currentDate, isComp:isCompetitionMode, team:currentTeam, zone:currentZone, peg:currentPeg, weatherInfo, windInfo, waveInfo, swellInfo, hwTime, lwTime, sessionStart:sessionStartTimeStr, fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, notes: '' })); StorageHelper.remove('active_session'); } 
             catch(e) { alert("Device storage full. Session shown but not saved. Please delete old history."); }
             document.getElementById('sessionNotesInput').value = '';
             document.getElementById('sessionNotesInput').oninput = function(e) { try { let savedSession = JSON.parse(StorageHelper.get(currentSavedKey)); if (savedSession) { savedSession.notes = e.target.value; StorageHelper.save(currentSavedKey, JSON.stringify(savedSession)); } } catch(err) {} };
@@ -1221,7 +1274,8 @@
             let condHTML = '';
             if(d.weatherInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-cloud me-1"></i>${d.weatherInfo}</span>`;
             if(d.windInfo) condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-wind me-1"></i>${d.windInfo}</span>`;
-            if(d.swellInfo && d.swellInfo !== 'Inland') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.swellInfo}</span>`;
+            if(d.waveInfo && d.waveInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.waveInfo}</span>`;
+            if(d.swellInfo && d.swellInfo !== '--') condHTML += `<span class="badge bg-secondary bg-opacity-25 text-body border"><i class="bi bi-water me-1"></i>${d.swellInfo}</span>`;
             document.getElementById('saved_view_conditions').innerHTML = condHTML;
 
             if(d.isComp) { document.getElementById('saved_view_comp_details').style.display='flex'; document.getElementById('saved_view_team').textContent=d.team || '-'; document.getElementById('saved_view_zone').textContent=d.zone; document.getElementById('saved_view_peg').textContent=d.peg; } 
@@ -1243,12 +1297,9 @@
                 setTimeout(() => { try { window.drawTideGraph('historyTideCanvas', d.hwTime, d.lwTime, d.fishData, d.sessionStart); } catch(e){} }, 200);
             } else { document.getElementById('historyTideChartContainer').style.display = 'none'; }
 
-            let systemHWLW = '';
-            if(d.hwTime && d.lwTime) systemHWLW = `<div class="mb-2"><strong class="text-primary d-block mb-1"><i class="bi bi-graph-up me-1"></i>Tide Cycle:</strong><span class="ms-4 small">HW: ${d.hwTime} | LW: ${d.lwTime}</span></div>`;
-
             const notesContent = d.notes || ''; const displayNotes = notesContent.trim() !== '' ? notesContent.replace(/\n/g, '<br>') : '<em>No notes added yet.</em>';
             const notesContainer = document.getElementById('saved_view_notes_container');
-            notesContainer.innerHTML = `<div class="inner-card mt-3 p-3 border shadow-sm">${systemHWLW}<div class="d-flex justify-content-between align-items-center mb-2"><label class="form-label small fw-bold text-muted m-0"><i class="bi bi-journal-text me-1"></i>Session Notes</label><button id="btnEditNotes" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.toggleEditNotes()"><i class="bi bi-pencil me-1"></i>Edit</button></div><div id="savedNotesDisplay" class="text-dark small">${displayNotes}</div><div id="savedNotesEditArea" style="display:none;"><textarea id="savedNotesInputView" class="form-control text-dark small mb-2" rows="3"></textarea><div class="d-flex gap-2"><button class="btn btn-sm btn-secondary w-50" onclick="window.toggleEditNotes()">Cancel</button><button class="btn btn-sm btn-primary w-50" onclick="window.saveEditedNotes()">Save</button></div></div></div>`;
+            notesContainer.innerHTML = `<div class="inner-card mt-3 p-3 border shadow-sm"><div class="d-flex justify-content-between align-items-center mb-2"><label class="form-label small fw-bold text-muted m-0"><i class="bi bi-journal-text me-1"></i>Session Notes</label><button id="btnEditNotes" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.toggleEditNotes()"><i class="bi bi-pencil me-1"></i>Edit</button></div><div id="savedNotesDisplay" class="text-dark small">${displayNotes}</div><div id="savedNotesEditArea" style="display:none;"><textarea id="savedNotesInputView" class="form-control text-dark small mb-2" rows="3"></textarea><div class="d-flex gap-2"><button class="btn btn-sm btn-secondary w-50" onclick="window.toggleEditNotes()">Cancel</button><button class="btn btn-sm btn-primary w-50" onclick="window.saveEditedNotes()">Save</button></div></div></div>`;
             setTimeout(() => { const ta = document.getElementById('savedNotesInputView'); if(ta) ta.value = notesContent; }, 0);
             document.getElementById('savedScorecardsList').style.display='none'; document.getElementById('fullScorecardView').style.display='block';
         };
@@ -1265,9 +1316,8 @@
         window.saveActiveSession = function(){
             try {
                 const p = document.getElementById('anglerFishingPage').style.display==='block'?'fishing':(document.getElementById('tallyVerificationPage').style.display==='block'?'tally':'setup');
-                const weatherI = document.getElementById('weatherInput') ? document.getElementById('weatherInput').value : weatherInfo; const windI = document.getElementById('windInput') ? document.getElementById('windInput').value : windInfo; const swellI = document.getElementById('swellInput') ? document.getElementById('swellInput').value : swellInfo;
-                const hwI = document.getElementById('hwTimeInput') ? document.getElementById('hwTimeInput').value : hwTime; const lwI = document.getElementById('lwTimeInput') ? document.getElementById('lwTimeInput').value : lwTime;
-                StorageHelper.save('active_session', JSON.stringify({ phase:p, angler:currentAngler||document.getElementById('anglerName').value, venue:currentVenue||document.getElementById('venueInput').value, coastalTown:coastalTown||(document.getElementById('tideStationSelect') ? document.getElementById('tideStationSelect').options[document.getElementById('tideStationSelect').selectedIndex]?.text : ''), date:currentDate||document.getElementById('competitionDate').value, method:currentScoringMethod, unit:selectedWeightUnit, isComp:document.getElementById('isCompetition').checked, team:document.getElementById('teamInput').value, zone:document.getElementById('zoneInput').value, peg:document.getElementById('pegInput').value, weatherInfo:weatherI, windInfo:windI, swellInfo:swellI, hwTime:hwI, lwTime:lwI, sessionStart:sessionStartTimeStr, fishData }));
+                const weatherI = document.getElementById('weatherInput') ? document.getElementById('weatherInput').value : weatherInfo; const windI = document.getElementById('windInput') ? document.getElementById('windInput').value : windInfo; const waveI = document.getElementById('waveInput') ? document.getElementById('waveInput').value : waveInfo; const swellI = document.getElementById('swellInput') ? document.getElementById('swellInput').value : swellInfo;
+                StorageHelper.save('active_session', JSON.stringify({ phase:p, angler:currentAngler||document.getElementById('anglerName').value, venue:currentVenue||document.getElementById('venueInput').value, coastalTown:coastalTown||(document.getElementById('tideStationSelect') ? document.getElementById('tideStationSelect').options[document.getElementById('tideStationSelect').selectedIndex]?.text : ''), date:currentDate||document.getElementById('competitionDate').value, method:currentScoringMethod, unit:selectedWeightUnit, isComp:document.getElementById('isCompetition').checked, team:document.getElementById('teamInput').value, zone:document.getElementById('zoneInput').value, peg:document.getElementById('pegInput').value, weatherInfo:weatherI, windInfo:windI, waveInfo:waveI, swellInfo:swellI, hwTime:hwTime, lwTime:lwTime, sessionStart:sessionStartTimeStr, fishData }));
             } catch(e) {}
         };
 
@@ -1275,7 +1325,7 @@
 
         window.confirmRestore = function(){
             const s = JSON.parse(StorageHelper.get('active_session')); 
-            fishData=s.fishData||[]; currentAngler=s.angler; currentVenue=s.venue; coastalTown=s.coastalTown||''; currentDate=s.date; currentScoringMethod=s.method; selectedWeightUnit=s.unit; isCompetitionMode=s.isComp; currentTeam=s.team||''; currentZone=s.zone; currentPeg=s.peg; weatherInfo=s.weatherInfo||''; windInfo=s.windInfo||''; swellInfo=s.swellInfo||''; hwTime=s.hwTime||''; lwTime=s.lwTime||''; sessionStartTimeStr=s.sessionStart||'';
+            fishData=s.fishData||[]; currentAngler=s.angler; currentVenue=s.venue; coastalTown=s.coastalTown||''; currentDate=s.date; currentScoringMethod=s.method; selectedWeightUnit=s.unit; isCompetitionMode=s.isComp; currentTeam=s.team||''; currentZone=s.zone; currentPeg=s.peg; weatherInfo=s.weatherInfo||''; windInfo=s.windInfo||''; waveInfo=s.waveInfo||''; swellInfo=s.swellInfo||''; hwTime=s.hwTime||''; lwTime=s.lwTime||''; sessionStartTimeStr=s.sessionStart||'';
             
             document.getElementById('anglerName').value=s.angler; document.getElementById('venueInput').value=s.venue; 
             
@@ -1287,11 +1337,10 @@
                 }
             }
 
-            document.getElementById('scoringMethod').value=s.method; document.getElementById('isCompetition').checked=s.isComp || false; document.getElementById('teamInput').value=s.team || ''; document.getElementById('zoneInput').value=s.zone || ''; document.getElementById('pegInput').value=s.peg || ''; document.getElementById('weatherInput').value=weatherInfo; document.getElementById('windInput').value=windInfo; if(document.getElementById('swellInput')) document.getElementById('swellInput').value=swellInfo;
-            if(document.getElementById('hwTimeInput')) document.getElementById('hwTimeInput').value=hwTime; if(document.getElementById('lwTimeInput')) document.getElementById('lwTimeInput').value=lwTime;
-
+            document.getElementById('scoringMethod').value=s.method; document.getElementById('isCompetition').checked=s.isComp || false; document.getElementById('teamInput').value=s.team || ''; document.getElementById('zoneInput').value=s.zone || ''; document.getElementById('pegInput').value=s.peg || ''; document.getElementById('weatherInput').value=weatherInfo; document.getElementById('windInput').value=windInfo; if(document.getElementById('waveInput')) document.getElementById('waveInput').value=waveInfo; if(document.getElementById('swellInput')) document.getElementById('swellInput').value=swellInfo;
+            
             window.toggleCompetitionFields(); window.populateSpeciesDropdown();
-            if(s.phase==='fishing'){ window.setupFishingUI(); PageManager.show('anglerFishingPage'); window.updateFishLog(); } else if(s.phase==='tally'){ window.endSession(); } else { PageManager.show('anglerRegistration'); }
+            if(s.phase==='fishing'){ window.setupFishingUI(); PageManager.show('anglerFishingPage'); window.updateFishLog(); } else if(s.phase==='tally'){ window.endSession(); } else { PageManager.show('anglerRegistration'); if(hwTime && lwTime) { document.getElementById('setupTideChartContainer').style.display = 'block'; try { window.drawTideGraph('setupTideCanvas', hwTime, lwTime, [], sessionStartTimeStr); } catch(e) {} } }
         };
 
         window.populateSpeciesDropdown = function() { const e = document.getElementById('speciesInput'); e.innerHTML='<option value="" selected disabled>Select Fish...</option><option value="Other">Other (Manual Entry)</option>'; speciesList.forEach(g => { const grp = document.createElement('optgroup'); grp.label = g.category; g.items.sort().forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; grp.appendChild(o); }); e.appendChild(grp); }); };
