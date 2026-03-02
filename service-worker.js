@@ -1,5 +1,5 @@
-// VERSION 167 - OPEN-METEO MATHEMATICAL TIDE ENGINE
-const CACHE_NAME = 'sea-score-v167';
+// VERSION 168 - SMART HUB (VENUE TO COORDINATES + MATH TIDES)
+const CACHE_NAME = 'sea-score-v168';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
