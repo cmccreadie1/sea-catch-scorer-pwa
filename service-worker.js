@@ -1,7 +1,6 @@
-// VERSION 177 - DENSITY HISTOGRAM TIDE GRAPH
-const CACHE_NAME = 'sea-score-v177';
+// VERSION 178 - ANTI-CRASH GRAPH SHIELD
+const CACHE_NAME = 'sea-score-v178';
 
-// The essential files to load the app immediately
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -15,7 +14,6 @@ const FILES_TO_CACHE = [
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
-// INSTALL
 self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(
@@ -25,7 +23,6 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// ACTIVATE
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
@@ -39,7 +36,6 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(clients.claim());
 });
 
-// FETCH
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((response) => {
