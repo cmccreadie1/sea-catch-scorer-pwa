@@ -199,7 +199,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 181.0 - Anti-Crash Hub</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 182.0 - Internet Hub</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -224,22 +224,22 @@
             <div class="row g-2">
                 <div class="col-6"><label class="form-label small mb-1">Date</label><input type="date" id="competitionDate" class="form-control" onchange="window.saveActiveSession()"></div>
                 <div class="col-6">
-                    <label class="form-label small mb-1">Venue (Personal Note)</label>
-                    <input type="text" id="venueInput" class="form-control" placeholder="e.g. Secret Spot 4" oninput="window.saveActiveSession()">
+                    <label class="form-label small mb-1 text-primary fw-bold">Venue (Location)</label>
+                    <input type="text" id="venueInput" class="form-control border-primary" placeholder="e.g. Arbroath" oninput="window.saveActiveSession()">
                 </div>
             </div>
         </div>
 
         <div class="inner-card p-3 mb-2 border-primary">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="form-label small mb-0 text-primary fw-bold"><i class="bi bi-geo-alt-fill me-1"></i>Live Environment</label>
+                <label class="form-label small mb-0 text-primary fw-bold"><i class="bi bi-globe me-1"></i>Web Data Search</label>
                 <button class="btn btn-sm btn-primary py-1 px-3 fw-bold shadow-sm" onclick="window.fetchEnvironmentData()" id="btnFetchEnv">
                     Fetch Data
                 </button>
             </div>
             
-            <div class="small mb-3" style="font-size: 0.65rem; font-weight: 600; color: #ef4444 !important; line-height: 1.2;">
-                * Only fetch data once you are at the venue to obtain accurate data as GPS is used.
+            <div class="small mb-3 text-muted" style="font-size: 0.65rem; line-height: 1.2;">
+                * Type a location in the <strong>Venue</strong> box above and tap Fetch Data. The app will search the internet for the nearest coastal area to generate the tide table. A phone signal is required.
             </div>
             
             <div class="row g-2 mb-2">
@@ -420,117 +420,115 @@
             new bootstrap.Toast(t).show();
         };
 
-        // --- STRICT GPS FETCH ENGINE ---
-        window.fetchEnvironmentData = function() {
+        // --- NEW: INTERNET SEARCH DATA ENGINE ---
+        window.fetchEnvironmentData = async function() {
             const btn = document.getElementById('btnFetchEnv');
+            const venueText = document.getElementById('venueInput').value.trim();
             const originalText = btn.innerHTML;
             
             if (!navigator.onLine) return window.showAppToast("You are offline.", true);
-            if (!navigator.geolocation) return window.showAppToast("GPS not supported.", true);
+            if (venueText === "") return window.showAppToast("Please type a location in the Venue box first to search the internet.", true);
 
-            btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Fetching...';
+            btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Searching...';
             btn.disabled = true;
 
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                const lat = pos.coords.latitude;
-                const lon = pos.coords.longitude;
+            try {
+                // 1. Search the Internet for the Venue Coordinates via WeatherAPI
+                const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(venueText)}`);
+                const weatherData = await weatherRes.json();
                 
-                try {
-                    const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`);
-                    const weatherData = await weatherRes.json();
-                    
-                    if (weatherData.error) throw new Error(weatherData.error.message);
-                    
-                    document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
-                    document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
+                if (weatherData.error) throw new Error("Location not found: " + weatherData.error.message);
 
-                    const lats = `${lat},${lat+0.05},${lat-0.05},${lat},${lat}`;
-                    const lons = `${lon},${lon},${lon},${lon+0.08},${lon-0.08}`;
-                    
-                    const marineRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=sea_level,wave_height,swell_wave_height&timezone=auto`);
-                    const marineDataArray = await marineRes.json();
-                    
-                    let validData = null;
-                    let dataList = Array.isArray(marineDataArray) ? marineDataArray : [marineDataArray];
-                    
-                    for (let d of dataList) {
-                        if (d && d.hourly && d.hourly.sea_level && d.hourly.sea_level.some(v => v !== null)) {
-                            validData = d; 
-                            break;
-                        }
+                const lat = weatherData.location.lat;
+                const lon = weatherData.location.lon;
+                
+                document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
+                document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
+
+                // 2. Wide-Net Coastal Search for Tides and Swell (Searches ~22km around the town center)
+                const lats = `${lat},${lat+0.1},${lat-0.1},${lat},${lat},${lat+0.2},${lat-0.2},${lat},${lat}`;
+                const lons = `${lon},${lon},${lon},${lon+0.1},${lon-0.1},${lon},${lon},${lon+0.2},${lon-0.2}`;
+                
+                const marineRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=sea_level,wave_height,swell_wave_height&timezone=auto`);
+                const marineDataArray = await marineRes.json();
+                
+                let validData = null;
+                let dataList = Array.isArray(marineDataArray) ? marineDataArray : [marineDataArray];
+                
+                // Find the first successful ocean coordinate response
+                for (let d of dataList) {
+                    if (d && d.hourly && d.hourly.sea_level && d.hourly.sea_level.some(v => v !== null)) {
+                        validData = d; 
+                        break;
                     }
-
-                    if(validData) {
-                        const times = validData.hourly.time;
-                        const now = new Date();
-                        let closestIdx = 0; let minDiff = Infinity;
-                        
-                        times.forEach((t, idx) => {
-                            let diff = Math.abs(new Date(t) - now);
-                            if(diff < minDiff) { minDiff = diff; closestIdx = idx; }
-                        });
-                        
-                        let waveH = validData.hourly.wave_height[closestIdx];
-                        let swellH = validData.hourly.swell_wave_height[closestIdx];
-                        
-                        if(waveH !== null && waveH !== undefined && swellH !== null && swellH !== undefined) {
-                            document.getElementById('swellInput').value = `W: ${waveH.toFixed(1)}m / S: ${swellH.toFixed(1)}m`;
-                        } else if (waveH !== null && waveH !== undefined) {
-                            document.getElementById('swellInput').value = `Waves: ${waveH.toFixed(1)}m`;
-                        } else {
-                            document.getElementById('swellInput').value = `Flat / No Data`;
-                        }
-
-                        const levels = validData.hourly.sea_level;
-                        const extremes = [];
-                        
-                        for(let i = 3; i < levels.length - 3; i++) {
-                            let curr = levels[i];
-                            if(curr === null) continue;
-                            let isMax = true, isMin = true;
-                            for(let j = i - 3; j <= i + 3; j++) {
-                                if(i === j) continue;
-                                if(levels[j] >= curr) isMax = false;
-                                if(levels[j] <= curr) isMin = false;
-                            }
-                            if(isMax) extremes.push({ type: 'High', time: new Date(times[i]) });
-                            if(isMin) extremes.push({ type: 'Low', time: new Date(times[i]) });
-                        }
-                        
-                        const today = new Date().toDateString();
-                        const todaysTides = extremes.filter(t => t.time.toDateString() === today);
-                        todaysTides.sort((a,b) => a.time - b.time);
-
-                        if(todaysTides.length >= 2) {
-                            let hw = todaysTides.find(t => t.type === 'High');
-                            let lw = todaysTides.find(t => t.type === 'Low');
-                            
-                            if(hw) document.getElementById('hwTimeInput').value = hw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
-                            if(lw) document.getElementById('lwTimeInput').value = lw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
-                        }
-                        window.showAppToast("Environment Data Loaded!");
-                    } else {
-                        document.getElementById('swellInput').value = 'Inland';
-                        window.showAppToast("Weather loaded. GPS is inland, enter tides manually.", true);
-                    }
-                    
-                    window.saveActiveSession();
-                    btn.innerHTML = originalText; 
-                    btn.disabled = false;
-                    
-                } catch (err) {
-                    window.showAppToast("Error fetching data: " + err.message, true);
-                    btn.innerHTML = originalText; 
-                    btn.disabled = false;
                 }
-            }, (err) => {
-                window.showAppToast("Unable to get GPS location.", true);
+
+                if(validData) {
+                    const times = validData.hourly.time;
+                    const now = new Date();
+                    let closestIdx = 0; let minDiff = Infinity;
+                    
+                    times.forEach((t, idx) => {
+                        let diff = Math.abs(new Date(t) - now);
+                        if(diff < minDiff) { minDiff = diff; closestIdx = idx; }
+                    });
+                    
+                    let waveH = validData.hourly.wave_height[closestIdx];
+                    let swellH = validData.hourly.swell_wave_height[closestIdx];
+                    
+                    if(waveH !== null && waveH !== undefined && swellH !== null && swellH !== undefined) {
+                        document.getElementById('swellInput').value = `W: ${waveH.toFixed(1)}m / S: ${swellH.toFixed(1)}m`;
+                    } else if (waveH !== null && waveH !== undefined) {
+                        document.getElementById('swellInput').value = `Waves: ${waveH.toFixed(1)}m`;
+                    } else {
+                        document.getElementById('swellInput').value = `Flat / No Data`;
+                    }
+
+                    const levels = validData.hourly.sea_level;
+                    const extremes = [];
+                    
+                    for(let i = 3; i < levels.length - 3; i++) {
+                        let curr = levels[i];
+                        if(curr === null) continue;
+                        let isMax = true, isMin = true;
+                        for(let j = i - 3; j <= i + 3; j++) {
+                            if(i === j) continue;
+                            if(levels[j] >= curr) isMax = false;
+                            if(levels[j] <= curr) isMin = false;
+                        }
+                        if(isMax) extremes.push({ type: 'High', time: new Date(times[i]) });
+                        if(isMin) extremes.push({ type: 'Low', time: new Date(times[i]) });
+                    }
+                    
+                    const today = new Date().toDateString();
+                    const todaysTides = extremes.filter(t => t.time.toDateString() === today);
+                    todaysTides.sort((a,b) => a.time - b.time);
+
+                    if(todaysTides.length >= 2) {
+                        let hw = todaysTides.find(t => t.type === 'High');
+                        let lw = todaysTides.find(t => t.type === 'Low');
+                        
+                        if(hw) document.getElementById('hwTimeInput').value = hw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
+                        if(lw) document.getElementById('lwTimeInput').value = lw.time.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
+                    }
+                    window.showAppToast("Internet Data Downloaded!");
+                } else {
+                    document.getElementById('swellInput').value = 'Inland';
+                    window.showAppToast("Weather loaded, but coastal data was too far away to calculate.", true);
+                }
+                
+                window.saveActiveSession();
+                btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
+                setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+                
+            } catch (err) {
+                window.showAppToast("Search Error: " + err.message, true);
                 btn.innerHTML = originalText; 
                 btn.disabled = false;
-            }, { enableHighAccuracy: false, timeout: 10000 });
+            }
         };
 
-        // --- NEW: THE TIMELINE TIDE ENGINE ---
+        // --- MATH ENGINE FOR TIMELINE AND DOTS ---
         window.drawTideGraph = function(canvasId, hwStr, lwStr, fishArray) {
             try {
                 const canvas = document.getElementById(canvasId);
@@ -540,7 +538,7 @@
                 
                 const isDark = document.body.classList.contains('dark-mode');
                 
-                // Draw solid background so it looks perfect when clicked and expanded
+                // Solid background
                 ctx.fillStyle = isDark ? '#1e293b' : '#ffffff';
                 ctx.fillRect(0, 0, w, h);
 
@@ -572,12 +570,12 @@
                 let range = maxT - minT;
                 if(range <= 0) range = 1;
 
-                const graphBottom = h - 25; // Leave space for X-axis labels
+                const graphBottom = h - 25; 
                 const graphTop = 20; 
                 const amp = (graphBottom - graphTop) / 2;
                 const midY = graphTop + amp;
 
-                // Draw X-Axis Line
+                // X-Axis Line
                 ctx.beginPath();
                 ctx.strokeStyle = gridColor;
                 ctx.lineWidth = 2;
@@ -605,7 +603,6 @@
                 }
                 ctx.stroke();
 
-                // Axis Marker Helper Function
                 const drawAxisMarker = (timeM, label, isTide = false) => {
                     let x = ((timeM - minT) / range) * w;
                     
@@ -668,7 +665,6 @@
                         ctx.stroke();
                         ctx.setLineDash([]);
 
-                        // Fish Time on X-Axis (Skip if it overlaps HW/LW text)
                         let distToHW = Math.abs(x - (((hwM - minT)/range)*w));
                         let distToLW = Math.abs(x - (((lwM - minT)/range)*w));
                         if (distToHW > 25 && distToLW > 25) { 
