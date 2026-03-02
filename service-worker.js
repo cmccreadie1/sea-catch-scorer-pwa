@@ -1,5 +1,5 @@
-// VERSION 180 - TIMELINE GRAPH & STRICT GPS FETCH
-const CACHE_NAME = 'sea-score-v180';
+// VERSION 181 - BEGIN SESSION BUTTON FIX
+const CACHE_NAME = 'sea-score-v181';
 
 const FILES_TO_CACHE = [
   './',
