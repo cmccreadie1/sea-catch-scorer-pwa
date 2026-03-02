@@ -1,5 +1,5 @@
-// VERSION 194 - SPLIT-TARGET FETCH ENGINE
-const CACHE_NAME = 'sea-score-v194';
+// VERSION 195 - NULL PROPERTY CRASH FIX & GRID SEPARATION
+const CACHE_NAME = 'sea-score-v195';
 
 const FILES_TO_CACHE = [
   './',
