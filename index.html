@@ -199,7 +199,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 180.0 - Timeline Graph</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 181.0 - Anti-Crash Hub</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -826,9 +826,7 @@
             
             if(hwTime && lwTime) {
                 document.getElementById('liveTideChartContainer').style.display = 'block';
-                document.getElementById('liveHwBadge').innerText = `HW: ${hwTime}`;
-                document.getElementById('liveLwBadge').innerText = `LW: ${lwTime}`;
-                try { window.drawTideGraph('liveTideCanvas', hwTime, lwTime, fishData); } catch(e) {}
+                try { window.drawTideGraph('liveTideCanvas', hwTime, lwTime, fishData); } catch(e) { console.log(e); }
             }
         };
 
@@ -996,9 +994,12 @@
                 setTimeout(() => { try { window.drawTideGraph('historyTideCanvas', d.hwTime, d.lwTime, d.fishData); } catch(e){} }, 200);
             } else { document.getElementById('historyTideChartContainer').style.display = 'none'; }
 
+            let systemHWLW = '';
+            if(d.hwTime && d.lwTime) systemHWLW = `<div class="mb-2"><strong class="text-primary d-block mb-1"><i class="bi bi-graph-up me-1"></i>Tide Cycle:</strong><span class="ms-4 small">HW: ${d.hwTime} | LW: ${d.lwTime}</span></div>`;
+
             const notesContent = d.notes || ''; const displayNotes = notesContent.trim() !== '' ? notesContent.replace(/\n/g, '<br>') : '<em>No notes added yet.</em>';
             const notesContainer = document.getElementById('saved_view_notes_container');
-            notesContainer.innerHTML = `<div class="inner-card mt-3 p-3 border shadow-sm"><div class="d-flex justify-content-between align-items-center mb-2"><label class="form-label small fw-bold text-muted m-0"><i class="bi bi-journal-text me-1"></i>Session Notes</label><button id="btnEditNotes" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.toggleEditNotes()"><i class="bi bi-pencil me-1"></i>Edit</button></div><div id="savedNotesDisplay" class="text-dark small">${displayNotes}</div><div id="savedNotesEditArea" style="display:none;"><textarea id="savedNotesInputView" class="form-control text-dark small mb-2" rows="3"></textarea><div class="d-flex gap-2"><button class="btn btn-sm btn-secondary w-50" onclick="window.toggleEditNotes()">Cancel</button><button class="btn btn-sm btn-primary w-50" onclick="window.saveEditedNotes()">Save</button></div></div></div>`;
+            notesContainer.innerHTML = `<div class="inner-card mt-3 p-3 border shadow-sm">${systemHWLW}<div class="d-flex justify-content-between align-items-center mb-2"><label class="form-label small fw-bold text-muted m-0"><i class="bi bi-journal-text me-1"></i>Session Notes</label><button id="btnEditNotes" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.toggleEditNotes()"><i class="bi bi-pencil me-1"></i>Edit</button></div><div id="savedNotesDisplay" class="text-dark small">${displayNotes}</div><div id="savedNotesEditArea" style="display:none;"><textarea id="savedNotesInputView" class="form-control text-dark small mb-2" rows="3"></textarea><div class="d-flex gap-2"><button class="btn btn-sm btn-secondary w-50" onclick="window.toggleEditNotes()">Cancel</button><button class="btn btn-sm btn-primary w-50" onclick="window.saveEditedNotes()">Save</button></div></div></div>`;
             setTimeout(() => { const ta = document.getElementById('savedNotesInputView'); if(ta) ta.value = notesContent; }, 0);
             document.getElementById('savedScorecardsList').style.display='none'; document.getElementById('fullScorecardView').style.display='block';
         };
