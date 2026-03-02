@@ -60,7 +60,6 @@
         
         h1, h2, h3, h4, .btn, .modal-title { font-family: 'Poppins', sans-serif; }
 
-        /* STRICT DARK MODE INPUT OVERRIDES */
         .dark-mode .text-dark { color: #f8fafc !important; }
         .dark-mode .text-primary { color: var(--app-blue) !important; }
         .dark-mode .bg-light { background-color: #0f172a !important; }
@@ -221,9 +220,13 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 201.0</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 202.0</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
+            <button id="btnInstallApp" class="btn btn-warning fw-bold py-3 shadow-lg" style="display:none; color: #0f172a;" onclick="window.installApp()">
+                <i class="bi bi-download me-2"></i>Install App to Phone
+            </button>
+
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
             <div class="row g-2">
                 <div class="col-6"><button class="btn btn-outline-light w-100 py-3" onclick="window.loadSavedScorecards()" data-bs-toggle="modal" data-bs-target="#savedModal">History</button></div>
@@ -292,6 +295,9 @@
             <div class="mb-3">
                 <label class="form-label small mb-1 fw-bold text-dark">Nearest UK Coastal Station</label>
                 <div class="input-group shadow-sm">
+                    <button class="btn btn-outline-info px-3" onclick="window.autoLocateStation()" id="btnAutoLocate" title="Find nearest station via GPS">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </button>
                     <select id="tideStationSelect" class="form-select border-info" onchange="window.saveActiveSession()"></select>
                     <button class="btn btn-info text-white fw-bold px-3" onclick="window.fetchEnvironmentData()" id="btnFetchEnv">
                         <i class="bi bi-search me-1"></i> Fetch
@@ -377,9 +383,9 @@
             <div class="text-muted"><span id="session_date"></span> • <span id="session_venue"></span></div>
             <div id="session_live_conditions" class="mt-2 d-flex flex-wrap justify-content-center gap-1"></div>
             <div id="session_comp_details" class="mt-3 d-flex flex-wrap justify-content-center gap-2" style="display:none;">
-                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Team: <span id="session_team"></span></span>
-                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Zone: <span id="session_zone"></span></span>
-                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Peg: <span id="session_peg"></span></span>
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6 border border-primary border-opacity-25">Team: <span id="session_team"></span></span>
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6 border border-primary border-opacity-25">Zone: <span id="session_zone"></span></span>
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6 border border-primary border-opacity-25">Peg: <span id="session_peg"></span></span>
             </div>
         </div>
         
@@ -415,7 +421,7 @@
         <div id="savedScorecardsList"><button class="btn btn-success w-100 mb-4 shadow-sm fw-bold" onclick="window.exportToCSV()"><i class="bi bi-file-earmark-spreadsheet me-2"></i> Export to Spreadsheet (CSV)</button><h6 class="text-muted small text-uppercase fw-bold mb-3 ps-1">Recent Sessions</h6><div id="recentList"></div><div id="archiveSection" style="display:none;" class="mt-4 border-top pt-3"><button id="btnToggleArchive" class="btn btn-light w-100 fw-bold text-muted shadow-sm mb-3" onclick="document.getElementById('archiveList').style.display='block'; this.style.display='none';"><i class="bi bi-archive me-2"></i> View Archive (<span id="archiveCount">0</span>)</button><div id="archiveList" style="display:none;"></div></div></div>
         
         <div id="fullScorecardView" style="display:none;">
-            <div class="inner-card p-3 mb-3 text-center"><h4 id="saved_view_angler" class="text-primary fw-bold m-0"></h4><div class="text-muted small"><span id="saved_view_date"></span> • <span id="saved_view_venue"></span></div><div id="saved_view_conditions" class="mt-2 d-flex flex-wrap justify-content-center gap-1"></div><div id="saved_view_comp_details" class="mt-3 d-flex flex-wrap justify-content-center gap-2" style="display:none;"><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Team: <span id="saved_view_team"></span></span><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Zone: <span id="saved_view_zone"></span></span><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6">Peg: <span id="saved_view_peg"></span></span></div></div>
+            <div class="inner-card p-3 mb-3 text-center"><h4 id="saved_view_angler" class="text-primary fw-bold m-0"></h4><div class="text-muted small"><span id="saved_view_date"></span> • <span id="saved_view_venue"></span></div><div id="saved_view_conditions" class="mt-2 d-flex flex-wrap justify-content-center gap-1"></div><div id="saved_view_comp_details" class="mt-3 d-flex flex-wrap justify-content-center gap-2" style="display:none;"><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6 border border-primary border-opacity-25">Team: <span id="saved_view_team"></span></span><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6 border border-primary border-opacity-25">Zone: <span id="saved_view_zone"></span></span><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6 border border-primary border-opacity-25">Peg: <span id="saved_view_peg"></span></span></div></div>
             
             <div class="live-score-box"><div class="small text-muted text-uppercase fw-bold mb-1">Final Score</div><div id="saved_view_points" class="live-score-value">0</div></div>
 
@@ -472,12 +478,37 @@
         let sessionStartTimeStr = ''; 
         let pendingRestoreData = null; 
         
+        // PWA Install Prompt Variable
+        let deferredPrompt;
+
+        // V202: Global variable to hold a fish being edited
+        let editingOriginalFish = null;
+        
         const badgeStyle = "background: rgba(14, 165, 233, 0.1); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3); padding: 5px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; margin: 2px; display: inline-block;";
 
         const PageManager={ show:function(id){ document.querySelectorAll('.app-page').forEach(p=>p.style.display='none'); document.getElementById('splashScreen').style.display='none'; document.getElementById(id).style.display='block'; window.scrollTo(0,0); } };
         const StorageHelper={ save: function(k,v) { try { localStorage.setItem(k,v); } catch(e) { console.error("Storage limit reached", e); throw new Error("QUOTA_EXCEEDED"); } }, get: (k) => localStorage.getItem(k), remove: (k) => localStorage.removeItem(k), getAll: () => ({...localStorage}) };
 
-        if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('service-worker.js').then(function(registration) { console.log('ServiceWorker registration successful'); }, function(err) { console.log('ServiceWorker registration failed: ', err); }); }); }
+        if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('service-worker.js').then(function() {}, function() {}); }); }
+
+        // PWA INSTALL LOGIC
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBtn = document.getElementById('btnInstallApp');
+            if (installBtn) installBtn.style.display = 'block';
+        });
+
+        window.installApp = async function() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('btnInstallApp').style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        };
 
         window.showAppToast = function(msg, isError = false) {
             const t = document.getElementById('appToast');
@@ -501,6 +532,62 @@
                 });
                 select.appendChild(grp);
             });
+        };
+
+        // NEW: AUTO LOCATE GPS
+        window.autoLocateStation = function() {
+            const btn = document.getElementById('btnAutoLocate');
+            if (!navigator.geolocation) return window.showAppToast("GPS not supported on this device.", true);
+            
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i>';
+            btn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const userLat = pos.coords.latitude;
+                const userLon = pos.coords.longitude;
+                let closestStation = null;
+                let minDistance = Infinity;
+
+                const dist = (lat1, lon1, lat2, lon2) => {
+                    const R = 6371; 
+                    const dLat = (lat2 - lat1) * Math.PI / 180;
+                    const dLon = (lon2 - lon1) * Math.PI / 180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                              Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    return R * c;
+                };
+
+                tideStations.forEach(region => {
+                    region.stations.forEach(station => {
+                        const d = dist(userLat, userLon, station.lat, station.lon);
+                        if (d < minDistance) {
+                            minDistance = d;
+                            closestStation = station;
+                        }
+                    });
+                });
+
+                if (closestStation) {
+                    const select = document.getElementById('tideStationSelect');
+                    const targetVal = `${closestStation.lat},${closestStation.lon}`;
+                    for(let i=0; i<select.options.length; i++) {
+                        if(select.options[i].value === targetVal) {
+                            select.selectedIndex = i;
+                            break;
+                        }
+                    }
+                    window.showAppToast(`Found nearest: ${closestStation.name}`);
+                    window.saveActiveSession();
+                }
+                btn.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+                setTimeout(() => { btn.innerHTML = originalIcon; btn.disabled = false; }, 2000);
+            }, (err) => {
+                window.showAppToast("GPS error: " + err.message, true);
+                btn.innerHTML = originalIcon; btn.disabled = false;
+            }, { timeout: 10000 });
         };
 
         window.fetchEnvironmentData = async function() {
@@ -578,7 +665,6 @@
             }
         };
 
-        // --- HIGH-RESOLUTION RETINA GRAPH ENGINE ---
         window.drawTideGraph = function(canvasId, hwStr, lwStr, fishArray, startStr) {
             try {
                 const canvas = document.getElementById(canvasId);
@@ -586,7 +672,6 @@
                 
                 const ctx = canvas.getContext('2d');
                 
-                // Scale internal pixel density for high resolution, keep layout size native
                 const scale = 3;
                 const logicalW = 340; 
                 const logicalH = 150; 
@@ -778,7 +863,6 @@
             }
         };
 
-        // --- HACK TO UNLOCK PINCH-TO-ZOOM FOR FULLSCREEN NATIVE VIEW ---
         window.viewImg = function(s) {
             document.getElementById('nativeFullImage').src = s;
             document.getElementById('nativeImageViewer').style.display = 'block';
@@ -891,7 +975,7 @@
         };
 
         window.resetAppToHome = function() {
-            fishData = []; currentScoringMethod = ''; isCompetitionMode = false; currentZone = ''; currentPeg = ''; currentTeam = ''; currentVenue = ''; coastalTown = ''; currentSavedKey = ''; weatherInfo = ''; windInfo = ''; swellInfo = ''; waveInfo = ''; hwTime = ''; lwTime = ''; sessionStartTimeStr = '';
+            fishData = []; currentScoringMethod = ''; isCompetitionMode = false; currentZone = ''; currentPeg = ''; currentTeam = ''; currentVenue = ''; coastalTown = ''; currentSavedKey = ''; weatherInfo = ''; windInfo = ''; swellInfo = ''; waveInfo = ''; hwTime = ''; lwTime = ''; sessionStartTimeStr = ''; editingOriginalFish = null;
             document.getElementById('venueInput').value = ''; if(document.getElementById('coastalTownInput')) document.getElementById('coastalTownInput').selectedIndex = 0; document.getElementById('scoringMethod').selectedIndex = 0; document.getElementById('isCompetition').checked = false; document.getElementById('teamInput').value = ''; document.getElementById('zoneInput').selectedIndex = 0; document.getElementById('pegInput').selectedIndex = 0; document.getElementById('sessionNotesInput').value = '';
             document.getElementById('weatherInput').value = ''; document.getElementById('windInput').value = ''; document.getElementById('swellInput').value = ''; document.getElementById('waveInput').value = ''; 
             if(document.getElementById('fishLengthInput')) document.getElementById('fishLengthInput').value = '';
@@ -902,6 +986,54 @@
             window.toggleCompetitionFields(); window.toggleCustomSpeciesInput();
             const cols = ['pickerCol1','pickerCol2']; cols.forEach(c => { const el = document.getElementById(c); if(el) { el.scrollTop = 0; window.updatePickerDisplay(c); } });
             PageManager.show('splashScreen'); StorageHelper.remove('active_session');
+        };
+
+        window.setWeightPicker = function(raw, unit) {
+            let v1 = 0, v2 = 0;
+            if(unit === 'metric') {
+                v1 = Math.floor(raw);
+                v2 = Math.round((raw - v1) * 1000); 
+            } else {
+                v1 = Math.floor(raw / 16); 
+                v2 = Math.round(raw % 16); 
+            }
+            const c1 = document.getElementById('pickerCol1');
+            const c2 = document.getElementById('pickerCol2');
+            
+            const i1 = Array.from(c1.querySelectorAll('.picker-item')).findIndex(el => parseFloat(el.dataset.val) === v1);
+            let valToFind2 = unit === 'metric' ? v2/1000 : v2;
+            const i2 = Array.from(c2.querySelectorAll('.picker-item')).findIndex(el => Math.abs(parseFloat(el.dataset.val) - valToFind2) < 0.001);
+            
+            if(i1 !== -1 && c1) c1.scrollTop = Math.max(0, i1 * 50);
+            if(i2 !== -1 && c2) c2.scrollTop = Math.max(0, i2 * 50);
+            
+            setTimeout(()=>{ window.updatePickerDisplay('pickerCol1'); window.updatePickerDisplay('pickerCol2'); }, 50);
+        };
+
+        window.editFish = function(index) {
+            const fishToEdit = fishData.splice(index, 1)[0];
+            editingOriginalFish = fishToEdit; 
+            
+            let speciesFound = false;
+            const select = document.getElementById("speciesInput");
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value === fishToEdit.species) { select.selectedIndex = i; speciesFound = true; break; }
+            }
+            if (!speciesFound) {
+                select.value = "Other"; document.getElementById("customSpeciesInput").value = fishToEdit.species;
+            }
+            window.toggleCustomSpeciesInput();
+
+            if (currentScoringMethod === 'measure_points' || currentScoringMethod === 'length_only') {
+                document.getElementById('fishLengthInput').value = fishToEdit.length || "";
+            } else if (currentScoringMethod === 'weight') {
+                window.setWeightPicker(fishToEdit.raw, selectedWeightUnit);
+            }
+            
+            window.updateFishLog();
+            window.saveActiveSession();
+            window.showAppToast("Catch loaded. Make changes and hit Record.");
+            window.scrollTo(0, 0);
         };
 
         window.initWeightPicker = function() {
@@ -973,13 +1105,23 @@
             const spIn = document.getElementById('speciesInput'); let species = spIn.value === "Other" ? document.getElementById('customSpeciesInput').value.trim() : spIn.value;
             if(!species) { alert("Select species."); return null; }
             
-            const catchTime = new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
-            if(currentScoringMethod==='weight') return { species, time: catchTime, ...window.getPickerValue() };
-            if(currentScoringMethod==='species_hunt') return { species, time: catchTime, length: 0 };
-            
-            const len = window.getLengthPickerValue(); 
-            if(isNaN(len) || len <= 0) { alert("Enter a valid length number."); return null; } 
-            return { species, time: catchTime, length: len };
+            let catchTime = editingOriginalFish ? editingOriginalFish.time : new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit', hour12: false});
+            let photoData = editingOriginalFish ? editingOriginalFish.photo : undefined;
+
+            let resultObj = null;
+
+            if(currentScoringMethod==='weight') {
+                resultObj = { species, time: catchTime, ...window.getPickerValue() };
+            } else if(currentScoringMethod==='species_hunt') {
+                resultObj = { species, time: catchTime, length: 0 };
+            } else {
+                const len = window.getLengthPickerValue(); 
+                if(isNaN(len) || len <= 0) { alert("Enter a valid length number."); return null; } 
+                resultObj = { species, time: catchTime, length: len };
+            }
+
+            if (photoData) resultObj.photo = photoData;
+            return resultObj;
         };
 
         window.addFishTextOnly = function() { const d = window.validateInputs(); if(d) { fishData.push(d); finishAddAction(); } };
@@ -994,6 +1136,7 @@
         };
 
         function finishAddAction() {
+            editingOriginalFish = null;
             window.updateFishLog(); const firstRow = document.querySelector('#fishLog tr:first-child'); if(firstRow) firstRow.classList.add('new-catch-anim');
             document.getElementById("speciesInput").selectedIndex = 0; document.getElementById("customSpeciesInput").value = ""; window.toggleCustomSpeciesInput(); 
             if(currentScoringMethod === 'weight') { const c1 = document.getElementById('pickerCol1'); const c2 = document.getElementById('pickerCol2'); if(c1) c1.scrollTop = 0; if(c2) c2.scrollTop = 0; setTimeout(()=>{ window.updatePickerDisplay('pickerCol1'); window.updatePickerDisplay('pickerCol2'); }, 50); }
@@ -1030,7 +1173,11 @@
                 const displayHTML = currentScoringMethod === 'species_hunt' ? `<span class="${lblInfo.cls}">${lblInfo.text}</span>` : `<div class="${lblInfo.cls}">${lblInfo.text}</div>`;
                 const ph = f.photo ? `<img src="${f.photo}" class="fish-thumb ms-3" onclick="window.viewImg('${f.photo}')">` : '';
                 const timeBadge = f.time ? `<span class="badge bg-light text-secondary ms-2 fw-normal" style="font-size: 0.7rem;"><i class="bi bi-clock"></i> ${f.time}</span>` : '';
-                tr.innerHTML = `<td><div class="d-flex align-items-center justify-content-between"><div><div class="fw-bold text-dark">${f.species} ${timeBadge}</div>${displayHTML}</div>${ph}</div></td><td class="text-end align-middle" style="width: 50px;"><button class="btn btn-sm text-danger border-0" onclick="window.delFish(${originalIndex})"><i class="bi bi-trash fs-5"></i></button></td>`;
+                tr.innerHTML = `<td><div class="d-flex align-items-center justify-content-between"><div><div class="fw-bold text-dark">${f.species} ${timeBadge}</div>${displayHTML}</div>${ph}</div></td>
+                <td class="text-end align-middle" style="width: 80px; white-space: nowrap;">
+                    <button class="btn btn-sm text-primary border-0 me-1 p-1" onclick="window.editFish(${originalIndex})"><i class="bi bi-pencil fs-5"></i></button>
+                    <button class="btn btn-sm text-danger border-0 p-1" onclick="window.delFish(${originalIndex})"><i class="bi bi-trash fs-5"></i></button>
+                </td>`;
                 log.appendChild(tr);
             });
             document.getElementById('liveScoreVal').textContent = window.calculatePoints(fishData, currentScoringMethod);
