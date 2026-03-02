@@ -1,5 +1,5 @@
-// VERSION 186 - EXPLICIT COASTAL SEARCH HUB
-const CACHE_NAME = 'sea-score-v186';
+// VERSION 187 - DUAL-CONCURRENT API SEARCH ENGINE
+const CACHE_NAME = 'sea-score-v187';
 
 const FILES_TO_CACHE = [
   './',
