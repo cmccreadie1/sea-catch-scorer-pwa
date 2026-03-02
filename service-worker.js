@@ -1,5 +1,5 @@
-// VERSION 171 - SEA-CELL FORCED TIDE ENGINE
-const CACHE_NAME = 'sea-score-v171';
+// VERSION 172 - OFFLINE TIDE CURVE PLOTTER
+const CACHE_NAME = 'sea-score-v172';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
@@ -15,37 +15,29 @@ const FILES_TO_CACHE = [
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
-// INSTALL: Download the essential files to the phone
+// INSTALL
 self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(FILES_TO_CACHE);
-    })
-  );
+  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE)));
 });
 
-// ACTIVATE: Delete any old caches so they don't clog up the phone's storage
+// ACTIVATE
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME) {
-          return caches.delete(key);
-        }
+        if (key !== CACHE_NAME) return caches.delete(key);
       }));
     })
   );
   e.waitUntil(clients.claim());
 });
 
-// FETCH: Try the cache first. If not found, get from network AND save to cache for next time.
+// FETCH
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((response) => {
-      if (response) {
-        return response;
-      }
+      if (response) return response;
       return fetch(e.request).then((fetchResponse) => {
         return caches.open(CACHE_NAME).then((cache) => {
           if (e.request.url.startsWith('http') && e.request.method === 'GET') {
@@ -54,8 +46,6 @@ self.addEventListener('fetch', (e) => {
           return fetchResponse;
         });
       });
-    }).catch(() => {
-      console.log('Offline and resource not found in cache:', e.request.url);
-    })
+    }).catch(() => console.log('Offline and resource not found in cache:', e.request.url))
   );
 });
