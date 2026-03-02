@@ -1,5 +1,5 @@
-// VERSION 183 - SMART FETCH & COASTAL SNAPPER FIX
-const CACHE_NAME = 'sea-score-v183';
+// VERSION 184 - RADAR NET TIDE ALGORITHM
+const CACHE_NAME = 'sea-score-v184';
 
 const FILES_TO_CACHE = [
   './',
