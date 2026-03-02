@@ -268,7 +268,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 167.0 - Calculated Tides</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 168.0 - Smart Tides</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -309,19 +309,19 @@
                 </div>
                 <div class="col-6">
                     <label class="form-label small mb-1">Venue</label>
-                    <input type="text" id="venueInput" class="form-control" placeholder="Location" oninput="window.saveActiveSession()">
+                    <input type="text" id="venueInput" class="form-control" placeholder="e.g. Arbroath" oninput="window.saveActiveSession()">
                 </div>
             </div>
         </div>
 
         <div class="inner-card p-3 mb-2">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="form-label small mb-0 text-primary fw-bold">Live Weather & Tide</label>
-                <button class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold shadow-sm" onclick="window.fetchLiveWeather()">
-                    <i class="bi bi-geo-alt-fill me-1"></i>Fetch GPS
+                <label class="form-label small mb-0 text-primary fw-bold">Live Data</label>
+                <button class="btn btn-sm btn-primary py-1 px-3 fw-bold shadow-sm" onclick="window.fetchLiveHub()">
+                    <i class="bi bi-cloud-arrow-down-fill me-1"></i>Fetch Data
                 </button>
             </div>
-            <div class="row g-2">
+            <div class="row g-2 mb-2">
                 <div class="col-6">
                     <input type="text" id="weatherInput" class="form-control form-control-sm text-center" placeholder="Weather" oninput="window.saveActiveSession()">
                 </div>
@@ -329,7 +329,7 @@
                     <input type="text" id="windInput" class="form-control form-control-sm text-center" placeholder="Wind" oninput="window.saveActiveSession()">
                 </div>
             </div>
-            <div id="visualTideContainer" style="display:none;" class="mt-3"></div>
+            <div id="visualTideContainer" style="display:none;" class="mt-2"></div>
         </div>
         
         <div class="inner-card p-3 mb-2">
@@ -662,116 +662,126 @@
             });
         }
 
-        // --- NEW: MATHEMATICAL TIDE & WEATHER FETCH ENGINE ---
-        window.fetchLiveWeather = function() {
-            const btn = document.querySelector('button[onclick="window.fetchLiveWeather()"]');
+        // --- NEW: SMART HUB FETCH ENGINE (VENUE PRIORITY + MATH TIDES) ---
+        window.fetchLiveHub = async function() {
+            const btn = document.querySelector('button[onclick="window.fetchLiveHub()"]');
+            const venueText = document.getElementById('venueInput').value.trim();
             
             if (!navigator.onLine) {
                 alert("You are offline. Please enter conditions manually.");
                 return;
             }
 
-            if (!navigator.geolocation) {
-                alert("Location is not supported by your device.");
-                return;
-            }
-
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Fetching...';
             btn.disabled = true;
-            
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    const weatherQuery = `${lat},${lon}`;
+
+            let lat, lon;
+
+            try {
+                // 1. Determine Coordinates (Venue vs GPS)
+                if (venueText !== "") {
+                    const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(venueText)}`);
+                    const weatherData = await weatherRes.json();
                     
-                    try {
-                        // 1. Fetch Weather from WeatherAPI
-                        const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${weatherQuery}`);
-                        const weatherData = await weatherRes.json();
-                        
-                        if (weatherData.error) throw new Error("WeatherAPI: " + weatherData.error.message);
-                        if (!weatherData.current) throw new Error("Invalid weather data received.");
-                        
-                        document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
-                        document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
+                    if (weatherData.error) throw new Error("Venue not found: " + weatherData.error.message);
+                    
+                    lat = weatherData.location.lat;
+                    lon = weatherData.location.lon;
+                    
+                    document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
+                    document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
 
-                        // 2. Fetch Mathematical Tide Data from Open-Meteo
-                        const tideRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=sea_level&timezone=auto`);
-                        const tideData = await tideRes.json();
-                        
-                        fetchedTideTable = [];
-                        
-                        if(tideData && tideData.hourly && tideData.hourly.sea_level) {
-                            const times = tideData.hourly.time;
-                            const levels = tideData.hourly.sea_level;
-                            const extremes = [];
-                            
-                            // Algorithm to find local peaks and troughs
-                            for(let i = 1; i < levels.length - 1; i++) {
-                                const prev = levels[i-1];
-                                const curr = levels[i];
-                                const next = levels[i+1];
-                                
-                                if(curr === null || prev === null || next === null) continue;
+                } else {
+                    if (!navigator.geolocation) throw new Error("Location services not supported. Please type a Venue instead.");
+                    
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: false, timeout: 10000 });
+                    });
+                    
+                    lat = position.coords.latitude;
+                    lon = position.coords.longitude;
+                    
+                    const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`);
+                    const weatherData = await weatherRes.json();
+                    
+                    if (weatherData.error) throw new Error("GPS Weather Error: " + weatherData.error.message);
+                    
+                    document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
+                    document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
+                }
 
-                                if(curr > prev && curr > next) {
-                                    extremes.push({ type: 'High', time: new Date(times[i]), level: curr });
-                                } else if (curr < prev && curr < next) {
-                                    extremes.push({ type: 'Low', time: new Date(times[i]), level: curr });
-                                }
-                            }
-                            
-                            // Filter to just today's tides
-                            const today = new Date().toDateString();
-                            const todaysTides = extremes.filter(t => t.time.toDateString() === today);
-                            todaysTides.sort((a,b) => a.time - b.time);
+                // 2. Feed Coordinates into Mathematical Tide Engine
+                const tideRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=sea_level&timezone=auto`);
+                const tideData = await tideRes.json();
+                
+                fetchedTideTable = [];
+                const tideContainer = document.getElementById('visualTideContainer');
+                
+                if(tideData && tideData.hourly && tideData.hourly.sea_level) {
+                    const times = tideData.hourly.time;
+                    const levels = tideData.hourly.sea_level;
+                    const extremes = [];
+                    
+                    for(let i = 1; i < levels.length - 1; i++) {
+                        const prev = levels[i-1];
+                        const curr = levels[i];
+                        const next = levels[i+1];
+                        
+                        if(curr === null || prev === null || next === null) continue;
 
-                            if(todaysTides.length > 0) {
-                                fetchedTideTable = todaysTides.map(t => `${t.type}: ${t.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} (${t.level.toFixed(2)}m)`);
-                                
-                                let tideVisualHTML = '<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-primary mt-2 small text-dark">';
-                                todaysTides.forEach((t, index) => {
-                                    const icon = t.type === 'High' ? '<i class="bi bi-water text-primary fs-5"></i>' : '<i class="bi bi-water text-info fs-5" style="opacity:0.6;"></i>';
-                                    const timeStr = t.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                                    tideVisualHTML += `<div class="text-center px-1">${icon}<br><strong>${t.type}</strong><br>${timeStr}<br><span class="text-muted fw-bold" style="font-size:0.65rem;">${t.level.toFixed(2)}m</span></div>`;
-                                    if (index < todaysTides.length - 1) {
-                                        tideVisualHTML += `<div class="text-muted"><i class="bi bi-chevron-right"></i></div>`;
-                                    }
-                                });
-                                tideVisualHTML += '</div>';
-                                
-                                const tideContainer = document.getElementById('visualTideContainer');
-                                if(tideContainer) {
-                                    tideContainer.innerHTML = tideVisualHTML;
-                                    tideContainer.style.display = 'block';
-                                }
-                            }
+                        if(curr > prev && curr > next) {
+                            extremes.push({ type: 'High', time: new Date(times[i]), level: curr });
+                        } else if (curr < prev && curr < next) {
+                            extremes.push({ type: 'Low', time: new Date(times[i]), level: curr });
                         }
-                        
-                        window.saveActiveSession();
-                        btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Success';
-                        setTimeout(() => { 
-                            btn.innerHTML = originalText; 
-                            btn.disabled = false; 
-                        }, 2000);
-                        
-                    } catch(err) {
-                        alert("Data Fetch Error: " + err.message);
-                        btn.innerHTML = originalText; 
-                        btn.disabled = false;
                     }
-                },
-                (err) => {
-                    alert("Unable to get location. Please ensure GPS is enabled.");
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                },
-                { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
-            );
+                    
+                    const today = new Date().toDateString();
+                    const todaysTides = extremes.filter(t => t.time.toDateString() === today);
+                    todaysTides.sort((a,b) => a.time - b.time);
+
+                    if(todaysTides.length > 0) {
+                        fetchedTideTable = todaysTides.map(t => `${t.type}: ${t.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} (${t.level.toFixed(2)}m)`);
+                        
+                        let tideVisualHTML = '<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-primary mt-2 small text-dark">';
+                        todaysTides.forEach((t, index) => {
+                            const icon = t.type === 'High' ? '<i class="bi bi-water text-primary fs-5"></i>' : '<i class="bi bi-water text-info fs-5" style="opacity:0.6;"></i>';
+                            const timeStr = t.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            tideVisualHTML += `<div class="text-center px-1">${icon}<br><strong>${t.type}</strong><br>${timeStr}<br><span class="text-muted fw-bold" style="font-size:0.65rem;">${t.level.toFixed(2)}m</span></div>`;
+                            if (index < todaysTides.length - 1) {
+                                tideVisualHTML += `<div class="text-muted"><i class="bi bi-chevron-right"></i></div>`;
+                            }
+                        });
+                        tideVisualHTML += '</div>';
+                        
+                        if(tideContainer) {
+                            tideContainer.innerHTML = tideVisualHTML;
+                            tideContainer.style.display = 'block';
+                        }
+                    } else {
+                        // INLAND OR NULL DATA EXPLICIT MESSAGE
+                        if(tideContainer) {
+                            tideContainer.innerHTML = '<div class="text-center bg-light p-2 rounded border border-primary mt-2 small text-muted fst-italic">No coastal tide data found for this area.</div>';
+                            tideContainer.style.display = 'block';
+                        }
+                    }
+                }
+
+                window.saveActiveSession();
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Success';
+                setTimeout(() => { 
+                    btn.innerHTML = originalText; 
+                    btn.disabled = false; 
+                }, 2000);
+
+            } catch(err) {
+                alert(err.message);
+                btn.innerHTML = originalText; 
+                btn.disabled = false;
+            }
         };
-        // --- END MATH TIDE ENGINE ---
+        // --- END SMART HUB ---
 
         window.toggleDarkMode = function() {
             const body = document.body;
@@ -800,6 +810,7 @@
                 });
             }
             
+            // Set the flag to show the toast on the next load
             sessionStorage.setItem('showUpdateToast', 'true');
             setTimeout(() => { window.location.reload(); }, 1200);
         };
