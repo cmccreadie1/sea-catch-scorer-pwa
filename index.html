@@ -268,7 +268,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 169.0 - Dual Control</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 170.0 - Coastline Snapper</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -674,57 +674,137 @@
             });
         }
 
-        // --- NEW: DUAL CONTROL WEATHER ENGINE ---
+        // --- NEW: COASTLINE SNAPPER TIDE ALGORITHM ---
         
-        window.doWeatherFetch = function(query, btn) {
+        // This function handles both Weather fetching and the Tide math calculation
+        window.fetchTidesAndWeather = async function(lat, lon, btn, originalText) {
+            try {
+                // 1. Get the Weather for those coordinates
+                const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${lat},${lon}`);
+                const weatherData = await weatherRes.json();
+                
+                if (weatherData.error) throw new Error(weatherData.error.message);
+                
+                document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
+                document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
+
+                // 2. Coastline Snapper Algorithm
+                // If a town centre is inland, we cast a net (approx 6km in each direction) to find the sea.
+                const lats = `${lat},${lat+0.06},${lat-0.06},${lat},${lat}`;
+                const lons = `${lon},${lon},${lon},${lon+0.1},${lon-0.1}`;
+
+                const tideRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=sea_level&timezone=auto`);
+                const tideDataArray = await tideRes.json();
+                
+                let validTideData = null;
+                // Open-Meteo returns an array of results when multiple coordinates are passed
+                let dataList = Array.isArray(tideDataArray) ? tideDataArray : [tideDataArray];
+                
+                // Scan the results to find the first one that is actually over the ocean (has data)
+                for (let d of dataList) {
+                    if (d && d.hourly && d.hourly.sea_level && d.hourly.sea_level.some(v => v !== null)) {
+                        validTideData = d;
+                        break;
+                    }
+                }
+
+                const tideContainer = document.getElementById('visualTideContainer');
+                fetchedTideTable = [];
+
+                if (validTideData) {
+                    // 3. Mathematical Tide Extreme Calculation
+                    const times = validTideData.hourly.time;
+                    const levels = validTideData.hourly.sea_level;
+                    const extremes = [];
+                    
+                    // We use a 6-hour sliding window to accurately find local highs and lows
+                    for(let i = 3; i < levels.length - 3; i++) {
+                        let curr = levels[i];
+                        if(curr === null) continue;
+                        
+                        let isMax = true;
+                        let isMin = true;
+                        
+                        for(let j = i - 3; j <= i + 3; j++) {
+                            if(i === j) continue;
+                            if(levels[j] >= curr) isMax = false;
+                            if(levels[j] <= curr) isMin = false;
+                        }
+                        
+                        if(isMax) extremes.push({ type: 'High', time: new Date(times[i]), level: curr });
+                        if(isMin) extremes.push({ type: 'Low', time: new Date(times[i]), level: curr });
+                    }
+
+                    // Filter to show only today's tides
+                    const today = new Date().toDateString();
+                    const todaysTides = extremes.filter(t => t.time.toDateString() === today);
+                    todaysTides.sort((a,b) => a.time - b.time);
+
+                    if (todaysTides.length > 0) {
+                        fetchedTideTable = todaysTides.map(t => `${t.type}: ${t.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} (${t.level.toFixed(2)}m)`);
+                        
+                        let tideVisualHTML = '<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-primary mt-2 small text-dark">';
+                        todaysTides.forEach((t, index) => {
+                            const icon = t.type === 'High' ? '<i class="bi bi-water text-primary fs-5"></i>' : '<i class="bi bi-water text-info fs-5" style="opacity:0.6;"></i>';
+                            const timeStr = t.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            tideVisualHTML += `<div class="text-center px-1">${icon}<br><strong>${t.type}</strong><br>${timeStr}<br><span class="text-muted fw-bold" style="font-size:0.65rem;">${t.level.toFixed(2)}m</span></div>`;
+                            if (index < todaysTides.length - 1) {
+                                tideVisualHTML += `<div class="text-muted"><i class="bi bi-chevron-right"></i></div>`;
+                            }
+                        });
+                        tideVisualHTML += '</div>';
+                        
+                        tideContainer.innerHTML = tideVisualHTML;
+                        tideContainer.style.display = 'block';
+                        document.getElementById('tideInput').value = "See Timeline"; // Auto-update manual dropdown
+                    } else {
+                        throw new Error("No extremes found today.");
+                    }
+                } else {
+                    // Explictly inform the user if the snapper still couldn't find the ocean
+                    tideContainer.innerHTML = '<div class="text-center bg-light p-2 rounded border border-secondary mt-2 small text-muted fst-italic">No coastal tide data found for this specific area.</div>';
+                    tideContainer.style.display = 'block';
+                }
+
+                window.saveActiveSession();
+                btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
+                setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+
+            } catch (err) {
+                alert("Data Fetch Error: " + err.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+
+        window.fetchByVenue = async function() {
+            if (!navigator.onLine) return alert("You are offline.");
+            const venueText = document.getElementById('venueInput').value.trim();
+            if (venueText === "") return alert("Please type a location in the Venue box first.");
+            
+            const btn = document.querySelector('button[onclick="window.fetchByVenue()"]');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Loading...';
             btn.disabled = true;
 
-            // Fetch Weather API with the tides=yes flag
-            fetch(`https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=${query}&days=1&tides=yes`)
-                .then(res => res.json())
-                .then(data => {
-                    if(data.error) throw new Error(data.error.message);
-                    
-                    document.getElementById('weatherInput').value = `${data.current.condition.text}, ${data.current.temp_c}°C`;
-                    document.getElementById('windInput').value = `${data.current.wind_dir} ${data.current.wind_mph}mph`;
-
-                    const tideContainer = document.getElementById('visualTideContainer');
-                    fetchedTideTable = [];
-
-                    // Check if coastal tide data is present
-                    if(data.forecast && data.forecast.forecastday[0].day.tides && data.forecast.forecastday[0].day.tides[0].tide.length > 0) {
-                        const tides = data.forecast.forecastday[0].day.tides[0].tide;
-                        fetchedTideTable = tides.map(t => `${t.tide_type}: ${t.tide_time.split(' ')[1]} (${t.tide_height_mt}m)`);
-                        
-                        let h = '<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-primary mt-2 small text-dark">';
-                        tides.forEach((t, i) => {
-                            const isHigh = t.tide_type === 'HIGH';
-                            const icon = isHigh ? '<i class="bi bi-water text-primary fs-5"></i>' : '<i class="bi bi-water text-info fs-5" style="opacity:0.6;"></i>';
-                            h += `<div class="text-center px-1">${icon}<br><strong>${isHigh?'High':'Low'}</strong><br>${t.tide_time.split(' ')[1]}<br><span class="text-muted fw-bold" style="font-size:0.65rem;">${t.tide_height_mt}m</span></div>`;
-                            if(i < tides.length - 1) h += `<div class="text-muted"><i class="bi bi-chevron-right"></i></div>`;
-                        });
-                        h += '</div>';
-                        
-                        tideContainer.innerHTML = h;
-                        tideContainer.style.display = 'block';
-                        document.getElementById('tideInput').value = "See Timeline"; // Update manual dropdown
-                    } else {
-                        // Explicit feedback that no tides exist for this spot
-                        tideContainer.innerHTML = '<div class="text-center bg-light p-2 rounded border border-secondary mt-2 small text-muted fst-italic">No coastal tide data found for this specific location.</div>';
-                        tideContainer.style.display = 'block';
-                    }
-
-                    window.saveActiveSession();
-                    btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Success';
-                    setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
-                })
-                .catch(err => {
-                    alert("Fetch Error: " + err.message);
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                });
+            try {
+                // Get Coordinates for the Venue first
+                const geoRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${encodeURIComponent(venueText)}`);
+                const geoData = await geoRes.json();
+                
+                if(geoData.error) throw new Error(geoData.error.message);
+                
+                const lat = geoData.location.lat;
+                const lon = geoData.location.lon;
+                
+                // Pass coordinates to the Coastline Snapper
+                window.fetchTidesAndWeather(lat, lon, btn, originalText);
+                
+            } catch (e) {
+                alert("Venue Search Error: " + e.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         };
 
         window.fetchByGPS = function() {
@@ -738,10 +818,9 @@
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    const query = `${position.coords.latitude},${position.coords.longitude}`;
-                    btn.innerHTML = originalText; // Reset before handing to doWeatherFetch
-                    btn.disabled = false;
-                    window.doWeatherFetch(query, btn);
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    window.fetchTidesAndWeather(lat, lon, btn, originalText);
                 },
                 (err) => {
                     alert("Unable to get GPS location. Check permissions.");
@@ -750,15 +829,6 @@
                 },
                 { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
             );
-        };
-
-        window.fetchByVenue = function() {
-            if (!navigator.onLine) return alert("You are offline.");
-            const venueText = document.getElementById('venueInput').value.trim();
-            if (venueText === "") return alert("Please type a location in the Venue box first.");
-            
-            const btn = document.querySelector('button[onclick="window.fetchByVenue()"]');
-            window.doWeatherFetch(encodeURIComponent(venueText), btn);
         };
 
         // --- END WEATHER ENGINE ---
@@ -1488,7 +1558,7 @@
             if(fetchedTideTable && fetchedTideTable.length > 0) {
                 let tideVisualHTML = '<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-primary mt-2 small text-dark">';
                 fetchedTideTable.forEach((tStr, index) => {
-                    const isHigh = tStr.includes('HIGH');
+                    const isHigh = tStr.includes('High');
                     const icon = isHigh ? '<i class="bi bi-water text-primary fs-5"></i>' : '<i class="bi bi-water text-info fs-5" style="opacity:0.6;"></i>';
                     const parts = tStr.split(': ');
                     const type = parts[0];
@@ -1496,7 +1566,7 @@
                     const timeStr = timeAndLevel[0];
                     const levelStr = timeAndLevel[1].replace(/[()]/g, '');
                     
-                    tideVisualHTML += `<div class="text-center px-1">${icon}<br><strong>${type === 'HIGH' ? 'High' : 'Low'}</strong><br>${timeStr}<br><span class="text-muted fw-bold" style="font-size:0.65rem;">${levelStr}</span></div>`;
+                    tideVisualHTML += `<div class="text-center px-1">${icon}<br><strong>${type}</strong><br>${timeStr}<br><span class="text-muted fw-bold" style="font-size:0.65rem;">${levelStr}</span></div>`;
                     if (index < fetchedTideTable.length - 1) {
                         tideVisualHTML += `<div class="text-muted"><i class="bi bi-chevron-right"></i></div>`;
                     }
