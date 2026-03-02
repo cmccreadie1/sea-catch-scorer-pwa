@@ -1,5 +1,5 @@
-// VERSION 195 - NULL PROPERTY CRASH FIX & GRID SEPARATION
-const CACHE_NAME = 'sea-score-v195';
+// VERSION 196 - VISUAL POLISH & SLEEK UI
+const CACHE_NAME = 'sea-score-v196';
 
 const FILES_TO_CACHE = [
   './',
