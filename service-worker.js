@@ -1,5 +1,5 @@
-// VERSION 199 - NATIVE LANDSCAPE & BLUE BADGES
-const CACHE_NAME = 'sea-score-v199';
+// VERSION 200 - HARDWARE FULLSCREEN & PINCH-TO-ZOOM
+const CACHE_NAME = 'sea-score-v200';
 
 const FILES_TO_CACHE = [
   './',
