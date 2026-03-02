@@ -1,5 +1,5 @@
-// VERSION 190 - UNIFIED WEATHER-API MARINE ENGINE
-const CACHE_NAME = 'sea-score-v190';
+// VERSION 191 - UK MASTER LIBRARY & TIMELINE GRAPH
+const CACHE_NAME = 'sea-score-v191';
 
 const FILES_TO_CACHE = [
   './',
