@@ -1,5 +1,5 @@
-// VERSION 184 - RADAR NET TIDE ALGORITHM
-const CACHE_NAME = 'sea-score-v184';
+// VERSION 186 - EXPLICIT COASTAL SEARCH HUB
+const CACHE_NAME = 'sea-score-v186';
 
 const FILES_TO_CACHE = [
   './',
