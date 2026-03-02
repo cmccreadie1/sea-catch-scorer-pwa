@@ -1,5 +1,5 @@
-// VERSION 201 - RETINA GRAPHS & DARK MODE CONSISTENCY
-const CACHE_NAME = 'sea-score-v201';
+// VERSION 202 - GPS LOCATE, EDIT CATCH & PWA INSTALL
+const CACHE_NAME = 'sea-score-v202';
 
 const FILES_TO_CACHE = [
   './',
