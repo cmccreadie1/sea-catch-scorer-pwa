@@ -1,5 +1,5 @@
-// VERSION 166 - GPS WEATHER & UPDATE TOAST RESTORED
-const CACHE_NAME = 'sea-score-v166';
+// VERSION 167 - OPEN-METEO MATHEMATICAL TIDE ENGINE
+const CACHE_NAME = 'sea-score-v167';
 
 // The essential files to load the app immediately
 const FILES_TO_CACHE = [
