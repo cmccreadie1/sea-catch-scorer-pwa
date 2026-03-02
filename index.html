@@ -199,7 +199,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 172.0 - Tide Plotter</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 173.0 - Magic Wand Tide</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -239,7 +239,12 @@
         </div>
 
         <div class="inner-card p-3 mb-2 border-primary">
-            <label class="form-label small mb-2 text-primary fw-bold"><i class="bi bi-graph-up me-1"></i>Tide Curve Setup (Optional)</label>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label small mb-0 text-primary fw-bold"><i class="bi bi-graph-up me-1"></i>Tide Curve Setup</label>
+                <button id="btnAutoTide" class="btn btn-sm btn-primary py-0 px-2 fw-bold shadow-sm" onclick="window.autoFillTides()">
+                    <i class="bi bi-magic me-1"></i>Auto-Fill
+                </button>
+            </div>
             <div class="row g-2">
                 <div class="col-6 text-center">
                     <label class="form-label small mb-1 text-muted">High Water Time</label>
@@ -250,7 +255,7 @@
                     <input type="time" id="lwTimeInput" class="form-control text-center text-info fw-bold" onchange="window.saveActiveSession()">
                 </div>
             </div>
-            <div class="small text-muted mt-2 text-center" style="font-size: 0.65rem;">Enter HW & LW to plot catches automatically onto a sine wave graph during fishing!</div>
+            <div class="small text-muted mt-2 text-center" style="font-size: 0.65rem;">Enter manually, or tap Auto-Fill when you are near the coast to magically detect the tide!</div>
         </div>
         
         <div class="inner-card p-3 mb-2">
@@ -407,14 +412,21 @@
         const PageManager={ show:function(id){ document.querySelectorAll('.app-page').forEach(p=>p.style.display='none'); document.getElementById('splashScreen').style.display='none'; document.getElementById(id).style.display='block'; window.scrollTo(0,0); } };
         const StorageHelper={ save: function(k,v) { try { localStorage.setItem(k,v); } catch(e) { console.error("Storage limit reached", e); throw new Error("QUOTA_EXCEEDED"); } }, get: (k) => localStorage.getItem(k), remove: (k) => localStorage.removeItem(k), getAll: () => ({...localStorage}) };
 
+        window.showAppToast = function(msg, isError = false) {
+            const t = document.getElementById('appToast');
+            document.getElementById('toastMsg').innerHTML = isError ? `<i class="bi bi-exclamation-triangle-fill me-2"></i> ${msg}` : `<i class="bi bi-check-circle-fill me-2"></i> ${msg}`;
+            t.className = isError ? 'toast text-bg-warning border-0 shadow-lg' : 'toast text-bg-success border-0 shadow-lg';
+            new bootstrap.Toast(t).show();
+        };
+
         if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('service-worker.js').then(function(registration) { console.log('ServiceWorker registration successful'); }, function(err) { console.log('ServiceWorker registration failed: ', err); }); }); }
 
         window.fetchLiveWeather = function() {
             const btn = document.querySelector('button[onclick="window.fetchLiveWeather()"]');
-            if (!navigator.onLine) return alert("You are offline. Please enter conditions manually.");
-            if (!navigator.geolocation) return alert("Location is not supported by your device.");
+            if (!navigator.onLine) return window.showAppToast("You are offline.", true);
+            if (!navigator.geolocation) return window.showAppToast("Location is not supported.", true);
 
-            const originalText = btn.innerHTML; btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Fetching...'; btn.disabled = true;
+            const originalText = btn.innerHTML; btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i> Locating...'; btn.disabled = true;
             
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -429,14 +441,106 @@
                             window.saveActiveSession();
                             btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Success';
                             setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
-                        }).catch(err => { alert("Weather Error: " + err.message); btn.innerHTML = originalText; btn.disabled = false; });
+                        }).catch(err => { window.showAppToast("Weather Error: " + err.message, true); btn.innerHTML = originalText; btn.disabled = false; });
                 },
-                (err) => { alert("Unable to get location. Please ensure GPS is enabled."); btn.innerHTML = originalText; btn.disabled = false; },
+                (err) => { window.showAppToast("Unable to get GPS location.", true); btn.innerHTML = originalText; btn.disabled = false; },
                 { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
             );
         };
 
-        // --- NEW: THE TIDE CURVE PLOTTER MATH ENGINE ---
+        // --- NEW: THE MAGIC WAND TIDE AUTO-FILL ---
+        window.autoFillTides = function() {
+            const btn = document.getElementById('btnAutoTide');
+            const originalText = btn.innerHTML;
+            
+            if (!navigator.onLine) return window.showAppToast("You are offline.", true);
+            if (!navigator.geolocation) return window.showAppToast("GPS not supported.", true);
+
+            btn.innerHTML = '<i class="bi bi-hourglass-split icon-spin"></i>';
+            btn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                
+                try {
+                    // Search in a grid to snap to the nearest sea cell
+                    const lats = `${lat},${lat+0.05},${lat-0.05},${lat},${lat}`;
+                    const lons = `${lon},${lon},${lon},${lon+0.08},${lon-0.08}`;
+                    
+                    const tideRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=sea_level&timezone=auto`);
+                    const tideDataArray = await tideRes.json();
+                    
+                    let validData = null;
+                    let dataList = Array.isArray(tideDataArray) ? tideDataArray : [tideDataArray];
+                    
+                    // Find the first result that has valid sea_level data
+                    for (let d of dataList) {
+                        if (d && d.hourly && d.hourly.sea_level && d.hourly.sea_level.some(v => v !== null)) {
+                            validData = d; 
+                            break;
+                        }
+                    }
+
+                    if(validData) {
+                        const times = validData.hourly.time;
+                        const levels = validData.hourly.sea_level;
+                        const extremes = [];
+                        
+                        // Math to find peaks and troughs
+                        for(let i = 3; i < levels.length - 3; i++) {
+                            let curr = levels[i];
+                            if(curr === null) continue;
+                            let isMax = true, isMin = true;
+                            
+                            for(let j = i - 3; j <= i + 3; j++) {
+                                if(i === j) continue;
+                                if(levels[j] >= curr) isMax = false;
+                                if(levels[j] <= curr) isMin = false;
+                            }
+                            
+                            if(isMax) extremes.push({ type: 'High', time: new Date(times[i]) });
+                            if(isMin) extremes.push({ type: 'Low', time: new Date(times[i]) });
+                        }
+                        
+                        const today = new Date().toDateString();
+                        const todaysTides = extremes.filter(t => t.time.toDateString() === today);
+                        todaysTides.sort((a,b) => a.time - b.time);
+
+                        if(todaysTides.length >= 2) {
+                            let hw = todaysTides.find(t => t.type === 'High');
+                            let lw = todaysTides.find(t => t.type === 'Low');
+                            
+                            // Auto-fill the input boxes with HH:MM format
+                            if(hw) document.getElementById('hwTimeInput').value = hw.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+                            if(lw) document.getElementById('lwTimeInput').value = lw.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+                            
+                            window.saveActiveSession();
+                            window.showAppToast("Tides Auto-Filled from GPS!");
+                        } else {
+                            window.showAppToast("Could not calculate clear tides for today.", true);
+                        }
+                    } else {
+                        // User is in Kilsyth or far inland
+                        alert("You appear to be inland. Auto-Fill works best at the beach.\n\nPlease type the times in manually.");
+                    }
+                    
+                    btn.innerHTML = originalText; 
+                    btn.disabled = false;
+                    
+                } catch (err) {
+                    window.showAppToast("Error fetching tides: " + err.message, true);
+                    btn.innerHTML = originalText; 
+                    btn.disabled = false;
+                }
+            }, (err) => {
+                window.showAppToast("Unable to get GPS location.", true);
+                btn.innerHTML = originalText; 
+                btn.disabled = false;
+            }, { enableHighAccuracy: false, timeout: 10000 });
+        };
+
+        // --- THE TIDE CURVE PLOTTER MATH ENGINE ---
         window.drawTideGraph = function(canvasId, hwStr, lwStr, fishArray) {
             const canvas = document.getElementById(canvasId);
             if(!canvas || !hwStr || !lwStr) return;
@@ -836,7 +940,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById("competitionDate").value = new Date().toISOString().split('T')[0]; window.restoreActiveSession();
             if(localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); document.getElementById('btnThemeToggle').innerHTML = '<i class="bi bi-sun-fill text-warning"></i>'; }
-            if(sessionStorage.getItem('showUpdateToast') === 'true') { sessionStorage.removeItem('showUpdateToast'); const t = document.getElementById('appToast'); document.getElementById('toastMsg').innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> App Updated successfully!'; t.className = 'toast text-bg-success border-0 shadow-lg'; new bootstrap.Toast(t).show(); }
+            if(sessionStorage.getItem('showUpdateToast') === 'true') { sessionStorage.removeItem('showUpdateToast'); window.showAppToast("App Updated successfully!"); }
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
