@@ -77,7 +77,7 @@
         .dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
         .dark-mode .table-custom td { background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-main); }
         
-        /* --- SCROLL DRUM PICKER UI (For Weights only now) --- */
+        /* --- SCROLL DRUM PICKER UI --- */
         .picker-outer-wrapper {
             background: var(--card-bg); padding: 15px; border-radius: 24px;
             border: 2px solid var(--app-blue); margin-bottom: 15px;
@@ -132,7 +132,6 @@
             text-align: center; padding: 20px; position: relative;
         }
         
-        /* New Text-Based Theme Toggle */
         .theme-toggle-btn { 
             position: absolute; top: 20px; right: 20px; 
             background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
@@ -209,7 +208,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 197.0 - Pro UI & Tides</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 198.0</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -423,15 +422,15 @@
     <div class="modal fade" id="imageModal" tabindex="-1" style="z-index:9999;">
         <div class="modal-dialog modal-fullscreen m-0">
             <div class="modal-content" style="background: #0f172a; border: none;">
-                <div class="modal-body p-0 d-flex align-items-center justify-content-center" style="overflow: hidden; height: 100vh; width: 100vw;">
-                    <div style="transform: rotate(90deg); width: 100vh; height: 100vw; display: flex; align-items: center; justify-content: center; position: relative;">
-                        
-                        <button class="btn btn-danger position-absolute shadow-lg fw-bold" style="top: 20px; right: 20px; z-index: 2000; padding: 10px 30px;" data-bs-dismiss="modal">
-                            <i class="bi bi-x-lg me-2"></i> Close View
-                        </button>
-                        
-                        <img id="fullSizeImage" src="" style="width: 85%; max-height: 85%; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); background: white; padding: 10px;">
+                <div class="modal-header border-0 pb-0 position-absolute w-100" style="z-index: 10;">
+                    <button type="button" class="btn-close btn-close-white ms-auto m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 d-flex flex-column align-items-center justify-content-center" style="height: 100vh; width: 100vw;">
+                    <div class="text-white mb-3 small fw-bold text-center px-3" id="rotateInstruction">
+                        <i class="bi bi-phone-landscape fs-3 d-block mb-1"></i>
+                        Rotate phone sideways for maximum size
                     </div>
+                    <img id="fullSizeImage" src="" style="width: 95%; max-height: 90vh; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); background: white;">
                 </div>
             </div>
         </div>
@@ -571,13 +570,12 @@
             }
         };
 
-        // --- MATH ENGINE FOR TIMELINE AND DOTS (WITH PERIOD CLAMP) ---
         window.drawTideGraph = function(canvasId, hwStr, lwStr, fishArray, startStr) {
             try {
                 const canvas = document.getElementById(canvasId);
                 if(!canvas || !hwStr || !lwStr) return;
                 const ctx = canvas.getContext('2d');
-                const w = canvas.width; const h = canvas.height; // 340 x 150
+                const w = canvas.width; const h = canvas.height; 
                 
                 const isDark = document.body.classList.contains('dark-mode');
                 
@@ -653,7 +651,6 @@
                     return `${hrs.toString().padStart(2,'0')}:${m}`;
                 };
 
-                // PREVENT "OBAN BUG": Force period clamp to standard tide length (~12.4 hours / 745 mins)
                 let rawPeriod = Math.abs(lwM - hwM) * 2;
                 if (rawPeriod === 0) rawPeriod = 1;
                 let period = (rawPeriod < 360 || rawPeriod > 900) ? 745 : rawPeriod;
@@ -688,7 +685,6 @@
                     ctx.fillText(label, x, graphBottom + 25);
                 };
 
-                // The logic could place multiple HW/LW depending on the window, but we will mark the known ones.
                 drawAxisMarker(hwM, `HW`, true);
                 drawAxisMarker(lwM, `LW`, true);
 
