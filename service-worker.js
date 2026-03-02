@@ -1,5 +1,5 @@
-// VERSION 181 - BEGIN SESSION BUTTON FIX
-const CACHE_NAME = 'sea-score-v181';
+// VERSION 182 - INTERNET VENUE SEARCH ENGINE
+const CACHE_NAME = 'sea-score-v182';
 
 const FILES_TO_CACHE = [
   './',
