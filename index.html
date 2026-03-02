@@ -268,7 +268,7 @@
         </svg>
 
         <h1 class="display-3 fw-bold mb-0">Sea Score</h1>
-        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 166.0 - GPS Weather</p>
+        <p class="text-uppercase tracking-widest opacity-50 small mb-5">Version 167.0 - Calculated Tides</p>
         
         <div class="d-grid gap-3 col-10 col-md-6 mx-auto">
             <button class="btn btn-light btn-lg fw-bold py-3 shadow-lg" onclick="window.startFishing()">Start Session</button>
@@ -316,19 +316,20 @@
 
         <div class="inner-card p-3 mb-2">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="form-label small mb-0 text-primary fw-bold">Live Weather</label>
+                <label class="form-label small mb-0 text-primary fw-bold">Live Weather & Tide</label>
                 <button class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold shadow-sm" onclick="window.fetchLiveWeather()">
                     <i class="bi bi-geo-alt-fill me-1"></i>Fetch GPS
                 </button>
             </div>
             <div class="row g-2">
                 <div class="col-6">
-                    <input type="text" id="weatherInput" class="form-control form-control-sm text-center" placeholder="e.g. Overcast" oninput="window.saveActiveSession()">
+                    <input type="text" id="weatherInput" class="form-control form-control-sm text-center" placeholder="Weather" oninput="window.saveActiveSession()">
                 </div>
                 <div class="col-6">
-                    <input type="text" id="windInput" class="form-control form-control-sm text-center" placeholder="e.g. NW 15mph" oninput="window.saveActiveSession()">
+                    <input type="text" id="windInput" class="form-control form-control-sm text-center" placeholder="Wind" oninput="window.saveActiveSession()">
                 </div>
             </div>
+            <div id="visualTideContainer" style="display:none;" class="mt-3"></div>
         </div>
         
         <div class="inner-card p-3 mb-2">
@@ -626,7 +627,7 @@
         
         let fishData=[], currentScoringMethod='', selectedWeightUnit='metric', currentSavedKey='', currentAngler='', currentVenue='', currentDate='';
         let isCompetitionMode = false, currentZone = '', currentPeg = '', currentTeam = '';
-        let weatherInfo = '', windInfo = '';
+        let weatherInfo = '', windInfo = '', fetchedTideTable = [];
 
         const PageManager={
             show:function(id){
@@ -661,7 +662,7 @@
             });
         }
 
-        // --- GPS ONLY WEATHER FETCH ---
+        // --- NEW: MATHEMATICAL TIDE & WEATHER FETCH ENGINE ---
         window.fetchLiveWeather = function() {
             const btn = document.querySelector('button[onclick="window.fetchLiveWeather()"]');
             
@@ -680,30 +681,87 @@
             btn.disabled = true;
             
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const query = `${position.coords.latitude},${position.coords.longitude}`;
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const weatherQuery = `${lat},${lon}`;
                     
-                    fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${query}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.error) throw new Error(data.error.message);
-                            if (!data.current) throw new Error("Invalid data received.");
+                    try {
+                        // 1. Fetch Weather from WeatherAPI
+                        const weatherRes = await fetch(`https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=${weatherQuery}`);
+                        const weatherData = await weatherRes.json();
+                        
+                        if (weatherData.error) throw new Error("WeatherAPI: " + weatherData.error.message);
+                        if (!weatherData.current) throw new Error("Invalid weather data received.");
+                        
+                        document.getElementById('weatherInput').value = `${weatherData.current.condition.text}, ${weatherData.current.temp_c}°C`;
+                        document.getElementById('windInput').value = `${weatherData.current.wind_dir} ${weatherData.current.wind_mph}mph`;
+
+                        // 2. Fetch Mathematical Tide Data from Open-Meteo
+                        const tideRes = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=sea_level&timezone=auto`);
+                        const tideData = await tideRes.json();
+                        
+                        fetchedTideTable = [];
+                        
+                        if(tideData && tideData.hourly && tideData.hourly.sea_level) {
+                            const times = tideData.hourly.time;
+                            const levels = tideData.hourly.sea_level;
+                            const extremes = [];
                             
-                            document.getElementById('weatherInput').value = `${data.current.condition.text}, ${data.current.temp_c}°C`;
-                            document.getElementById('windInput').value = `${data.current.wind_dir} ${data.current.wind_mph}mph`;
+                            // Algorithm to find local peaks and troughs
+                            for(let i = 1; i < levels.length - 1; i++) {
+                                const prev = levels[i-1];
+                                const curr = levels[i];
+                                const next = levels[i+1];
+                                
+                                if(curr === null || prev === null || next === null) continue;
+
+                                if(curr > prev && curr > next) {
+                                    extremes.push({ type: 'High', time: new Date(times[i]), level: curr });
+                                } else if (curr < prev && curr < next) {
+                                    extremes.push({ type: 'Low', time: new Date(times[i]), level: curr });
+                                }
+                            }
                             
-                            window.saveActiveSession();
-                            btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Success';
-                            setTimeout(() => { 
-                                btn.innerHTML = originalText; 
-                                btn.disabled = false; 
-                            }, 2000);
-                        })
-                        .catch(err => {
-                            alert("Weather Error: " + err.message);
+                            // Filter to just today's tides
+                            const today = new Date().toDateString();
+                            const todaysTides = extremes.filter(t => t.time.toDateString() === today);
+                            todaysTides.sort((a,b) => a.time - b.time);
+
+                            if(todaysTides.length > 0) {
+                                fetchedTideTable = todaysTides.map(t => `${t.type}: ${t.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} (${t.level.toFixed(2)}m)`);
+                                
+                                let tideVisualHTML = '<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-primary mt-2 small text-dark">';
+                                todaysTides.forEach((t, index) => {
+                                    const icon = t.type === 'High' ? '<i class="bi bi-water text-primary fs-5"></i>' : '<i class="bi bi-water text-info fs-5" style="opacity:0.6;"></i>';
+                                    const timeStr = t.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                                    tideVisualHTML += `<div class="text-center px-1">${icon}<br><strong>${t.type}</strong><br>${timeStr}<br><span class="text-muted fw-bold" style="font-size:0.65rem;">${t.level.toFixed(2)}m</span></div>`;
+                                    if (index < todaysTides.length - 1) {
+                                        tideVisualHTML += `<div class="text-muted"><i class="bi bi-chevron-right"></i></div>`;
+                                    }
+                                });
+                                tideVisualHTML += '</div>';
+                                
+                                const tideContainer = document.getElementById('visualTideContainer');
+                                if(tideContainer) {
+                                    tideContainer.innerHTML = tideVisualHTML;
+                                    tideContainer.style.display = 'block';
+                                }
+                            }
+                        }
+                        
+                        window.saveActiveSession();
+                        btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Success';
+                        setTimeout(() => { 
                             btn.innerHTML = originalText; 
-                            btn.disabled = false;
-                        });
+                            btn.disabled = false; 
+                        }, 2000);
+                        
+                    } catch(err) {
+                        alert("Data Fetch Error: " + err.message);
+                        btn.innerHTML = originalText; 
+                        btn.disabled = false;
+                    }
                 },
                 (err) => {
                     alert("Unable to get location. Please ensure GPS is enabled.");
@@ -713,7 +771,7 @@
                 { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
             );
         };
-        // --- END WEATHER ENGINE ---
+        // --- END MATH TIDE ENGINE ---
 
         window.toggleDarkMode = function() {
             const body = document.body;
@@ -742,13 +800,12 @@
                 });
             }
             
-            // Set the flag to show the toast on the next load
             sessionStorage.setItem('showUpdateToast', 'true');
             setTimeout(() => { window.location.reload(); }, 1200);
         };
 
         window.exportToCSV = function() {
-            let csvContent = "Date,Venue,Angler,Match Mode,Team,Zone,Peg,Weather,Wind,Species,Measurement,Time,Notes\n";
+            let csvContent = "Date,Venue,Angler,Match Mode,Team,Zone,Peg,Weather,Wind,Tides,Species,Measurement,Time,Notes\n";
             const keys = Object.keys(StorageHelper.getAll()).filter(k=>k.startsWith('scorecard_'));
             
             if(keys.length === 0) return alert("No history to export.");
@@ -764,6 +821,7 @@
                 const peg = `"${(d.peg || '').replace(/"/g, '""')}"`;
                 const weath = `"${(d.weatherInfo || '').replace(/"/g, '""')}"`;
                 const wind = `"${(d.windInfo || '').replace(/"/g, '""')}"`;
+                const tideData = `"${(d.tides ? d.tides.join(' | ') : '').replace(/"/g, '""')}"`;
                 const notes = `"${(d.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
 
                 if(d.fishData && d.fishData.length > 0) {
@@ -775,10 +833,10 @@
                         else meas = `"${f.length}cm"`;
                         const time = `"${f.time || ''}"`;
 
-                        csvContent += `${dateStr},${venue},${angler},${mode},${team},${zone},${peg},${weath},${wind},${species},${meas},${time},${notes}\n`;
+                        csvContent += `${dateStr},${venue},${angler},${mode},${team},${zone},${peg},${weath},${wind},${tideData},${species},${meas},${time},${notes}\n`;
                     });
                 } else {
-                    csvContent += `${dateStr},${venue},${angler},${mode},${team},${zone},${peg},${weath},${wind},Blank,N/A,,${notes}\n`;
+                    csvContent += `${dateStr},${venue},${angler},${mode},${team},${zone},${peg},${weath},${wind},${tideData},Blank,N/A,,${notes}\n`;
                 }
             });
 
@@ -832,7 +890,7 @@
 
         window.resetAppToHome = function() {
             fishData = []; currentScoringMethod = ''; isCompetitionMode = false; currentZone = ''; currentPeg = ''; currentTeam = ''; currentVenue = ''; currentSavedKey = '';
-            weatherInfo = ''; windInfo = '';
+            weatherInfo = ''; windInfo = ''; fetchedTideTable = [];
             
             document.getElementById('venueInput').value = ''; 
             document.getElementById('scoringMethod').selectedIndex = 0; 
@@ -844,6 +902,12 @@
             
             document.getElementById('weatherInput').value = ''; 
             document.getElementById('windInput').value = ''; 
+            
+            const tideContainer = document.getElementById('visualTideContainer');
+            if(tideContainer) {
+                tideContainer.innerHTML = '';
+                tideContainer.style.display = 'none';
+            }
             
             document.getElementById('speciesInput').selectedIndex = 0; 
             document.getElementById('customSpeciesInput').value = '';
@@ -1191,7 +1255,7 @@
                 StorageHelper.save(currentSavedKey, JSON.stringify({
                     angler:currentAngler, venue:currentVenue, date:currentDate, 
                     isComp:isCompetitionMode, team:currentTeam, zone:currentZone, peg:currentPeg,
-                    weatherInfo, windInfo,
+                    weatherInfo, windInfo, tides: fetchedTideTable,
                     fishData, method:currentScoringMethod, weightUnit:selectedWeightUnit, 
                     notes: '' 
                 }));
@@ -1311,9 +1375,15 @@
             const notesContent = d.notes || '';
             const displayNotes = notesContent.trim() !== '' ? notesContent.replace(/\n/g, '<br>') : '<em>No notes added yet.</em>';
             
+            let systemTidesHTML = '';
+            if(d.tides && d.tides.length > 0) {
+                systemTidesHTML = `<div class="mb-2"><strong class="text-primary d-block mb-1"><i class="bi bi-water me-1"></i>Tide Table:</strong><span class="ms-4 small">${d.tides.join(' | ')}</span></div>`;
+            }
+
             const notesContainer = document.getElementById('saved_view_notes_container');
             notesContainer.innerHTML = `
                 <div class="inner-card mt-3 p-3 border shadow-sm">
+                    ${systemTidesHTML}
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="form-label small fw-bold text-muted m-0"><i class="bi bi-journal-text me-1"></i>Session Notes</label>
                         <button id="btnEditNotes" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="window.toggleEditNotes()"><i class="bi bi-pencil me-1"></i>Edit</button>
@@ -1382,7 +1452,7 @@
                     team:document.getElementById('teamInput').value,
                     zone:document.getElementById('zoneInput').value, 
                     peg:document.getElementById('pegInput').value, 
-                    weatherInfo:weatherI, windInfo:windI,
+                    weatherInfo:weatherI, windInfo:windI, tides: fetchedTideTable,
                     fishData 
                 }));
             } catch(e) {}
@@ -1402,7 +1472,7 @@
             const s = JSON.parse(StorageHelper.get('active_session')); 
             fishData=s.fishData||[]; currentAngler=s.angler; currentVenue=s.venue; currentDate=s.date; currentScoringMethod=s.method; selectedWeightUnit=s.unit;
             isCompetitionMode=s.isComp; currentTeam=s.team||''; currentZone=s.zone; currentPeg=s.peg;
-            weatherInfo=s.weatherInfo||''; windInfo=s.windInfo||'';
+            weatherInfo=s.weatherInfo||''; windInfo=s.windInfo||''; fetchedTideTable=s.tides||[];
             
             document.getElementById('anglerName').value=s.angler; 
             document.getElementById('venueInput').value=s.venue; 
@@ -1413,6 +1483,31 @@
             document.getElementById('pegInput').value=s.peg || '';
             document.getElementById('weatherInput').value=weatherInfo;
             document.getElementById('windInput').value=windInfo;
+
+            if(fetchedTideTable && fetchedTideTable.length > 0) {
+                let tideVisualHTML = '<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-primary mt-2 small text-dark">';
+                fetchedTideTable.forEach((tStr, index) => {
+                    const isHigh = tStr.includes('High');
+                    const icon = isHigh ? '<i class="bi bi-water text-primary fs-5"></i>' : '<i class="bi bi-water text-info fs-5" style="opacity:0.6;"></i>';
+                    const parts = tStr.split(': ');
+                    const type = parts[0];
+                    const timeAndLevel = parts[1].split(' ');
+                    const timeStr = timeAndLevel[0];
+                    const levelStr = timeAndLevel[1].replace(/[()]/g, '');
+                    
+                    tideVisualHTML += `<div class="text-center px-1">${icon}<br><strong>${type}</strong><br>${timeStr}<br><span class="text-muted fw-bold" style="font-size:0.65rem;">${levelStr}</span></div>`;
+                    if (index < fetchedTideTable.length - 1) {
+                        tideVisualHTML += `<div class="text-muted"><i class="bi bi-chevron-right"></i></div>`;
+                    }
+                });
+                tideVisualHTML += '</div>';
+                
+                const tideContainer = document.getElementById('visualTideContainer');
+                if(tideContainer) {
+                    tideContainer.innerHTML = tideVisualHTML;
+                    tideContainer.style.display = 'block';
+                }
+            }
 
             window.toggleCompetitionFields();
             window.populateSpeciesDropdown();
@@ -1491,7 +1586,6 @@
                 document.getElementById('btnThemeToggle').innerHTML = '<i class="bi bi-sun-fill text-warning"></i>';
             }
 
-            // Restore the update success toast check
             if(sessionStorage.getItem('showUpdateToast') === 'true') {
                 sessionStorage.removeItem('showUpdateToast');
                 const t = document.getElementById('appToast'); 
