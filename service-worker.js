@@ -1,5 +1,5 @@
-// VERSION 196 - VISUAL POLISH & SLEEK UI
-const CACHE_NAME = 'sea-score-v196';
+// VERSION 197 - FORCED LANDSCAPE & TRADITIONAL LENGTH
+const CACHE_NAME = 'sea-score-v197';
 
 const FILES_TO_CACHE = [
   './',
