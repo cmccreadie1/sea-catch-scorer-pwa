@@ -1,5 +1,5 @@
-// VERSION 182 - INTERNET VENUE SEARCH ENGINE
-const CACHE_NAME = 'sea-score-v182';
+// VERSION 183 - SMART FETCH & COASTAL SNAPPER FIX
+const CACHE_NAME = 'sea-score-v183';
 
 const FILES_TO_CACHE = [
   './',
